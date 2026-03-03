@@ -1,0 +1,37 @@
+name: Suggest a company
+description: Suggest a company or protocol to add to the Agent-Era Infrastructure Map
+labels: ["map: add entity"]
+body:
+  - type: input
+    id: name
+    attributes:
+      label: Company or protocol name
+    validations:
+      required: true
+  - type: dropdown
+    id: layer
+    attributes:
+      label: Layer
+      options:
+        - Compute
+        - Protocols
+        - Discovery
+        - Identity
+        - Payments
+        - Not sure
+    validations:
+      required: true
+  - type: textarea
+    id: why
+    attributes:
+      label: Why should it be on the map?
+      description: What does it do in the agent stack? A sentence or two is fine.
+    validations:
+      required: true
+  - type: textarea
+    id: sources
+    attributes:
+      label: Sources
+      description: Links to docs, announcements, or anything that helps score it.
+    validations:
+      required: false

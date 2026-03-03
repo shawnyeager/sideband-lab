@@ -1,0 +1,43 @@
+name: Challenge a score
+description: Think a company is scored wrong on openness or distribution? Make your case.
+labels: ["map: challenge score"]
+body:
+  - type: input
+    id: entity
+    attributes:
+      label: Company or protocol
+    validations:
+      required: true
+  - type: dropdown
+    id: axis
+    attributes:
+      label: Which axis?
+      options:
+        - Openness (x-axis)
+        - Distribution (y-axis)
+        - Both
+    validations:
+      required: true
+  - type: dropdown
+    id: direction
+    attributes:
+      label: Should the score be higher or lower?
+      options:
+        - Higher (more open / more distributed)
+        - Lower (more closed / more centralized)
+    validations:
+      required: true
+  - type: textarea
+    id: argument
+    attributes:
+      label: What's the case?
+      description: Reference the rubric if you can. "Can you use this without one company's permission?" for openness, "Company's servers go down, everything stops?" for distribution.
+    validations:
+      required: true
+  - type: textarea
+    id: sources
+    attributes:
+      label: Sources
+      description: Links that support your argument.
+    validations:
+      required: false
