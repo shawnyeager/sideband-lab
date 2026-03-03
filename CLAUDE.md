@@ -122,6 +122,7 @@ After scaffolding, report what was created and what the user still needs to prov
 - Every project links back to its companion Substack post.
 - Projects own their content area. The shell (header/footer) is shared.
 - Page background matches sideband.pub: cream (#EEEBE4). Header is always cream. Projects own their content canvas (dark visualizations are fine as islands within cream).
+- **No hardcoded values in CSS.** Use design tokens from `global.css` (`--space-*`, `--text`, `--text-muted`, `--font-display`, etc.). If a token doesn't exist, create one. Never inline magic numbers for spacing, colors, or font sizes when a variable exists or should exist.
 
 ## Image rules
 
