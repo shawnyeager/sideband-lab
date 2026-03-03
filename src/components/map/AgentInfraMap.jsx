@@ -304,18 +304,17 @@ export default function AgentInfraMap() {
             }}>{showDiagonal ? "\u2713 " : ""}Diagonal</button>
           </div>
         )}
-        {view === "all" && (
-          <div style={{
-            fontFamily: F.ui,
-            fontSize: mobile ? T.detail.m : T.detail.d,
-            color: C.text, opacity: 0.35,
-            letterSpacing: "0.03em",
-            marginBottom: mobile ? 4 : 8,
-            marginTop: mobile ? 0 : -12,
-          }}>
-            Select a layer to reveal labels
-          </div>
-        )}
+        <div style={{
+          fontFamily: F.ui,
+          fontSize: mobile ? T.detail.m : T.detail.d,
+          color: C.text, opacity: view === "all" ? 0.35 : 0,
+          letterSpacing: "0.03em",
+          marginBottom: mobile ? 4 : 8,
+          marginTop: mobile ? 0 : -12,
+          transition: "opacity 0.15s",
+        }}>
+          Select a layer to reveal labels
+        </div>
         <div ref={setChartRef}>
           <ScatterPlot data={data} layers={layers} width={chartWidth} height={chartHeight} selectedLayer={view} hoveredPoint={hoveredPoint} setHoveredPoint={setHoveredPoint} showDiagonal={showDiagonal} />
         </div>
