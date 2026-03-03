@@ -1,0 +1,63 @@
+---
+---
+
+<div class="subscribe">
+  <div class="subscribe__rule"></div>
+  <p class="subscribe__prompt">Get the next one in your inbox</p>
+  <a
+    href="https://www.sideband.pub/subscribe"
+    class="subscribe__btn plausible-event-name=Subscribe+Click"
+  >
+    Subscribe
+  </a>
+</div>
+
+<style>
+  .subscribe {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-lg) 0 var(--space-md);
+  }
+
+  .subscribe__rule {
+    width: 40px;
+    height: 1px;
+    background: var(--hr);
+    margin-bottom: var(--space-xs);
+  }
+
+  .subscribe__prompt {
+    font-size: 0.9rem;
+    letter-spacing: 0.03em;
+    color: var(--text-sub);
+  }
+
+  .subscribe__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    padding: 0 24px;
+    background: rgba(14, 165, 201, 0.2);
+    color: var(--cyan);
+    font-family: var(--font-sans);
+    font-weight: 600;
+    font-size: 15px;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: background 0.15s;
+  }
+
+  .subscribe__btn:hover {
+    background: rgba(14, 165, 201, 0.3);
+    color: var(--cyan);
+  }
+
+  @media (max-width: 640px) {
+    .subscribe {
+      padding: var(--space-md) 0 var(--space-sm);
+    }
+  }
+</style>

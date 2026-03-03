@@ -1,0 +1,20 @@
+---
+import fs from 'node:fs';
+import path from 'node:path';
+import { projectMeta } from '../../lib/header';
+import projects from '../../content/projects.json';
+
+const project = projects.find(p => p.slug === 'status');
+const meta = project ? projectMeta(project) : '';
+
+const htmlPath = path.resolve('public/status/index.html');
+let html = fs.readFileSync(htmlPath, 'utf-8');
+// Inject only og meta — no header, no font preloads (gag page must look real)
+if (meta) {
+  html = html.replace(/<head([^>]*)>/, `<head$1>${meta}`);
+}
+
+return new Response(html, {
+  headers: { 'content-type': 'text/html; charset=utf-8' }
+});
+---

@@ -1,0 +1,1283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Agent payments have a three-body problem</title>
+<link rel="preload" href="/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+  @font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 400 700;
+    font-display: swap;
+    src: url('/fonts/Inter-Variable.woff2') format('woff2');
+  }
+
+  /* ============================================================
+     DESIGN TOKENS
+     ============================================================ */
+  :root {
+    /* ── Site palette (light cream page) ── */
+    --site-bg:          #eeebe4;
+    --site-text:        #393a3a;
+    --site-text-muted:  #6b6966;
+    --site-text-sub:    #9a9793;
+    --site-hr:          #d5d2cb;
+    --site-hr-subtle:   #e0ddd6;
+
+    /* ── Chart palette (dark canvas) ── */
+    --bg:               #1d2733;
+    --bg-light:         #253040;
+    --bg-mid:           #2E3A48;
+
+    /* ── Brand accent ── */
+    --accent:           #0ea5c9;
+    --accent-muted:     #0A7A98;
+
+    /* ── Diverging scale poles ── */
+    --cyan:             #0ea5c9;
+    --cyan-muted:       #0A7A98;
+    --sage:             #6B9E78;
+    --sage-muted:       #5A7A60;
+    --gold:             #9A8030;
+    --gold-muted:       #7A6828;
+
+    /* ── Text on dark chart background ── */
+    --text-heading:     #e3dfd3;
+    --text-sub:         #a09d94;
+    --text-body:        #e3dfd3;
+    --text-muted:       #7a7770;
+
+    /* ── Typographic scale ──────────────────────────────────────
+       h1 > subtitle > body > detail-summary > detail-body > foot
+       ─────────────────────────────────────────────────────────── */
+    --fs-h1:            34px;
+    --fs-sub:           20px;
+    --fs-body:          20px;
+    --fs-detail-sum:    16px;
+    --fs-detail-body:   15px;
+    --fs-foot:          14px;
+
+    --lh-heading:       1.15;
+    --lh-body:          1.65;
+
+    /* ── Spacing scale ── */
+    --sp-1:             6px;
+    --sp-2:             12px;
+    --sp-3:             20px;
+    --sp-4:             28px;
+    --sp-5:             40px;
+  }
+
+  /* ============================================================
+     BASE
+     ============================================================ */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html {
+    overflow-x: hidden;
+    overflow-y: scroll;
+    max-width: 100%;
+  }
+
+  body {
+    background: var(--site-bg);
+    color: var(--site-text);
+    font-family: 'Inter', system-ui, sans-serif;
+    display: flex;
+    justify-content: center;
+  }
+
+  .page {
+    width: 100%;
+    max-width: 1050px;
+    padding: 40px 55px 48px;
+    overflow-x: hidden;
+  }
+
+  /* ============================================================
+     TYPOGRAPHY — SITE LEVEL
+     ============================================================ */
+  .body {
+    font-size: var(--fs-body);
+    line-height: var(--lh-body);
+    color: var(--site-text);
+    margin-bottom: var(--sp-3);
+    max-width: 728px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .body strong {
+    color: var(--site-text);
+    font-weight: 700;
+  }
+
+  .zb-footer {
+    width: calc(100% + 56px);
+    margin-left: -28px;
+    margin-top: 14px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(122,119,112,0.15);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-size: 10px;
+    color: #7a7770;
+    letter-spacing: 0.02em;
+  }
+  .zb-credit a {
+    color: #7a7770;
+    text-decoration: none;
+    border-bottom: 1px solid rgba(122,119,112,0.3);
+  }
+  .zb-credit a:hover { color: #a09d94; }
+  .cap-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    vertical-align: middle;
+    position: relative;
+    top: -1px;
+  }
+  .cap-dot.filled.cyan { background: #0ea5c9; }
+  .cap-dot.hollow {
+    background: transparent;
+    box-shadow: inset 0 0 0 1.5px #7a7770;
+  }
+
+  /* Rotating dash animation for orbit rings and arcs */
+  @keyframes dash-flow {
+    to { stroke-dashoffset: -40; }
+  }
+  .orbit-dash {
+    animation: dash-flow 12s linear infinite;
+  }
+
+  /* ============================================================
+     CHART BLOCK (title overlays SVG + zone-bar = one navy unit)
+     ============================================================ */
+  .chart-island {
+    max-width: 940px;
+    background: var(--bg);
+    border-radius: 3px 3px 0 0;
+    overflow: visible;
+  }
+  .chart-container {
+    width: 100%;
+    aspect-ratio: 940 / 540;
+    overflow: visible;
+  }
+  .chart-container svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+  .chart-title {
+    position: relative;
+    z-index: 10;
+    padding: 24px 40px 0;
+    margin-bottom: -60px;
+  }
+  .chart-title h2 {
+    font-family: 'Roboto Slab', Georgia, serif;
+    font-weight: 700;
+    font-size: 24px;
+    color: #e3dfd3;
+    letter-spacing: -0.01em;
+    line-height: 1.15;
+    margin: 0 0 6px;
+  }
+  .chart-title p {
+    font-size: 14px;
+    color: #a09d94;
+    line-height: 1.5;
+    margin: 0;
+  }
+
+  /* ============================================================
+     AXES (below chart)
+     ============================================================ */
+  .axes {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 40px;
+    margin-bottom: var(--sp-4);
+  }
+
+  .ax { text-align: center; }
+
+  .ax-t {
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-weight: 600;
+    font-size: 14px;
+    margin-bottom: var(--sp-1);
+  }
+
+  .ax-t.control  { color: var(--cyan); }
+  .ax-t.autonomy { color: var(--gold); }
+
+  .ax-d {
+    font-size: 12px;
+    line-height: var(--lh-body);
+  }
+
+  .ax-d.control  { color: var(--cyan-muted); }
+  .ax-d.autonomy { color: var(--gold-muted); }
+
+  .cz { text-align: center; }
+
+  .cz-t {
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    font-weight: 600;
+    font-size: 12px;
+    color: var(--sage);
+    margin-bottom: var(--sp-1);
+  }
+
+  .cz-d {
+    font-size: 12px;
+    line-height: var(--lh-body);
+    color: var(--sage-muted);
+  }
+
+  /* ============================================================
+     DIVIDERS
+     ============================================================ */
+  .hr {
+    width: 100%;
+    height: 1px;
+    background: var(--site-hr);
+    border: none;
+    margin: 0 0 var(--sp-4);
+  }
+
+  .hr-subtle {
+    width: 100%;
+    max-width: 728px;
+    height: 1px;
+    background: var(--site-hr-subtle);
+    border: none;
+    margin: var(--sp-4) auto;
+  }
+
+  /* ============================================================
+     COLLAPSIBLE DETAILS
+     ============================================================ */
+  .detail-block {
+    margin-top: 0;
+    margin-bottom: var(--sp-3);
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    max-width: 728px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .detail-sources { margin-top: var(--sp-2); }
+
+  details summary {
+    font-size: var(--fs-detail-sum);
+    font-weight: 500;
+    color: var(--site-text-muted);
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+    line-height: var(--lh-body);
+  }
+
+  details summary::-webkit-details-marker { display: none; }
+
+  details summary .chev {
+    display: inline-block;
+    margin-left: 4px;
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    border-top: 5px solid var(--site-text-muted);
+    vertical-align: 2px;
+    transition: transform 0.15s ease;
+  }
+
+  details[open] summary .chev { transform: rotate(180deg); }
+
+  .details-content {
+    font-size: var(--fs-detail-body);
+    line-height: var(--lh-body);
+    color: var(--site-text-muted);
+    margin-top: var(--sp-1);
+    max-width: 728px;
+    overflow-wrap: break-word;
+  }
+
+  .details-content strong {
+    color: var(--site-text);
+    font-weight: 600;
+  }
+
+  /* Footnote entries injected by JS */
+  #footnotes {
+    font-size: var(--fs-foot);
+  }
+
+  /* ============================================================
+     ZONE BAR (seamless dark panel below chart)
+     ============================================================ */
+  .zone-bar {
+    width: 100%;
+    max-width: 940px;
+    background: var(--bg);
+    border-radius: 0 0 3px 3px;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: flex-start;
+    padding: 24px 68px 20px;
+    margin-bottom: var(--sp-4);
+    gap: var(--sp-3);
+  }
+
+  .zb-col { flex: 1; text-align: center; }
+
+  .zb-title {
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    font-weight: 600;
+    font-size: 11px;
+    margin-bottom: var(--sp-1);
+  }
+
+  .zb-title.control  { color: var(--cyan); }
+  .zb-title.contested { color: var(--sage); letter-spacing: 0.15em; }
+  .zb-title.autonomy { color: var(--gold); }
+
+  .zb-body {
+    font-size: 10.5px;
+    font-style: italic;
+    font-weight: 400;
+    line-height: 1.5;
+    opacity: 0.65;
+  }
+
+  .zb-body.control-text  { color: #0A7A98; }
+  .zb-body.contested-text { color: #5A7A60; }
+  .zb-body.autonomy-text  { color: #7A6828; }
+
+  /* ============================================================
+     MOBILE
+     ============================================================ */
+  @media (max-width: 768px) {
+    .page {
+      padding: 20px 16px 32px;
+    }
+
+    /* Typography — fill available width */
+    .body {
+      font-size: 18px;
+      line-height: 1.6;
+      max-width: 100%;
+    }
+    .detail-block { max-width: 100%; }
+    .details-content { max-width: 100%; }
+    .hr-subtle { max-width: 100%; }
+
+    /* Chart island: full bleed on mobile */
+    .chart-island {
+      width: calc(100% + 32px);
+      margin-left: -16px;
+      margin-right: -16px;
+      max-width: none;
+      border-radius: 0;
+    }
+    .chart-title {
+      padding: 16px 16px 12px;
+      margin-bottom: 0;
+    }
+    .chart-title h2 {
+      font-size: 18px;
+      margin-bottom: 4px;
+    }
+    .chart-title p {
+      font-size: 13px;
+    }
+
+    /* Chart: full width within island */
+    .chart-container {
+      max-width: none;
+    }
+
+    /* Zone bar: full bleed, row layout with proper sizing */
+    .zone-bar {
+      width: calc(100% + 32px);
+      margin-left: -16px;
+      margin-right: -16px;
+      max-width: none;
+      border-radius: 0;
+      padding: 14px 10px 10px;
+      gap: 6px;
+    }
+    .zb-title {
+      font-size: 8.5px;
+      letter-spacing: 0.1em;
+      margin-bottom: 3px;
+    }
+    .zb-body {
+      font-size: 8.5px;
+      line-height: 1.4;
+    }
+    .zb-footer {
+      width: calc(100% + 20px);
+      margin-left: -10px;
+      margin-right: -10px;
+      padding: 8px 10px 0;
+      flex-direction: column;
+      gap: 2px;
+      text-align: center;
+      font-size: 8px;
+    }
+
+    /* Axes stack vertically */
+    .axes {
+      flex-direction: column;
+      gap: 14px;
+      padding: 0;
+    }
+  }
+
+</style>
+<script src="/three-body-problem/d3.v7.min.js"></script>
+</head>
+<body>
+<div class="page">
+  <div class="chart-island">
+    <div class="chart-title">
+      <h2>Agent payments have a three-body problem</h2>
+      <p>The financial system wasn&rsquo;t built for software that spends money.</p>
+    </div>
+    <div class="chart-container" id="chart">
+    </div>
+  </div>
+  <div class="zone-bar">
+    <div class="zb-col">
+      <div class="zb-title control">CONTROL</div>
+      <p class="zb-body control-text">Powerful and growing.<br>Regulation is the moat.</p>
+    </div>
+    <div class="zb-col">
+      <div class="zb-title contested">CONTESTED ZONE</div>
+      <p class="zb-body contested-text">Unstable orbits—<br>pulled both directions</p>
+    </div>
+    <div class="zb-col">
+      <div class="zb-title autonomy">AUTONOMY</div>
+      <p class="zb-body autonomy-text">Smaller but growing faster.<br>Agents multiply the mass.</p>
+    </div>
+    <div class="zb-footer">
+      <div class="zb-key"><span class="cap-dot filled cyan"></span> Filled = capital flow, sized by volume. <span class="cap-dot hollow"></span> Hollow = no public volume data.</div>
+      <div class="zb-credit">Sideband · <a href="https://www.sideband.pub">sideband.pub</a> · Data: 2025 · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></div>
+    </div>
+  </div>
+
+  <p class="body">
+    The state and incumbent capital form a binary system. Regulation creates moats. Moats fund lobbying. Lobbying creates regulation. <strong>They reinforce each other's gravity</strong> and every major payment rail orbits within their shared well. Visa, Mastercard, PayPal, Stripe—they don't resist the pull. The friction is their business model.
+  </p>
+  <p class="body">
+    Insurgent capital is money that moves without permission. No KYC, no intermediary, no legal entity required. Keypair identity, cryptographic settlement, open rails. It's been gaining mass for years because people want it. The hypothesis: <strong>agents will accelerate it</strong>, because they need speed, scale, and permissionless access that the control alliance can't offer without dismantling itself. Lightning, Nostr, Cashu orbit here.
+  </p>
+  <p class="body">
+    The contested zone between them is crowded. Stripe and OpenAI built ACP. Google launched AP2. Visa and Mastercard shipped agent identity protocols. Stablecoins—$33 trillion in 2025—are the native currency of the contested zone, regulated money running on permissionless rails. Both sides are converging on <strong>territory neither fully controls</strong>.
+  </p>
+  <p class="body">
+    Both sides are gaining mass. The state grows through regulation and enforcement. Insurgent capital grows through agents, speed, and compounding incentive. <strong>The rate of change favors autonomy.</strong>
+  </p>
+
+  <div class="hr-subtle"></div>
+
+  <details class="detail-block">
+    <summary>How the simulation works <span class="chev"></span></summary>
+    <div class="details-content">
+      This chart is a D3.js force simulation, not a static layout. Each payment method is a particle subject to <strong>radial attraction</strong> toward its aligned body (keeping nodes in orbit at a distance proportional to alignment strength), <strong>directional bias</strong> pulling nodes toward their body's center, and <strong>collision detection</strong> preventing label overlaps. Contested entities feel dual pull—positioned between the incumbent binary system and insurgent capital based on a lean value (0 = pure incumbent, 1 = pure insurgent). The simulation runs in two phases: first, 200 ticks of pure positioning with no collision so nodes find their orbital zones; then 400 ticks ramping collision gradually so overlaps resolve without ejecting nodes from their zones. Nothing is hand-placed—positions, colors, and sizes all derive from the underlying data.
+    </div>
+  </details>
+
+  <details class="detail-block detail-sources">
+    <summary>Sources <span class="chev"></span></summary>
+    <div id="footnotes" class="details-content"></div>
+  </details>
+
+</div>
+
+<script>
+// --- CONFIG ---
+const W = 940, H = 540;
+
+// --- REAL DATA: Capital flows (annual volume USD) ---
+// Sources documented in Projects/Agent payment chart notes.md
+
+// Volume-to-dot: log10 scale, mapped to 4-22px
+// At mobile (~1/3 scale), this renders as ~1.3-7.3px — still distinguishable
+function volToDot(vol) {
+  const logV = Math.log10(Math.max(vol, 1e6));
+  const minLog = 6;    // $1M
+  const maxLog = 13.5; // ~$30T
+  return 4 + ((logV - minLog) / (maxLog - minLog)) * 18;
+}
+
+// --- DIVERGING COLOR SCALE ---
+// Maps a 0-1 "autonomy" value to cyan ↔ sage ↔ gold.
+// Autonomy is computed from weight/lean — see derivation after points array.
+function autonomyColor(autonomy) {
+  // Smooth diverging scale: cyan (0) → sage (0.5) → gold (1.0)
+  const r0 = 14,  g0 = 165, b0 = 201; // cyan pole #0ea5c9
+  const rm = 90,  gm = 128, bm = 104; // sage midpoint #6B9E78
+  const r1 = 185, g1 = 120, b1 = 30;  // amber pole #B9781E — warm, not olive
+  let r, g, b;
+  if (autonomy <= 0.5) {
+    const t = autonomy / 0.5;
+    r = r0 + (rm - r0) * t;
+    g = g0 + (gm - g0) * t;
+    b = b0 + (bm - b0) * t;
+  } else {
+    const t = (autonomy - 0.5) / 0.5;
+    r = rm + (r1 - rm) * t;
+    g = gm + (g1 - gm) * t;
+    b = bm + (b1 - bm) * t;
+  }
+  return `rgb(${Math.round(r)},${Math.round(g)},${Math.round(b)})`;
+}
+
+// Growth rate drives gravitational strength and aura size
+// Higher growth = stronger pull on new entrants, larger field
+
+// Three gravitational bodies
+const bodies = [
+  {
+    id: 'state',
+    label: 'THE\nSTATE',
+    subtitle: 'Creates the rules.\nEnforces legibility.',
+    volume: 2.8e12,       // $2.8T (digital yuan CBDCs, cumulative through 2025)
+    growthYoY: 1.0,       // ~100% (doubled in 14 months)
+    x: 110, y: 240,
+    r: 58,                // Honest sizing: $2T — meaningful but an order of magnitude below incumbent
+    stroke: '#0ea5c9', strokeOpacity: 0.25,
+    fillColor: '#0ea5c9', fillOpacity: 0.05,
+    labelColor: '#0ea5c9', labelSize: 14,
+    subtitleColor: '#0A7A98',
+    strength: 0.06
+  },
+  {
+    id: 'incumbent',
+    label: 'INCUMBENT\nCAPITAL',
+    subtitle: 'Friction is the\nbusiness model.',
+    volume: 28.6e12,      // $28.6T (Visa $14.2T + MC $10.6T + PayPal $1.9T + Stripe $1.9T)
+    growthYoY: 0.07,      // ~4-9% blended
+    x: 290, y: 380,
+    r: 95,                // Honest sizing: $26.8T — dominant mass, visually largest body
+    stroke: '#0ea5c9', strokeOpacity: 0.25,
+    fillColor: '#0ea5c9', fillOpacity: 0.05,
+    labelColor: '#0ea5c9', labelSize: 12,
+    subtitleColor: '#0A7A98',
+    strength: 0.04
+  },
+  {
+    id: 'insurgent',
+    label: 'INSURGENT\nCAPITAL',
+    subtitle: 'Protocols exist.\nCapital is still finding them.',
+    volume: 14e9,         // ~$14B (Lightning annualized + small others)
+    growthYoY: 2.66,      // 266% YoY (Lightning)
+    x: 710, y: 260,
+    r: 35,                // Honest sizing: $14B — tiny core. The drama is the aura.
+    stroke: '#9A8030', strokeOpacity: 0.255,
+    fillColor: '#9A8030', fillOpacity: 0.12,
+    labelColor: '#9A8030', labelSize: 12,
+    subtitleColor: '#8A8040',
+    strength: 0.05,
+    // Outer field sized by growth rate — 266% YoY means the field dwarfs the core
+    // 220px aura around 35px core = 6.3x ratio, visualizing trajectory vs mass
+    outerR: 200, outerStroke: '#8A7840', outerStrokeOpacity: 0.18,
+    outerFillColor: '#9A8030', outerFillOpacity: 0.05,
+    midR: 110, midStroke: '#9A8030', midStrokeOpacity: 0.12
+  }
+];
+
+// Data points with real capital flow data
+// dotR = sized by volume (capital flows)
+// weight = proximity to attractor body = degree of permissionlessness or control
+//   1.0 = maximally aligned with body's values (tight orbit)
+//   0.1 = loosely aligned, being pulled elsewhere (wide orbit, contested)
+//
+// Footnote index maps to the footnotes array rendered below the chart
+
+const points = [
+  // --- STATE-ALIGNED ---
+  { name: 'CBDCs',
+    attract: 'state',
+    vol: 2.8e12,
+    weight: 1.0,
+    fontSize: 11, opacity: 0.7,
+    fnIdx: 1
+  },
+
+  // --- INCUMBENT-ALIGNED ---
+  { name: 'Visa / MC',
+    attract: 'incumbent',
+    vol: 24.8e12,
+    weight: 0.95,
+    fontSize: 12,
+    fnIdx: 2
+  },
+  { name: 'Visa TAP',
+    attract: 'incumbent',
+    vol: 24.8e12,
+    hollow: true,
+    weight: 0.9,
+    fontSize: 10,
+    fnIdx: 3
+  },
+  { name: 'MC Agent Pay',
+    attract: 'incumbent',
+    vol: 10.6e12,
+    hollow: true,
+    weight: 0.9,
+    fontSize: 10,
+    fnIdx: 4
+  },
+  { name: 'PayPal',
+    attract: 'incumbent',
+    vol: 1.9e12,
+    weight: 0.85,
+    fontSize: 11, opacity: 0.7,
+    fnIdx: 5
+  },
+
+  // --- CONTESTED ZONE ---
+  // contested: true = pulled by both bodies. lean 0 = pure incumbent, 1 = pure insurgent
+  { name: 'Google AP2',
+    contested: true, lean: 0.2,
+    vol: 500e6,
+    hollow: true,
+    fontSize: 11,
+    fnIdx: 6
+  },
+  { name: 'Stripe / ACP',
+    contested: true, lean: 0.3,
+    vol: 1.9e12,
+    hollow: true,
+    fontSize: 12.5,
+    fnIdx: 7
+  },
+  { name: 'Skyfire',
+    contested: true, lean: 0.45,
+    vol: 5e6,
+    hollow: true,
+    fontSize: 11,
+    fnIdx: 9
+  },
+  { name: 'Stablecoins',
+    contested: true, lean: 0.5,
+    vol: 33e12,
+    fontSize: 13, glow: 'rgba(140,140,145,0.25)',
+    fnIdx: 8
+  },
+  { name: 'Nevermined',
+    contested: true, lean: 0.5,
+    vol: 1e6,
+    hollow: true,
+    fontSize: 11,
+    fnIdx: 11
+  },
+  { name: 'Coinbase x402',
+    contested: true, lean: 0.55,
+    vol: 26.2e6,
+    fontSize: 12.5, glow: 'rgba(150,145,130,0.3)',
+    fnIdx: 10
+  },
+  { name: 'On-chain Bitcoin',
+    attract: 'insurgent',
+    vol: 3.5e12,
+    weight: 0.3,
+    fontSize: 10, opacity: 0.55,
+    fnIdx: 12
+  },
+
+  // --- INSURGENT-ALIGNED ---
+  { name: 'Lightning',
+    attract: 'insurgent',
+    vol: 14e9,
+    weight: 0.8,
+    fontSize: 13,
+    fnIdx: 13
+  },
+  { name: 'Nostr + zaps',
+    attract: 'insurgent',
+    vol: 2e6,
+    weight: 0.65,
+    fontSize: 12,
+    fnIdx: 14
+  },
+  { name: 'Cashu',
+    attract: 'insurgent',
+    vol: 0.5e6,
+    hollow: true,
+    weight: 0.95,
+    fontSize: 12,
+    fnIdx: 15
+  }
+];
+
+// Derive autonomy from structural data — no hand-tuning.
+// Color follows from weight (body-attracted) or lean (contested).
+points.forEach(p => {
+  if (p.contested) {
+    // lean 0 → 0.05 (cyan), lean 0.5 → 0.50 (sage center), lean 1 → 0.95 (gold)
+    p.autonomy = 0.05 + p.lean * 0.9;
+  } else if (p.attract === 'state') {
+    // weight 1 → 0.0 (deep cyan), weight 0 → 0.15
+    p.autonomy = (1 - p.weight) * 0.15;
+  } else if (p.attract === 'incumbent') {
+    // weight 1 → 0.15, weight 0 → 0.35
+    p.autonomy = 0.15 + (1 - p.weight) * 0.2;
+  } else if (p.attract === 'insurgent') {
+    // weight 0 → 0.8, weight 1 → 1.0 — all insurgent reads gold
+    p.autonomy = 0.8 + p.weight * 0.2;
+  }
+});
+
+// Footnotes array — indexed by fnIdx
+const footnotes = [
+  null, // 0 unused
+  /* 1  */ 'CBDCs: $2.8T cumulative volume (digital yuan through 2025, CNY 19.5T). 230M individual wallets, 19M business wallets. China\'s e-CNY can be programmed with expiration dates and spending restrictions. The US banned CBDCs by executive order Jan 2025, choosing stablecoins instead. Sources: Acqra, Feb 2026; Atlantic Council CBDC Tracker.',
+  /* 2  */ 'Visa / MC: $14.2T (Visa FY2025) + $10.6T (Mastercard 2025) = $24.8T combined. ~7-9% YoY growth. Every compliance requirement is a barrier to entry that keeps competitors out. Sources: Visa Q1 FY2026 earnings; Mastercard 2025 10-K.',
+  /* 3  */ 'Visa Trusted Agent Protocol (TAP): Launched Oct 2025. Open framework where agents register public keys in a Visa-managed directory and cryptographically sign HTTP requests. Merchants verify signatures to distinguish legitimate agents from bots. Integrated with Visa Intelligent Commerce. Pilots in US, Asia-Pacific and Europe planned early 2026. Deep incumbent—Visa controls the directory, the verification, and the program requirements. Sources: Visa Developer docs; FinTech Magazine, Dec 2025.',
+  /* 4  */ 'Mastercard Agent Pay: Unveiled April 2025, rolled out to all US cardholders by Nov 2025. "Agentic Tokens"—dynamic digital credentials for AI agents built on existing tokenization infrastructure. Partnerships with PayPal, Stripe, Google, Ant International. Same pattern as Visa TAP: existing rails, agent-shaped interface. Sources: Mastercard newsroom; PayPal newsroom, Oct 2025.',
+  /* 5  */ 'PayPal: ~$1.9T TPV (2025, $475.1B in Q4 alone), ~9% YoY. Launched "Agentic Commerce Services" Oct 2025. Integrated into ChatGPT for agent-recommended purchases—but the human\'s wallet pays, human\'s account, human\'s identity. Also launched PYUSD stablecoin on Solana. Sources: PayPal Q4 2025 earnings; PayPal newsroom.',
+  /* 6  */ 'Google AP2 (Agent Payment Protocol 2.0): Announced Sept 2025. Uses "IntentMandates"—structured descriptions of what an agent can buy. Has A2A x402 extension for crypto payments (collab with Coinbase, Ethereum Foundation, MetaMask). Currently requires human verification. Open source. The first Big Tech attempt to standardize agent payments. Sources: Google Cloud Blog, Sept 2025; Everest Group; Orium.',
+  /* 7  */ 'Stripe / ACP (Agentic Commerce Protocol): Co-developed with OpenAI, published Sept 2025. Open standard (Apache 2.0) enabling agents to browse, cart, and pay programmatically. Live in ChatGPT ("Buy it in ChatGPT"). $1.9T total Stripe volume (2025), +34% YoY. One line of code to enable on existing Stripe merchants. PwC partnered for enterprise rollout. Sources: Stripe annual letter, Feb 2026; OpenAI; github.com/agentic-commerce-protocol.',
+  /* 8  */ 'Stablecoins (USDC, USDT): $33T total transaction volume in 2025, up 72% YoY. USDC alone: $18.3T. THE contested zone currency—regulated money (Circle is a licensed entity) on permissionless rails (Ethereum, Solana, Base). Visa settles in USDC on Solana (Dec 2025). x402 runs on USDC. Lightning bridges to stablecoins. Both sides claim them. The money itself is contested. Sources: Bloomberg/Artemis Analytics, Jan 2026; The Block, Dec 2025.',
+  /* 9  */ 'Skyfire (KYAPay): "Know Your Agent" identity + payments platform. Signed JWTs with verified agent owner info, spend limits, credentials. Supports micropayments, credit cards, real-time payments. Completed live transaction with Visa Intelligent Commerce, Dec 2025. Backed by a16z CSX, Coinbase Ventures. Agent-first but institution-backed—true contested zone. Sources: BusinessWire, Dec 2025; PYMNTS, Jul 2025.',
+  /* 10 */ 'Coinbase x402: $26.2M cumulative, 100M+ payments processed (through early 2026). Open HTTP 402 protocol for agent API payments using USDC. 500K weekly transactions by Oct 2025. Google AP2 adopted x402 as its crypto extension. Sources: Blockonomics, Feb 2026; CoinPaprika, Feb 2026; Coinbase developer docs.',
+  /* 11 */ 'Nevermined: Building agent billing infrastructure with ERC-8004 for agent identity. Accepts both stablecoins and fiat. ERC-8004 remains in draft status (Oct 2025). Pre-volume. Sources: Backpack Exchange; Odaily.',
+  /* 12 */ 'On-chain Bitcoin: ~$3.5T estimated annual volume (300-350K txns/day, 2025). Permissionless and keypair-based but agent-suboptimal: 10-minute block times, volatile fees ($1-50+), pseudonymous not private. The foundation layer insurgent protocols build on, not the agent layer itself. Sources: SQ Magazine, Sept 2025; bitinfocharts.com.',
+  /* 13 */ 'Lightning: ~$14B annualized ($1.17B/mo all-time high, Nov 2025). 266% YoY volume growth. 8M monthly transactions. 5,606 BTC network capacity. Permissionless, sub-second settlement, sub-cent fees, programmable. Most agent-ready protocol with meaningful volume. Sources: River Financial; CryptoNews, Feb 2026; coinlaw.io.',
+  /* 14 */ 'Nostr + zaps: ~$2M value, 792K zaps/day across ~500K daily users (Oct 2025). Lightning-native tipping built into censorship-resistant social protocol. Identity = npub keypair, no platform intermediary. 5M+ cumulative zaps by mid-2025. Sources: onnostr.substack.com.',
+  /* 15 */ 'Cashu: Negligible public volume data. Chaumian ecash mints settling over Lightning. Bearer tokens—private, instant, no account required. Growing mint ecosystem integrated with Nostr. The most autonomous payment mechanism on this chart. Sources: cashu.space; Bitcoin Magazine, Jun 2024.'
+];
+
+// Compute dot radii and colors from data
+points.forEach(p => {
+  p.dotR = p.hollow ? 6 : volToDot(p.vol); // Hollow rings: uniform size (no volume data to encode)
+  // Diverging color from autonomy value
+  p.dotColor = autonomyColor(p.autonomy);
+  // Label color: same hue but desaturated (blend toward muted mid-tone for dark bg)
+  const gray = 130;
+  const dc = autonomyColor(p.autonomy);
+  // Parse rgb values from the computed color
+  const m = dc.match(/rgb\((\d+),(\d+),(\d+)\)/);
+  if (m) {
+    const lr = Math.round(+m[1] * 0.6 + gray * 0.4);
+    const lg = Math.round(+m[2] * 0.6 + gray * 0.4);
+    const lb = Math.round(+m[3] * 0.6 + gray * 0.4);
+    p.labelColor = `rgb(${lr},${lg},${lb})`;
+  } else {
+    p.labelColor = '#8a8a85';
+  }
+});
+
+// Binary system arcs
+const arcs = [
+  { from: 'state', to: 'incumbent', label: 'Regulation → Moats', bow: -1 },
+  { from: 'incumbent', to: 'state', label: 'Lobbying → Regulation', bow: 1 }
+];
+
+// --- SETUP SVG ---
+const svg = d3.select('#chart')
+  .append('svg')
+  .attr('viewBox', `0 0 ${W} ${H}`)
+  .style('overflow', 'hidden');
+
+// Defs
+const defs = svg.append('defs');
+
+// Glow filters
+const glowPurple = defs.append('filter').attr('id', 'glowPurple')
+  .attr('x', '-50%').attr('y', '-50%').attr('width', '200%').attr('height', '200%');
+glowPurple.append('feGaussianBlur').attr('in', 'SourceGraphic').attr('stdDeviation', 12).attr('result', 'blur');
+const m1 = glowPurple.append('feMerge');
+m1.append('feMergeNode').attr('in', 'blur');
+m1.append('feMergeNode').attr('in', 'SourceGraphic');
+
+const glowAmber = defs.append('filter').attr('id', 'glowAmber')
+  .attr('x', '-50%').attr('y', '-50%').attr('width', '200%').attr('height', '200%');
+glowAmber.append('feGaussianBlur').attr('in', 'SourceGraphic').attr('stdDeviation', 15).attr('result', 'blur');
+const m2 = glowAmber.append('feMerge');
+m2.append('feMergeNode').attr('in', 'blur');
+m2.append('feMergeNode').attr('in', 'SourceGraphic');
+
+// Radial gradients for each body
+bodies.forEach(b => {
+  const g = defs.append('radialGradient').attr('id', `grad-${b.id}`);
+  g.append('stop').attr('offset', '0%').attr('stop-color', b.fillColor).attr('stop-opacity', b.fillOpacity);
+  g.append('stop').attr('offset', '60%').attr('stop-color', b.fillColor).attr('stop-opacity', b.fillOpacity * 0.3);
+  g.append('stop').attr('offset', '100%').attr('stop-color', b.fillColor).attr('stop-opacity', 0);
+});
+
+// Insurgent outer gradient
+const gOuter = defs.append('radialGradient').attr('id', 'grad-insurgent-outer');
+gOuter.append('stop').attr('offset', '0%').attr('stop-color', '#9A8030').attr('stop-opacity', 0.08);
+gOuter.append('stop').attr('offset', '40%').attr('stop-color', '#9A8030').attr('stop-opacity', 0.03);
+gOuter.append('stop').attr('offset', '100%').attr('stop-color', '#9A8030').attr('stop-opacity', 0);
+
+// Atmospheric background
+const bgLayer = svg.append('g').attr('class', 'atmosphere');
+
+// Warm gold glow on right (subtle on light bg)
+bgLayer.append('ellipse')
+  .attr('cx', 720).attr('cy', 240)
+  .attr('rx', 280).attr('ry', 220)
+  .attr('fill', 'rgba(154,128,48,0.10)')
+  .style('filter', 'blur(60px)');
+
+// Cool cyan glow on left (subtle on light bg)
+bgLayer.append('ellipse')
+  .attr('cx', 175).attr('cy', 220)
+  .attr('rx', 180).attr('ry', 160)
+  .attr('fill', 'rgba(14,165,201,0.07)')
+  .style('filter', 'blur(40px)');
+
+// --- RENDER BODIES ---
+const bodyLayer = svg.append('g').attr('class', 'bodies');
+const insurgent = bodies.find(b => b.id === 'insurgent');
+
+// Insurgent outer field (background)
+bodyLayer.append('circle')
+  .attr('class', 'orbit-dash')
+  .attr('cx', insurgent.x).attr('cy', insurgent.y)
+  .attr('r', insurgent.outerR)
+  .attr('fill', `url(#grad-insurgent-outer)`)
+  .attr('stroke', insurgent.outerStroke)
+  .attr('stroke-width', 0.75)
+  .attr('stroke-dasharray', '10 8')
+  .attr('stroke-opacity', insurgent.outerStrokeOpacity);
+
+// Insurgent middle ring
+bodyLayer.append('circle')
+  .attr('class', 'orbit-dash')
+  .attr('cx', insurgent.x).attr('cy', insurgent.y + 10)
+  .attr('r', insurgent.midR)
+  .attr('fill', 'none')
+  .attr('stroke', insurgent.midStroke)
+  .attr('stroke-width', 0.75)
+  .attr('stroke-dasharray', '6 5')
+  .attr('stroke-opacity', insurgent.midStrokeOpacity);
+
+// All body circles
+bodies.forEach(b => {
+  const filter = b.id === 'insurgent' ? 'url(#glowAmber)' : 'url(#glowPurple)';
+  bodyLayer.append('circle')
+    .attr('class', 'orbit-dash')
+    .attr('cx', b.x).attr('cy', b.y).attr('r', b.r)
+    .attr('fill', `url(#grad-${b.id})`)
+    .attr('stroke', b.stroke)
+    .attr('stroke-width', 1.5)
+    .attr('stroke-dasharray', '8 5')
+    .attr('stroke-opacity', b.strokeOpacity)
+    .attr('filter', filter);
+});
+
+// --- BINARY ORBIT (z-axis interlock) ---
+const state = bodies[0], inc = bodies[1];
+const orbitCx = (state.x + inc.x) / 2;
+const orbitCy = (state.y + inc.y) / 2;
+
+bodyLayer.append('ellipse')
+  .attr('class', 'orbit-dash')
+  .attr('cx', orbitCx).attr('cy', orbitCy)
+  .attr('rx', 130).attr('ry', 50)
+  .attr('transform', `rotate(-25, ${orbitCx}, ${orbitCy})`)
+  .attr('fill', 'none')
+  .attr('stroke', '#0ea5c9')
+  .attr('stroke-width', 0.8)
+  .attr('stroke-dasharray', '6 5')
+  .attr('stroke-opacity', 0.15);
+
+// --- ARCS (Regulation/Lobbying loop) ---
+// Rendered as a separate layer — will be moved to top after points are drawn
+const arcLayer = svg.append('g').attr('class', 'arcs');
+
+// Two simple curved arrows between State and Incumbent.
+// Arc 1: State→Incumbent, bows LEFT of the direct line (upper-left since line goes down-right)
+// Arc 2: Incumbent→State, bows RIGHT of the direct line (lower-right)
+// Both are quadratic beziers with a single control point offset perpendicular to the midpoint.
+{
+  const s = bodies[0], inc = bodies[1];
+
+  // Direct line vector and perpendicular
+  const dx = inc.x - s.x, dy = inc.y - s.y;
+  const len = Math.sqrt(dx * dx + dy * dy);
+  const ux = dx / len, uy = dy / len;       // unit vector along line
+  const px = -uy, py = ux;                   // perpendicular (points left of direction)
+
+  const midX = (s.x + inc.x) / 2;
+  const midY = (s.y + inc.y) / 2;
+
+  // Start/end points on circle edges, offset slightly toward the bow side
+  // Arc 1 (bows left/up): start from State's right-upper edge, end at Incumbent's left-upper edge
+  const x1s = s.x + (ux * 0.7 + px * 0.7) * (s.r + 8);
+  const y1s = s.y + (uy * 0.7 + py * 0.7) * (s.r + 8);
+  const x1e = inc.x + (-ux * 0.7 + px * 0.7) * (inc.r + 8);
+  const y1e = inc.y + (-uy * 0.7 + py * 0.7) * (inc.r + 8);
+  const cp1x = midX + px * 130;
+  const cp1y = midY + py * 130;
+
+  // Always draw left-to-right so textPath reads correctly
+  const a1Left = x1s < x1e;
+  const a1d = a1Left
+    ? `M ${x1s} ${y1s} Q ${cp1x} ${cp1y} ${x1e} ${y1e}`
+    : `M ${x1e} ${y1e} Q ${cp1x} ${cp1y} ${x1s} ${y1s}`;
+
+  arcLayer.append('path')
+    .attr('class', 'orbit-dash')
+    .attr('id', 'arc-upper')
+    .attr('d', a1d)
+    .attr('fill', 'none')
+    .attr('stroke', '#0ea5c9')
+    .attr('stroke-width', 1.2)
+    .attr('stroke-opacity', 0.4)
+    .attr('stroke-dasharray', '5 3');
+
+  arcLayer.append('text')
+    .attr('font-family', 'Inter, sans-serif').attr('font-size', 10).attr('font-weight', 500)
+    .attr('fill', '#0ea5c9').attr('opacity', 0.6)
+    .append('textPath').attr('href', '#arc-upper').attr('startOffset', '50%').attr('text-anchor', 'middle')
+    .text('Regulation → Moats');
+
+  // Arc 2 (bows right/down): start from Incumbent's left-lower edge, end at State's right-lower edge
+  const x2s = inc.x + (-ux * 0.7 - px * 0.7) * (inc.r + 8);
+  const y2s = inc.y + (-uy * 0.7 - py * 0.7) * (inc.r + 8);
+  const x2e = s.x + (ux * 0.7 - px * 0.7) * (s.r + 8);
+  const y2e = s.y + (uy * 0.7 - py * 0.7) * (s.r + 8);
+  const cp2x = midX - px * 130;
+  const cp2y = midY - py * 130;
+
+  const a2Left = x2e < x2s;
+  const a2d = a2Left
+    ? `M ${x2e} ${y2e} Q ${cp2x} ${cp2y} ${x2s} ${y2s}`
+    : `M ${x2s} ${y2s} Q ${cp2x} ${cp2y} ${x2e} ${y2e}`;
+
+  arcLayer.append('path')
+    .attr('class', 'orbit-dash')
+    .attr('id', 'arc-lower')
+    .attr('d', a2d)
+    .attr('fill', 'none')
+    .attr('stroke', '#0ea5c9')
+    .attr('stroke-width', 1.2)
+    .attr('stroke-opacity', 0.4)
+    .attr('stroke-dasharray', '5 3');
+
+  arcLayer.append('text')
+    .attr('font-family', 'Inter, sans-serif').attr('font-size', 10).attr('font-weight', 500)
+    .attr('fill', '#0ea5c9').attr('opacity', 0.6)
+    .append('textPath').attr('href', '#arc-lower').attr('startOffset', '50%').attr('text-anchor', 'middle')
+    .text('Lobbying → Regulation');
+}
+
+// --- BODY LABELS ---
+const labelLayer = svg.append('g').attr('class', 'labels');
+
+bodies.forEach(b => {
+  const g = labelLayer.append('g')
+    .attr('transform', `translate(${b.x}, ${b.y})`);
+
+  // Main label
+  const lines = b.label.split('\n');
+  const labelG = g.append('text')
+    .attr('text-anchor', 'middle')
+    .attr('fill', b.labelColor)
+    .attr('font-size', b.labelSize)
+    .attr('font-weight', 600)
+    .attr('letter-spacing', b.labelSize > 12 ? '0.08em' : '0.07em')
+    .style('text-transform', 'uppercase');
+
+  lines.forEach((line, i) => {
+    labelG.append('tspan')
+      .attr('x', 0)
+      .attr('dy', i === 0 ? `-${(lines.length - 1) * 0.5}em` : '1.2em')
+      .text(line);
+  });
+
+  // Subtitle
+  const subLines = b.subtitle.split('\n');
+  const subG = g.append('text')
+    .attr('text-anchor', 'middle')
+    .attr('fill', b.subtitleColor)
+    .attr('font-size', 9.5)
+    .attr('font-weight', 400)
+    .attr('font-style', 'italic');
+
+  subLines.forEach((line, i) => {
+    subG.append('tspan')
+      .attr('x', 0)
+      .attr('dy', i === 0 ? `${lines.length * 0.6 + 1.2}em` : '1.2em')
+      .text(line);
+  });
+});
+
+// Zone descriptions are rendered in the .zone-bar HTML div below the chart (seamless dark panel).
+
+// --- DATA POINTS with force simulation ---
+const pointLayer = svg.append('g').attr('class', 'points');
+
+// Initialize point positions
+const binaryCenter = { x: (bodies[0].x + bodies[1].x) / 2, y: (bodies[0].y + bodies[1].y) / 2 };
+const insurgentBody = bodies[2];
+
+const nodes = points.map((p, i) => {
+  if (p.contested) {
+    // Contested zone: position between binary system center and insurgent body based on lean
+    const cx = binaryCenter.x + (insurgentBody.x - binaryCenter.x) * p.lean;
+    const cy = binaryCenter.y + (insurgentBody.y - binaryCenter.y) * p.lean;
+    // Spread vertically based on index among contested — 60px between each
+    const contested = points.filter(pp => pp.contested);
+    const idx = contested.indexOf(p);
+    const spread = (idx - (contested.length - 1) / 2) * 60;
+    return { ...p, x: cx, y: H / 2 + spread, weight: 0.1 };
+  }
+
+  const body = bodies.find(b => b.id === p.attract);
+  const siblings = points.filter(pp => pp.attract === p.attract && !pp.contested);
+  const idx = siblings.indexOf(p);
+  // Seed positions: avoid the arc path between State and Incumbent.
+  // Arc runs from upper-left to center, so incumbent nodes go on the right/bottom arc.
+  // State nodes go on the right side (away from left edge).
+  const stateAngle = Math.atan2(bodies[0].y - body.y, bodies[0].x - body.x);
+  // Place nodes on the OPPOSITE side from State (right/bottom), in a 180° arc
+  const arcStart = stateAngle + (40 * Math.PI / 180); // skip past the arc path
+  const arcRange = Math.PI; // 180° on the far side
+  const angleStep = arcRange / (siblings.length + 1);
+  const angle = arcStart + angleStep * (idx + 1);
+  // Minimum orbit clearance: at least 95px from center to clear label+subtitle text
+  const minClearance = Math.max(95, body.r + 30);
+  const orbitDist = minClearance + (1 - p.weight) * 80;
+  return {
+    ...p,
+    x: body.x + Math.cos(angle) * orbitDist,
+    y: body.y + Math.sin(angle) * orbitDist,
+  };
+});
+
+// Add invisible fixed nodes for body label zones so forceCollide treats them as obstacles.
+// Each body's label+subtitle occupies roughly a 120x80px rectangle centered on the body.
+// We model this as 3 fixed circles stacked vertically (top, center, bottom of text block).
+const bodyObstacles = [];
+bodies.forEach(body => {
+  // Stack of fixed collision circles covering label + subtitle zone.
+  // Obstacle radius scales: small bodies (insurgent r=35) need more protection,
+  // large bodies (incumbent r=95) already have their circle keeping dots away.
+  const obsR = body.r < 50 ? 45 : 30;
+  [-20, 0, 20, 40].forEach(dy => {
+    bodyObstacles.push({
+      x: body.x, y: body.y + dy,
+      fx: body.x, fy: body.y + dy,
+      dotR: obsR,
+      fontSize: 0, name: '', isObstacle: true
+    });
+  });
+});
+const allSimNodes = nodes.concat(bodyObstacles);
+
+// --- FORCE SIMULATION using forceRadial ---
+// Each body gets a forceRadial that pulls ITS nodes to the right orbit distance.
+// forceCollide prevents overlap. No custom gravity, no manual overrides.
+
+const simulation = d3.forceSimulation(allSimNodes)
+  .force('collide', d3.forceCollide().radius(d => {
+    if (d.isObstacle) return d.dotR;
+    const textWidth = d.name.length * (d.fontSize * 0.6);
+    return Math.max(d.dotR + 22, textWidth / 2 + 8);
+  }).strength(1).iterations(6))
+  .force('bound', () => {
+    allSimNodes.filter(n => !n.isObstacle).forEach(n => {
+      n.x = Math.max(50, Math.min(W - 90, n.x));
+      n.y = Math.max(75, Math.min(H - 25, n.y));
+    });
+  })
+  .velocityDecay(0.4)
+  .alphaDecay(0.008)
+  .alpha(0.8);
+
+// Per-body radial forces: each node is pulled to an orbit ring around its attractor.
+// Orbit radius = body.r + 30 base, wider for loosely-aligned nodes (low weight).
+// Strength is high (0.3-0.5) so nodes STAY in orbit — forceCollide handles spacing.
+bodies.forEach(body => {
+  simulation.force(`radial-${body.id}`, d3.forceRadial(
+    d => {
+      if (d.isObstacle || (!d.attract && !d.contested)) return 0;
+      if (d.attract === body.id) {
+        // Orbit distance: tight for high-weight, wider for low-weight
+        return Math.max(body.r + 35, body.r + 25 + (1 - d.weight) * 90);
+      }
+      return 0; // no pull from non-primary bodies
+    },
+    body.x, body.y
+  ).strength(d => {
+    if (d.isObstacle) return 0;
+    if (d.attract === body.id) return 0.6; // strong radial pull keeps nodes in orbit
+    return 0;
+  }));
+});
+
+// Directional bias: pull body-attracted nodes toward their body's x,y so they don't
+// drift to the wrong side of the orbit ring (e.g. Visa/MC drifting right into contested)
+bodies.forEach(body => {
+  simulation.force(`pullx-${body.id}`, d3.forceX(body.x).strength(d => {
+    if (d.isObstacle || d.contested) return 0;
+    return d.attract === body.id ? 0.08 : 0;
+  }));
+  simulation.force(`pully-${body.id}`, d3.forceY(body.y).strength(d => {
+    if (d.isObstacle || d.contested) return 0;
+    return d.attract === body.id ? 0.04 : 0;
+  }));
+});
+
+// Contested nodes: pulled toward a point between binary center and insurgent based on lean
+const bCenterX = (bodies[0].x + bodies[1].x) / 2;
+const bCenterY = (bodies[0].y + bodies[1].y) / 2;
+simulation.force('contested-x', d3.forceX(d => {
+  if (!d.contested) return d.x;
+  return bCenterX + (bodies[2].x - bCenterX) * d.lean;
+}).strength(d => d.contested ? 0.5 : 0));
+simulation.force('contested-y', d3.forceY(d => {
+  if (!d.contested) return d.y;
+  return bCenterY + (bodies[2].y - bCenterY) * d.lean;
+}).strength(d => d.contested ? 0.3 : 0));
+
+// --- CREATE NODE ELEMENTS (initially invisible, positioned at scatter points) ---
+const nodeGroups = [];
+nodes.forEach((n, i) => {
+  const g = pointLayer.append('g')
+    .attr('transform', `translate(${n.x}, ${n.y})`)
+    .attr('opacity', 0);
+  nodeGroups.push({ g, node: n });
+
+  if (n.glow && !n.hollow) {
+    g.append('circle')
+      .attr('r', n.dotR + 2)
+      .attr('fill', n.glow)
+      .style('filter', 'blur(3px)');
+  }
+
+  if (n.hollow) {
+    g.append('circle')
+      .attr('r', n.dotR)
+      .attr('fill', 'none')
+      .attr('stroke', n.dotColor)
+      .attr('stroke-width', 1.5)
+      .attr('stroke-opacity', 0.7);
+  } else {
+    g.append('circle')
+      .attr('r', n.dotR)
+      .attr('fill', n.dotColor);
+  }
+
+  const flipLabel = n.x > W * 0.72;
+  const label = g.append('text')
+    .attr('x', flipLabel ? -(n.dotR + 5) : n.dotR + 5)
+    .attr('y', 4)
+    .attr('text-anchor', flipLabel ? 'end' : 'start')
+    .attr('fill', n.labelColor)
+    .attr('font-size', n.fontSize)
+    .attr('font-weight', 500)
+    .attr('font-family', 'Inter, sans-serif');
+
+  label.append('tspan').text(n.name);
+
+  if (n.fnIdx) {
+    label.append('tspan')
+      .attr('font-size', 8)
+      .attr('dy', -4)
+      .attr('fill', n.labelColor)
+      .attr('opacity', 0.6)
+      .text(` ${n.fnIdx}`);
+  }
+});
+
+// Raise arcs above points
+arcLayer.raise();
+
+// Render footnotes into the DOM
+const fnContainer = document.getElementById('footnotes');
+footnotes.forEach((fn, i) => {
+  if (!fn) return;
+  const p = document.createElement('p');
+  p.style.cssText = 'margin-bottom:4px';
+  const sup = document.createElement('sup');
+  sup.style.color = 'var(--accent)';
+  sup.textContent = i;
+  p.appendChild(sup);
+  p.appendChild(document.createTextNode(' '));
+  // Footnotes are hardcoded strings, not user input — safe to set as HTML
+  const span = document.createElement('span');
+  span.textContent = fn;
+  p.appendChild(span);
+  fnContainer.appendChild(p);
+});
+
+// --- ANIMATED SETTLING ---
+// Run the full simulation synchronously to get final positions,
+// then animate nodes gliding from scattered starts to settled ends.
+simulation.stop();
+
+// Phase 1: positioning, no collision
+simulation.force('collide').strength(0);
+simulation.alpha(1.0);
+for (let i = 0; i < 200; i++) simulation.tick();
+
+// Starting points: each node emerges from its gravitational body's center.
+// Contested nodes start from the midpoint between binary system and insurgent.
+const startPositions = nodeGroups.map(ng => {
+  const d = ng.node;
+  if (d.contested) {
+    return { x: (binaryCenter.x + insurgentBody.x) / 2, y: (binaryCenter.y + insurgentBody.y) / 2 };
+  }
+  const body = bodies.find(b => b.id === d.attract);
+  return { x: body.x, y: body.y };
+});
+
+// Phase 2: collision resolution (synchronous)
+for (let i = 0; i < 400; i++) {
+  const t = i / 400;
+  simulation.force('collide').strength(0.7 * Math.pow(t, 3));
+  simulation.tick();
+}
+
+// Save final settled positions
+const endPositions = nodeGroups.map(ng => ({ x: ng.node.x, y: ng.node.y }));
+
+// Place nodes at start positions, invisible
+nodeGroups.forEach((ng, i) => {
+  ng.g.attr('transform', `translate(${startPositions[i].x}, ${startPositions[i].y})`);
+});
+
+// Animate: fade in and glide to final positions
+nodeGroups.forEach((ng, i) => {
+  const delay = i * 40;
+  ng.g.transition('fade')
+    .delay(delay)
+    .duration(300)
+    .attr('opacity', ng.node.opacity || 1);
+  ng.g.transition('move')
+    .delay(delay + 100)
+    .duration(2200)
+    .ease(d3.easeCubicOut)
+    .attr('transform', `translate(${endPositions[i].x}, ${endPositions[i].y})`);
+});
+
+</script>
+</div>
+</body>
+</html>
+<!-- sync -->

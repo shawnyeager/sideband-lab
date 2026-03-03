@@ -1,0 +1,144 @@
+/* ============================================
+   Sideband Lab — Design Tokens & Global Styles
+   ============================================ */
+
+@font-face {
+  font-family: 'Roboto Slab';
+  src: url('/fonts/RobotoSlab-Bold.woff2') format('woff2');
+  font-weight: 600 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Lora';
+  src: url('/fonts/Lora-Regular.woff2') format('woff2');
+  font-weight: 400 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Lora';
+  src: url('/fonts/Lora-Italic.woff2') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Space Grotesk';
+  src: url('/fonts/SpaceGrotesk-Variable.woff2') format('woff2');
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --cyan:        #0EA5C9;
+  --cyan-light:  #38BDF8;
+  --cyan-dim:    rgba(14, 165, 201, 0.15);
+  --cyan-deep:   rgba(14, 165, 201, 0.08);
+  --amber:       #A97C40;
+  --amber-light: #C9A050;
+  --navy:        #1D2733;
+  --navy-light:  #243040;
+  --navy-lighter:#2a3a4d;
+  --off-white:   #EEEBE4;
+  --mid-green:   #5B9B84;
+  --rule:        rgba(57, 58, 58, 0.08);
+  --rule-strong: rgba(57, 58, 58, 0.15);
+
+  --bg:          #eeebe4;
+  --text:        #393a3a;
+  --text-muted:  #6b6966;
+  --text-sub:    #9a9793;
+  --hr:          #d5d2cb;
+  --hr-subtle:   #e0ddd6;
+
+  --card-bg:     transparent;
+  --card-bg-hover: rgba(57, 58, 58, 0.03);
+  --card-border: var(--hr);
+  --card-radius: 4px;
+  --card-max:    480px;
+
+  --font-display: 'Roboto Slab', Georgia, 'Times New Roman', serif;
+  --font-body:    'Lora', Georgia, 'Times New Roman', serif;
+  --font-sans:    'Space Grotesk', system-ui, -apple-system, sans-serif;
+  --display-weight: 700;
+  --display-tracking: 0.01em;
+
+  --max-width: 1100px;
+  --content-max: 680px;
+  --space-xs: 0.5rem;
+  --space-sm: 1rem;
+  --space-md: 1.5rem;
+  --space-lg: 3rem;
+  --space-xl: 5rem;
+  --space-2xl: 8rem;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+* { margin: 0; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+  scrollbar-gutter: stable;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-weight: 400;
+  font-size: 19px;
+  line-height: 1.65;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+img, picture, video, canvas, svg {
+  display: block;
+  max-width: 100%;
+}
+
+ul, ol { list-style: none; padding: 0; }
+
+a {
+  color: var(--cyan);
+  text-decoration: none;
+  transition: color 0.15s;
+}
+
+a:hover { color: var(--cyan-light); }
+
+a:focus-visible {
+  outline: 2px solid var(--cyan);
+  outline-offset: 3px;
+  border-radius: 1px;
+}
+
+h1, h2, h3, h4 {
+  font-family: var(--font-display);
+  font-weight: var(--display-weight);
+  letter-spacing: var(--display-tracking);
+  line-height: 1.15;
+  color: var(--text);
+}
+
+h1 { font-size: clamp(1.75rem, 4vw, 2.75rem); }
+h2 { font-size: clamp(1.35rem, 2.5vw, 1.65rem); }
+h3 { font-size: 1.125rem; }
+
+p + p { margin-top: var(--space-sm); }
+
+/* Utility: meta/label text */
+.meta {
+  font-family: var(--font-sans);
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-sub);
+}

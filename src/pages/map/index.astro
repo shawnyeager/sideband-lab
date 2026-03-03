@@ -1,0 +1,29 @@
+---
+import { projectMeta, projectHeader, fontPreload } from '../../lib/header';
+import projects from '../../content/projects.json';
+import AgentInfraMap from '../../components/map/AgentInfraMap';
+
+const project = projects.find(p => p.slug === 'map');
+const meta = project ? projectMeta(project) : '';
+---
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <Fragment set:html={fontPreload} />
+  <Fragment set:html={meta} />
+  <style is:global>
+    @font-face {
+      font-family: 'Space Grotesk';
+      src: url('/fonts/SpaceGrotesk-Variable.woff2') format('woff2');
+      font-weight: 300 700;
+      font-style: normal;
+      font-display: swap;
+    }
+  </style>
+</head>
+<body style="margin:0; background:#eeebe4;">
+  <Fragment set:html={projectHeader} />
+  <AgentInfraMap client:load />
+</body>
+</html>

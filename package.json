@@ -1,0 +1,30 @@
+{
+  "name": "sideband-lab",
+  "description": "Visual projects exploring control, trust, money, and who wins as AI reshapes everything",
+  "type": "module",
+  "version": "0.0.1",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shawnyeager/sideband-lab"
+  },
+  "author": "Shawn Yeager",
+  "license": "MIT",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "astro": "astro"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.78.0",
+    "@astrojs/react": "^4.4.2",
+    "@astrojs/sitemap": "^3.7.0",
+    "@supabase/supabase-js": "^2.98.0",
+    "astro": "^5.17.1",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
+  "devDependencies": {
+    "puppeteer": "^24.37.5"
+  }
+}

@@ -1,0 +1,56 @@
+---
+import '../styles/global.css';
+import SEO from '../components/SEO.astro';
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+
+interface Props {
+  title?: string;
+  description?: string;
+  ogImage?: string;
+}
+
+const { title, description, ogImage } = Astro.props;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <SEO title={title} description={description} ogImage={ogImage} />
+  </head>
+  <body>
+    <Header />
+    <main>
+      <slot />
+    </main>
+    <Footer />
+  </body>
+</html>
+
+<style>
+  body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  main {
+    flex: 1 0 auto;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: var(--space-lg) 24px 48px;
+    width: 100%;
+  }
+
+  @media (max-width: 640px) {
+    main {
+      padding: var(--space-sm) 16px 32px;
+    }
+  }
+
+  body > :global(header),
+  body > :global(footer) {
+    width: 100%;
+    flex-shrink: 0;
+  }
+</style>

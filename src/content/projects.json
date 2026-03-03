@@ -1,0 +1,30 @@
+[
+  {
+    "slug": "three-body-problem",
+    "title": "Agent payments have a three-body problem",
+    "description": "Who controls agent payments? A force simulation of the three-way gravitational fight between state regulators, card networks, and open protocols.",
+    "date": "2026-03-01",
+    "thumbnail": "three-body-problem",
+    "ogImage": "/img/og/three-body-problem.png",
+    "status": "live"
+  },
+  {
+    "slug": "status",
+    "title": "U.S. GDP Status",
+    "description": "What if LLM uptime was a macroeconomic indicator? A status page for the economy, where the components are AI providers and the metric is GDP.",
+    "date": "2026-03-02",
+    "thumbnail": "status",
+    "ogImage": "/img/og/status.png",
+    "favicon": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><circle cx='16' cy='16' r='14' fill='%23e5a00d'/></svg>",
+    "status": "live"
+  },
+  {
+    "slug": "map",
+    "title": "Agent-Era Infrastructure Map",
+    "description": "Who's building the agent stack—and how open is it? Companies and protocols scored on openness and distribution across five infrastructure layers.",
+    "date": "2026-03-03",
+    "thumbnail": "map",
+    "ogImage": "/img/og/map.png",
+    "status": "live"
+  }
+]

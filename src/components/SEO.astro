@@ -1,0 +1,56 @@
+---
+interface Props {
+  title?: string;
+  description?: string;
+  ogImage?: string;
+  canonicalUrl?: string;
+}
+
+const {
+  title,
+  description = 'AI is reshaping everything. Sideband is the signal underneath—control, trust, money, and who wins.',
+  ogImage = '/img/og-default.png',
+  canonicalUrl,
+} = Astro.props;
+
+const siteUrl = 'https://lab.sideband.pub';
+const siteTitle = 'Sideband Lab';
+const pageTitle = title ? `${title} | ${siteTitle}` : siteTitle;
+const isProduction = import.meta.env.PROD && (import.meta.env.VERCEL_ENV === 'production' || !import.meta.env.VERCEL_ENV);
+const canonical = canonicalUrl || Astro.url.href;
+const absoluteOgImage = ogImage.startsWith('http') ? ogImage : `${siteUrl}${ogImage}`;
+---
+
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>{pageTitle}</title>
+<meta name="description" content={description} />
+<link rel="icon" type="image/png" href="/img/sideband-icon.png" />
+<link rel="canonical" href={canonical} />
+
+{!isProduction && <meta name="robots" content="noindex" />}
+
+<!-- Preload fonts -->
+<link rel="preload" href="/fonts/RobotoSlab-Bold.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="preload" href="/fonts/Lora-Regular.woff2" as="font" type="font/woff2" crossorigin />
+<link rel="preload" href="/fonts/SpaceGrotesk-Variable.woff2" as="font" type="font/woff2" crossorigin />
+
+<!-- Open Graph -->
+<meta property="og:type" content="website" />
+<meta property="og:title" content={pageTitle} />
+<meta property="og:description" content={description} />
+<meta property="og:image" content={absoluteOgImage} />
+<meta property="og:site_name" content={siteTitle} />
+
+<!-- Twitter -->
+<meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:title" content={pageTitle} />
+<meta name="twitter:description" content={description} />
+<meta name="twitter:image" content={absoluteOgImage} />
+
+<!-- Plausible Analytics -->
+<script async src="https://plausible.io/js/pa-FEW5RDsDRliedckfbUUV2.js"></script>
+<script is:inline>
+  window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};
+  plausible.init()
+</script>

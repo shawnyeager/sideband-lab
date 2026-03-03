@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>U.S. GDP Status</title>
+<link rel="preload" href="/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/fonts/Caveat-Variable.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+  @font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 400 700;
+    font-display: swap;
+    src: url('/fonts/Inter-Variable.woff2') format('woff2');
+  }
+  @font-face {
+    font-family: 'Caveat';
+    font-style: normal;
+    font-weight: 500 700;
+    font-display: swap;
+    src: url('/fonts/Caveat-Variable.woff2') format('woff2');
+  }
+
+  :root {
+    --green: #3bd671;
+    --green-dark: #2ca95b;
+    --yellow: #eab308;
+    --orange: #e67e22;
+    --red: #dc3545;
+    --blue: #3498db;
+    --gray-bar: #c9c9c9;
+    --bg: #f4f5f7;
+    --white: #fff;
+    --text: #333;
+    --text-light: #6b7280;
+    --border: #e5e7eb;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: var(--text);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 740px;
+    margin: 0 auto;
+    padding: 0 16px;
+  }
+
+  /* Header bar */
+  .top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 24px 0 20px;
+  }
+
+  .logo {
+    height: 32px;
+  }
+
+  .premise-wrap {
+    position: relative;
+    height: 0;
+    z-index: 10;
+    pointer-events: none;
+  }
+
+  .premise {
+    position: absolute;
+    right: 20%;
+    top: -12px;
+    width: 155px;
+    height: 155px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    transform: rotate(5deg);
+    background: #fff8b8;
+    padding: 16px;
+    font-family: 'Caveat', cursive;
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: #4a3f2f;
+    line-height: 1.3;
+    box-shadow:
+      2px 4px 10px rgba(0,0,0,0.10),
+      0 1px 2px rgba(0,0,0,0.06);
+    pointer-events: auto;
+  }
+
+  .logo-text {
+    font-size: 1.15rem;
+    font-weight: 700;
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .subscribe-link {
+    font-size: 0.82rem;
+    color: var(--text-light);
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .subscribe-link:hover { text-decoration: underline; }
+
+  /* Status banner */
+  .status-banner {
+    border-radius: 6px;
+    padding: 16px 20px;
+    margin-bottom: 28px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+
+  .status-banner.good {
+    background: #dff5e3;
+    color: #1a7a36;
+  }
+
+  .status-banner.degraded {
+    background: #fff3e0;
+    color: #c45a00;
+  }
+
+  .status-banner .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .status-banner.good .dot { background: var(--green-dark); }
+  .status-banner.degraded .dot { background: var(--orange); }
+
+  /* Section subtitle */
+  .section-sub {
+    font-size: 0.82rem;
+    color: var(--text-light);
+    margin-bottom: 16px;
+  }
+
+  .section-sub a {
+    color: var(--text);
+    font-weight: 600;
+    text-decoration: none;
+  }
+
+  .section-sub a:hover { text-decoration: underline; }
+
+  /* Component rows */
+  .component {
+    background: var(--white);
+    border: 1px solid var(--border);
+    padding: 14px 18px;
+    margin-bottom: -1px;
+  }
+
+  .component:first-of-type {
+    border-radius: 6px 6px 0 0;
+  }
+
+  .component:last-of-type {
+    border-radius: 0 0 6px 6px;
+    margin-bottom: 0;
+  }
+
+  .component:only-of-type {
+    border-radius: 6px;
+  }
+
+  .comp-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+
+  .comp-name {
+    font-size: 0.88rem;
+    font-weight: 600;
+  }
+
+  .comp-status {
+    font-size: 0.78rem;
+    font-weight: 500;
+  }
+
+  .cs-op { color: var(--green-dark); }
+  .cs-dg { color: var(--orange); }
+  .cs-po { color: var(--orange); }
+  .cs-mo { color: var(--red); }
+
+  /* Uptime bars */
+  .bars {
+    display: flex;
+    gap: 1.5px;
+    height: 34px;
+    margin-bottom: 6px;
+  }
+
+  .bar {
+    flex: 1;
+    border-radius: 2px;
+    position: relative;
+    cursor: default;
+  }
+
+  .bar:hover { opacity: 0.75; }
+
+  /* Tooltip */
+  .bar .tip {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 8px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: #333;
+    color: #fff;
+    font-size: 0.68rem;
+    padding: 6px 10px;
+    border-radius: 4px;
+    white-space: nowrap;
+    z-index: 20;
+    pointer-events: none;
+    line-height: 1.4;
+  }
+
+  .bar .tip::after {
+    content: '';
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-top-color: #333;
+  }
+
+  .bar:hover .tip { display: block; }
+
+  .bg { background: var(--green); }
+  .bG { background: var(--green-dark); }
+  .by { background: var(--yellow); }
+  .bo { background: var(--orange); }
+  .br { background: var(--red); }
+  .bx { background: var(--gray-bar); }
+  .bb { background: var(--blue); }
+
+  .meta-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.72rem;
+    color: var(--text-light);
+  }
+
+  .meta-row .pct {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .meta-wrap { position: relative; width: 100%; display: flex; justify-content: space-between; }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    gap: 20px;
+    justify-content: flex-start;
+    padding: 20px 0 28px;
+    flex-wrap: wrap;
+  }
+
+  .leg-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.72rem;
+    color: var(--text-light);
+  }
+
+  .leg-sw {
+    width: 14px;
+    height: 14px;
+    border-radius: 2px;
+  }
+
+  /* Past incidents */
+  .incidents-heading {
+    font-size: 1rem;
+    font-weight: 700;
+    padding-bottom: 8px;
+    border-bottom: 1px solid var(--border);
+    margin-top: 32px;
+    margin-bottom: 20px;
+  }
+
+  .incident-date {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 8px;
+    margin-top: 20px;
+  }
+
+  .incident-date:first-of-type { margin-top: 0; }
+
+  .incident {
+    margin-bottom: 16px;
+    padding-left: 0;
+  }
+
+  .incident-title {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text);
+    margin-bottom: 4px;
+  }
+
+  .incident-title .tag {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 3px;
+    margin-right: 4px;
+    vertical-align: middle;
+  }
+
+  .tag-resolved { background: #dff5e3; color: #1a7a36; }
+  .tag-monitoring { background: #e0f0ff; color: #1a6fb5; }
+  .tag-investigating { background: #fff3e0; color: #c45a00; }
+
+  .incident-update {
+    font-size: 0.78rem;
+    color: var(--text-light);
+    line-height: 1.6;
+    margin-top: 2px;
+  }
+
+  .incident-time {
+    font-size: 0.72rem;
+    color: #9ca3af;
+    margin-top: 2px;
+  }
+
+  .no-incidents {
+    font-size: 0.82rem;
+    color: var(--text-light);
+    font-style: italic;
+  }
+
+  /* Footer */
+  .footer {
+    position: relative;
+    z-index: 11;
+    text-align: center;
+    padding: 28px 0 40px;
+    font-size: 0.7rem;
+    color: #9ca3af;
+  }
+
+  .footer a {
+    color: #9ca3af;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .footer a:hover { color: #6b7280; }
+
+  @media (max-width: 480px) {
+    .footer { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+    .footer__sep { display: none; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="top-bar">
+    <a class="logo-text" href="#">U.S. GDP Status</a>
+    <a class="subscribe-link plausible-event-name=Subscribe+Click" href="https://www.sideband.pub/subscribe">Subscribe to Updates</a>
+  </div>
+
+  <div class="premise-wrap">
+    <div class="premise">What if LLM uptime was a macro­economic indicator?</div>
+  </div>
+
+  <div class="status-banner degraded">
+    <div class="dot"></div>
+    GDP is experiencing degraded performance
+  </div>
+
+  <div class="section-sub">GDP output over the past 90 days. <a href="#">View historical output.</a></div>
+
+  <div id="components"></div>
+
+  <div class="legend">
+    <div class="leg-item"><div class="leg-sw" style="background:var(--green)"></div>Operational</div>
+    <div class="leg-item"><div class="leg-sw" style="background:var(--yellow)"></div>Degraded Performance</div>
+    <div class="leg-item"><div class="leg-sw" style="background:var(--orange)"></div>Partial Outage</div>
+    <div class="leg-item"><div class="leg-sw" style="background:var(--red)"></div>Major Outage</div>
+    <div class="leg-item"><div class="leg-sw" style="background:var(--blue)"></div>Maintenance</div>
+  </div>
+
+  <div class="incidents-heading">Past Incidents</div>
+  <div id="incidents"></div>
+
+  <div class="footer">
+    <span class="footer__item"><a href="#"><span style="font-size:1em;vertical-align:1px;margin-right:2px;text-decoration:none;display:inline-block">←</span>Incident History</a></span><span class="footer__sep">&nbsp;&nbsp;·&nbsp;&nbsp;</span><span class="footer__item">Powered by the <a href="https://lab.sideband.pub">Bureau of Economic Uptime</a></span>
+  </div>
+
+</div>
+
+<script>
+// Date helpers
+const now = new Date();
+const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
+function daysAgo(n) {
+  const d = new Date(today);
+  d.setDate(d.getDate() - n);
+  return d;
+}
+
+function fmtDate(d) {
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
+
+function fmtTime(d, h, m) {
+  const t = new Date(d);
+  t.setHours(h, m, 0);
+  return fmtDate(d) + ', ' + t.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', hour12: false }) + ' UTC';
+}
+
+// Components — bar strings read right-to-left = today to 90 days ago
+const C = [
+  {
+    n: "OpenAI",
+    s: "Partial Outage", sc: "cs-po", m: "98.96 % output",
+    b: "ggggggggggggggggggggggggggyorrgggggggggggggggggggggggggggggggggggggggggggggggggggyorroyg"
+  },
+  {
+    n: "Anthropic",
+    s: "Partial Outage", sc: "cs-po", m: "99.2 % output",
+    b: "ggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggyorrrooryg"
+  },
+  {
+    n: "Google DeepMind",
+    s: "Operational", sc: "cs-op", m: "99.7 % output",
+    b: "gggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggygggggggggggggggggggggg"
+  },
+  {
+    n: "Meta AI (Llama / open-weight)",
+    s: "Operational", sc: "cs-op", m: "99.9 % output",
+    b: "gggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg"
+  },
+  {
+    n: "Amazon Bedrock",
+    s: "Degraded Performance", sc: "cs-dg", m: "99.3 % output",
+    b: "gggggggggggggggggggggggggggyorgggggggggggggggggggggggggggggggggggggggggggggggggggyorggg"
+  },
+  {
+    n: "xAI (Grok)",
+    s: "Operational", sc: "cs-op", m: "99.5 % output",
+    b: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxggggggggggggggggggggggggggggggggggggggggggggggggggggggggggg"
+  },
+];
+
+const cm = { g:'bg', G:'bG', y:'by', o:'bo', r:'br', x:'bx' };
+const tipLabels = {
+  g: 'No GDP disruption recorded.',
+  y: 'Degraded economic output.',
+  o: 'Partial GDP outage.',
+  r: 'Major GDP contraction.',
+  x: 'No data exists for this day.'
+};
+
+const compEl = document.getElementById('components');
+
+C.forEach(svc => {
+  const numDays = svc.b.length;
+  const barsHtml = [...svc.b].map((c, i) => {
+    const d = daysAgo(numDays - 1 - i);
+    const dateStr = fmtDate(d);
+    const tip = `${dateStr}<br>${tipLabels[c]}`;
+    return `<div class="bar ${cm[c]}"><div class="tip">${tip}</div></div>`;
+  }).join('');
+
+  const d = document.createElement('div');
+  d.className = 'component';
+  d.innerHTML = `
+    <div class="comp-head">
+      <div class="comp-name">${svc.n}</div>
+      <div class="comp-status ${svc.sc}">${svc.s}</div>
+    </div>
+    <div class="bars">${barsHtml}</div>
+    <div class="meta-wrap meta-row">
+      <span>90 days ago</span>
+      <span class="pct">${svc.m}</span>
+      <span>Today</span>
+    </div>
+  `;
+  compEl.appendChild(d);
+});
+
+// Dynamic incidents — defined as days-ago offsets
+const incidents = [
+  {
+    daysAgo: 0, h: 13, m: 7,
+    tag: 'investigating', tagLabel: 'Investigating',
+    title: 'Degraded GDP output linked to Claude inference disruption',
+    update: 'We are seeing reduced economic throughput correlated with elevated errors across Claude infrastructure.'
+  },
+  {
+    daysAgo: 1, h: 19, m: 43,
+    tag: 'resolved', tagLabel: 'Resolved',
+    title: 'Sonnet 4.6 outage — estimated $420M in deferred output',
+    update: 'GDP output has recovered to nominal levels following restoration of Claude Sonnet 4.6 inference.'
+  },
+  {
+    daysAgo: 1, h: 14, m: 30,
+    tag: 'resolved', tagLabel: 'Resolved',
+    title: 'OpenAI API rate limiting — financial services sector slowdown',
+    update: 'GPT-dependent trading desks and analyst workflows restored. Estimated 3.2hr productivity gap across affected firms.'
+  },
+  {
+    daysAgo: 3, h: 17, m: 46,
+    tag: 'resolved', tagLabel: 'Resolved',
+    title: 'Multi-model outage — cross-sector GDP impact',
+    update: 'Elevated errors across Claude Sonnet 4.6 and Opus 4.6 produced measurable dip in professional services output. Estimated $1.1B in delayed throughput across legal, consulting, and software sectors.'
+  },
+  {
+    daysAgo: 4, h: 13, m: 26,
+    tag: 'resolved', tagLabel: 'Resolved',
+    title: 'Gemini degradation — minimal GDP impact due to redundancy',
+    update: 'Brief Gemini performance degradation. Limited economic impact — most dependent workflows had fallback providers configured.'
+  },
+  {
+    daysAgo: 5, h: 0, m: 0,
+    tag: 'none', tagLabel: '',
+    title: '',
+    update: '',
+    noIncidents: true
+  },
+  {
+    daysAgo: 8, h: 20, m: 17,
+    tag: 'resolved', tagLabel: 'Resolved',
+    title: 'GPT-4 capacity constraints — enterprise SaaS throughput reduced',
+    update: 'OpenAI capacity limits caused cascading slowdowns in Copilot, Salesforce Einstein, and downstream enterprise toolchains. Output recovered within 4 hours.'
+  },
+];
+
+const incEl = document.getElementById('incidents');
+let lastDateStr = '';
+
+incidents.forEach(inc => {
+  const d = daysAgo(inc.daysAgo);
+  const dateStr = fmtDate(d);
+
+  if (dateStr !== lastDateStr) {
+    const heading = document.createElement('div');
+    heading.className = 'incident-date';
+    heading.textContent = dateStr;
+    incEl.appendChild(heading);
+    lastDateStr = dateStr;
+  }
+
+  if (inc.noIncidents) {
+    const ni = document.createElement('div');
+    ni.className = 'no-incidents';
+    ni.textContent = 'No GDP-affecting incidents reported.';
+    incEl.appendChild(ni);
+    return;
+  }
+
+  const div = document.createElement('div');
+  div.className = 'incident';
+  div.innerHTML = `
+    <div class="incident-title"><span class="tag tag-${inc.tag}">${inc.tagLabel}</span> ${inc.title}</div>
+    <div class="incident-update">${inc.update}</div>
+    <div class="incident-time">${fmtTime(d, inc.h, inc.m)}</div>
+  `;
+  incEl.appendChild(div);
+});
+</script>
+</body>
+</html>

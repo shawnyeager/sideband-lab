@@ -1,0 +1,205 @@
+---
+interface Props {
+  slug: string;
+  title: string;
+  description: string;
+  date: string;
+  substackUrl?: string;
+  substackTitle?: string;
+  thumbnail: string;
+  featured?: boolean;
+}
+
+import { Image } from 'astro:assets';
+import { formatDateShort } from '../lib/utils';
+
+const images = import.meta.glob<{ default: ImageMetadata }>('../assets/projects/*.png', { eager: true });
+
+const { slug, title, description, date, substackUrl, substackTitle, thumbnail, featured = false } = Astro.props;
+
+const imagePath = `../assets/projects/${thumbnail}.png`;
+const image = images[imagePath]?.default;
+---
+
+<article class:list={['card', { 'card--featured': featured }]}>
+  <a href={`/${slug}/`} class="card__link" aria-label={title}>
+    <div class="card__visual">
+      {image ? (
+        <Image src={image} alt={title} loading={featured ? 'eager' : 'lazy'} />
+      ) : (
+        <img src={`/img/projects/${thumbnail}.png`} alt={title} loading={featured ? 'eager' : 'lazy'} />
+      )}
+    </div>
+    <div class="card__body">
+      <h2 class="card__title">{title}</h2>
+      <p class="card__desc">{description}</p>
+      <div class="card__meta">
+        <span>{formatDateShort(date)}</span>
+        <span class="card__meta-sep">&middot;</span>
+        <span>SHAWN YEAGER</span>
+      </div>
+    </div>
+  </a>
+</article>
+
+<style>
+  /* ── List variant (default) ── */
+  .card {
+    border-top: 1px solid var(--hr);
+    padding: var(--space-lg) 0;
+  }
+
+  .card__link {
+    display: grid;
+    grid-template-columns: 1fr 400px;
+    gap: var(--space-lg);
+    align-items: center;
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .card__visual {
+    order: 2;
+    overflow: hidden;
+    border-radius: 4px;
+  }
+
+  .card__visual img {
+    width: 100%;
+    height: auto;
+    display: block;
+    object-fit: cover;
+    object-position: center;
+  }
+
+  .card__body {
+    order: 1;
+  }
+
+  .card__title {
+    font-size: 1.35rem;
+    line-height: 1.3;
+    margin-bottom: 8px;
+    text-wrap: pretty;
+  }
+
+  .card__desc {
+    font-size: 1rem;
+    line-height: 1.6;
+    color: var(--text-muted);
+  }
+
+  .card__meta {
+    margin-top: 10px;
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-sub);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .card__meta-sep {
+    font-size: 0.85rem;
+  }
+
+  /* ── Featured variant (hero) ── */
+  .card--featured {
+    border-top: none;
+    padding: 0 0 var(--space-lg);
+  }
+
+  .card--featured .card__link {
+    grid-template-columns: 3fr 2fr;
+    gap: var(--space-lg);
+    align-items: center;
+  }
+
+  .card--featured .card__visual {
+    order: 1;
+    border-radius: 6px;
+  }
+
+  .card--featured .card__visual img {
+    aspect-ratio: auto;
+  }
+
+  .card--featured .card__body {
+    order: 2;
+    text-align: center;
+  }
+
+  .card--featured .card__title {
+    font-size: clamp(1.4rem, 2.8vw, 1.75rem);
+    margin-bottom: 12px;
+    text-wrap: balance;
+  }
+
+  .card--featured .card__desc {
+    font-size: 0.95rem;
+    line-height: 1.6;
+    -webkit-line-clamp: unset;
+    overflow: visible;
+  }
+
+  .card--featured .card__meta {
+    margin-top: 14px;
+    justify-content: center;
+  }
+
+  /* ── Mobile ── */
+  @media (max-width: 640px) {
+    .card {
+      padding: var(--space-sm) 0;
+    }
+
+    .card__link {
+      grid-template-columns: 1fr;
+      gap: 10px;
+    }
+
+    .card__visual {
+      order: 1;
+    }
+
+    .card__body {
+      order: 2;
+    }
+
+    .card__title {
+      font-size: 1.1rem;
+    }
+
+    .card__desc {
+      font-size: 0.9rem;
+    }
+
+    .card--featured {
+      padding: 0 0 var(--space-sm);
+    }
+
+    .card--featured .card__link {
+      grid-template-columns: 1fr;
+      gap: var(--space-sm);
+    }
+
+    .card--featured .card__body {
+      text-align: left;
+    }
+
+    .card--featured .card__title {
+      font-size: 1.5rem;
+    }
+
+    .card--featured .card__desc {
+      font-size: 1rem;
+    }
+
+    .card--featured .card__meta {
+      justify-content: flex-start;
+    }
+  }
+</style>

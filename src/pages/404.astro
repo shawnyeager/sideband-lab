@@ -1,0 +1,49 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="Not Found">
+  <div class="not-found">
+    <span class="not-found__code">404</span>
+    <p>This project doesn't exist yet.</p>
+    <a href="/" class="not-found__back">&larr; All projects</a>
+  </div>
+</Base>
+
+<style>
+  .not-found {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 40vh;
+    text-align: center;
+    gap: var(--space-xs);
+  }
+
+  .not-found__code {
+    font-family: var(--font-display);
+    font-weight: var(--display-weight);
+    font-size: clamp(3rem, 8vw, 5rem);
+    color: var(--text);
+    opacity: 0.06;
+    line-height: 1;
+    margin-bottom: var(--space-sm);
+  }
+
+  .not-found p {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+  }
+
+  .not-found__back {
+    margin-top: var(--space-sm);
+    font-size: 0.8rem;
+    color: var(--text-sub);
+    transition: color 0.15s;
+  }
+
+  .not-found__back:hover {
+    color: var(--text);
+  }
+</style>
