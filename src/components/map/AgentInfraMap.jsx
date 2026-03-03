@@ -20,18 +20,18 @@ const F = {
 
 /* ── Type scale ─────────────────────────────────────────────── */
 const T = {
-  eyebrow:   { d: 13, m: 11 },
-  body:      { d: 14, m: 12 },
-  label:     { d: 13, m: 11 },
-  detail:    { d: 12, m: 10 },
-  heading:   { d: 28, m: 20 },
-  subtitle:  { d: 15, m: 11 },
+  eyebrow:   { d: 13, m: 12 },
+  body:      { d: 14, m: 13 },
+  label:     { d: 13, m: 12 },
+  detail:    { d: 12, m: 11 },
+  heading:   { d: 28, m: 22 },
+  subtitle:  { d: 15, m: 13 },
   chart: {
-    axis:    { d: 13, m: 9  },
+    axis:    { d: 13, m: 10 },
     quad:    { d: 12 },
     dot:     { d: 11 },
-    tipName: { d: 13, m: 10 },
-    tipNote: { d: 11, m: 8  },
+    tipName: { d: 13, m: 11 },
+    tipNote: { d: 11, m: 10 },
   },
 };
 
@@ -362,7 +362,7 @@ export default function AgentInfraMap() {
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
         <div style={{ marginBottom: mobile ? 14 : 20 }}>
           <h1 style={{ fontFamily: F.display, fontSize: mobile ? T.heading.m : T.heading.d, fontWeight: 700, margin: 0, lineHeight: 1.2, color: C.text }}>Agent-Era Infrastructure Map</h1>
-          <p style={{ fontFamily: F.body, fontSize: mobile ? T.body.m : T.body.d, opacity: 0.5, margin: "8px 0 0", lineHeight: 1.5, maxWidth: 640 }}>Companies and protocols <a href="#rubric" style={{ color: "inherit", textDecoration: "underline", textDecorationColor: `${C.text}30`, textUnderlineOffset: "3px" }}>scored</a> on how open and how distributed they are, across five layers of the emerging agent stack—each with a maturity verdict.</p>
+          <p style={{ fontFamily: F.body, fontSize: mobile ? T.body.m : T.body.d, opacity: 0.5, margin: "8px 0 0", lineHeight: 1.5, maxWidth: 640 }}>Companies and protocols <a href="#rubric" style={{ color: "inherit", textDecoration: "underline", textDecorationColor: `${C.text}70`, textUnderlineOffset: "3px" }}>scored</a> on how open and how distributed they are, across five layers of the emerging agent stack—each with a maturity verdict.</p>
         </div>
         {mobile ? (
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
