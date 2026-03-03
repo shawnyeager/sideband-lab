@@ -538,6 +538,22 @@ if (layerKeysToCompute.length > 0) {
 }
 
 // ---------------------------------------------------------------------------
+// Export snapshot
+// ---------------------------------------------------------------------------
+
+if (!dryRun && scored > 0) {
+  const { execFileSync } = await import('node:child_process');
+  const { fileURLToPath } = await import('node:url');
+  const { dirname, join } = await import('node:path');
+  const scriptDir = dirname(fileURLToPath(import.meta.url));
+  try {
+    execFileSync('node', [join(scriptDir, 'export-map-data.mjs')], { stdio: 'inherit' });
+  } catch {
+    console.error('Warning: data export failed');
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Summary
 // ---------------------------------------------------------------------------
 
