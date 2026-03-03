@@ -35,7 +35,7 @@ const T = {
   },
 };
 
-function ScatterPlot({ data, layers, width, height, selectedLayer, hoveredPoint, setHoveredPoint, showDiagonal }) {
+function ScatterPlot({ data, layers, width, height, selectedLayer, hoveredPoint, setHoveredPoint, pinnedPoint, setPinnedPoint, showDiagonal }) {
   const narrow = width < 500;
   const pad = narrow
     ? { top: 14, right: 6, bottom: 24, left: 22 }
@@ -49,8 +49,8 @@ function ScatterPlot({ data, layers, width, height, selectedLayer, hoveredPoint,
   const labelSize = narrow ? T.chart.axis.m : T.chart.axis.d;
 
   return (
-    <svg width={width} height={height} style={{ overflow: "visible" }}>
-      <rect x={pad.left} y={pad.top} width={pw} height={ph} fill={C.surface} rx={4} />
+    <svg width={width} height={height} style={{ overflow: "visible" }} role="group" aria-label="Scatter plot of agent infrastructure openness vs distribution">
+      <rect x={pad.left} y={pad.top} width={pw} height={ph} fill={C.surface} rx={4} onClick={() => setPinnedPoint(null)} />
       {!narrow && <>
         <text x={pad.left + pw * 0.25} y={pad.top + ph * 0.1} fill={`${C.text}66`} fontSize={T.chart.quad.d} textAnchor="middle" fontFamily="monospace">WALLED GARDEN</text>
         <text x={pad.left + pw * 0.75} y={pad.top + ph * 0.1} fill={`${C.text}66`} fontSize={T.chart.quad.d} textAnchor="middle" fontFamily="monospace">PERMISSIONLESS</text>
@@ -65,16 +65,27 @@ function ScatterPlot({ data, layers, width, height, selectedLayer, hoveredPoint,
       <text x={pad.left - (narrow ? 8 : 14)} y={pad.top + ph} fill={C.text} fontSize={labelSize} fontFamily="monospace" textAnchor="start" transform={`rotate(-90, ${pad.left - (narrow ? 8 : 14)}, ${pad.top + ph})`}>CENTRALIZED</text>
       <text x={pad.left - (narrow ? 8 : 14)} y={pad.top} fill={C.text} fontSize={labelSize} fontFamily="monospace" textAnchor="end" transform={`rotate(-90, ${pad.left - (narrow ? 8 : 14)}, ${pad.top})`}>DISTRIBUTED</text>
       {filtered.map((d) => {
-        const isHovered = hoveredPoint === d.id;
+        const isActive = (pinnedPoint || hoveredPoint) === d.id;
+        const isPinned = pinnedPoint === d.id;
         const cx = toX(d.x);
         const cy = toY(d.y);
         const layerColor = layers[d.layer]?.color || C.text;
         return (
-          <g key={d.id} onMouseEnter={() => setHoveredPoint(d.id)} onMouseLeave={() => setHoveredPoint(null)} style={{ cursor: "pointer" }}>
+          <g key={d.id}
+            tabIndex={0}
+            role="img"
+            aria-label={`${d.name}: ${d.note}`}
+            onMouseEnter={() => setHoveredPoint(d.id)}
+            onMouseLeave={() => setHoveredPoint(null)}
+            onClick={() => setPinnedPoint(pinnedPoint === d.id ? null : d.id)}
+            onFocus={() => setHoveredPoint(d.id)}
+            onBlur={() => setHoveredPoint(null)}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setPinnedPoint(pinnedPoint === d.id ? null : d.id); } }}
+            style={{ cursor: "pointer", outline: "none" }}>
             <circle cx={cx} cy={cy} r={14} fill="transparent" />
-            <circle cx={cx} cy={cy} r={isHovered ? 7 : 4} fill={layerColor} opacity={isHovered ? 1 : 0.85} stroke={isHovered ? C.text : "none"} strokeWidth={2} />
-            {isSingleLayer && !isHovered && !narrow && <text x={cx + 8} y={cy + 3} fill={layerColor} fontSize={T.chart.dot.d} fontFamily="monospace" opacity={0.85}>{d.short}</text>}
-            {isHovered && (() => {
+            <circle cx={cx} cy={cy} r={isActive ? 7 : 4} fill={layerColor} opacity={isActive ? 1 : 0.85} stroke={isActive ? C.text : "none"} strokeWidth={2} />
+            {isSingleLayer && !isActive && !narrow && <text x={cx + 8} y={cy + 3} fill={layerColor} fontSize={T.chart.dot.d} fontFamily="monospace" opacity={0.85}>{d.short}</text>}
+            {isActive && (() => {
               const maxChars = Math.max(d.name.length, d.note.length);
               const charW = narrow ? 6.2 : 7.2;
               const boxW = Math.min(maxChars * charW + 24, pw * 0.7);
@@ -87,6 +98,9 @@ function ScatterPlot({ data, layers, width, height, selectedLayer, hoveredPoint,
                 <rect x={tx} y={ty} width={boxW} height={boxH} fill={C.bg} stroke={layerColor} strokeWidth={1} rx={4} opacity={0.95} />
                 <text x={tx + 10} y={ty + (narrow ? 17 : 19)} fill={C.text} fontSize={narrow ? T.chart.tipName.m : T.chart.tipName.d} fontFamily="monospace" fontWeight="bold">{d.name}</text>
                 <text x={tx + 10} y={ty + (narrow ? 33 : 37)} fill={C.text} fontSize={narrow ? T.chart.tipNote.m : T.chart.tipNote.d} fontFamily="monospace" opacity={0.6}>{d.note}</text>
+                {isPinned && (
+                  <text x={tx + boxW - 16} y={ty + 14} fill={C.text} fontSize={11} fontFamily={F.ui} opacity={0.4} style={{ cursor: "pointer" }} onClick={(e) => { e.stopPropagation(); setPinnedPoint(null); }}>{"\u00d7"}</text>
+                )}
               </>);
             })()}
           </g>
@@ -136,7 +150,7 @@ function RubricAccordion({ mobile }) {
   );
 
   return (
-    <div style={{ marginTop: mobile ? 20 : 28, padding: "16px 0", borderTop: `1px solid ${C.text}15` }}>
+    <div id="rubric" style={{ marginTop: mobile ? 20 : 28, padding: "16px 0", borderTop: `1px solid ${C.text}15` }}>
       <div style={{ fontFamily: F.ui, fontSize: mobile ? T.detail.m : T.detail.d, color: C.text, opacity: 0.4, marginBottom: mobile ? 10 : 14, letterSpacing: "0.05em" }}>SCORING RUBRIC</div>
       <button onClick={() => toggle("x")} style={{ background: "none", border: "none", color: C.text, cursor: "pointer", fontFamily: F.ui, fontSize: mobile ? T.body.m : T.body.d, padding: "8px 0", width: "100%", textAlign: "left", display: "flex", alignItems: mobile ? "flex-start" : "center", flexDirection: mobile ? "column" : "row" }}>
         <div style={{ display: "flex", alignItems: "center" }}>
@@ -169,6 +183,7 @@ function getInitialWidth() {
 export default function AgentInfraMap() {
   const [view, setView] = useState("all");
   const [hoveredPoint, setHoveredPoint] = useState(null);
+  const [pinnedPoint, setPinnedPoint] = useState(null);
   const [showDiagonal, setShowDiagonal] = useState(true);
   const [layers, setLayers] = useState(null);
   const [layerKeys, setLayerKeys] = useState([]);
@@ -177,8 +192,10 @@ export default function AgentInfraMap() {
   const [error, setError] = useState(null);
   const [chartWidth, setChartWidth] = useState(getInitialWidth);
   const observerRef = useRef(null);
+  const chartNodeRef = useRef(null);
 
   const setChartRef = (node) => {
+    chartNodeRef.current = node;
     if (observerRef.current) {
       observerRef.current.disconnect();
       observerRef.current = null;
@@ -238,6 +255,35 @@ export default function AgentInfraMap() {
     });
   }, []);
 
+  // Read layer from URL hash on mount + listen for hashchange
+  useEffect(() => {
+    if (typeof window === 'undefined' || layerKeys.length === 0) return;
+    const readHash = () => {
+      const hash = window.location.hash;
+      if (hash.startsWith('#layer=')) {
+        const key = hash.slice(7);
+        if (layerKeys.includes(key)) setView(key);
+      } else if (!hash || hash === '#') {
+        setView('all');
+      }
+    };
+    readHash();
+    window.addEventListener('hashchange', readHash);
+    return () => window.removeEventListener('hashchange', readHash);
+  }, [layerKeys]);
+
+  // Dismiss pinned tooltip on click outside chart
+  useEffect(() => {
+    if (!pinnedPoint) return;
+    const handler = (e) => {
+      if (chartNodeRef.current && !chartNodeRef.current.contains(e.target)) {
+        setPinnedPoint(null);
+      }
+    };
+    const id = setTimeout(() => document.addEventListener('click', handler), 0);
+    return () => { clearTimeout(id); document.removeEventListener('click', handler); };
+  }, [pinnedPoint]);
+
   const loading = !layers && !error;
 
   if (loading) {
@@ -259,24 +305,68 @@ export default function AgentInfraMap() {
   const mobile = chartWidth < 500;
   const chartHeight = Math.round(Math.min(chartWidth * (mobile ? 0.85 : 0.6), 680));
 
+  // Entity counts per layer
+  const layerCounts = {};
+  let totalCount = 0;
+  if (data) {
+    for (const d of data) {
+      layerCounts[d.layer] = (layerCounts[d.layer] || 0) + 1;
+      totalCount++;
+    }
+  }
+
+  // Centralized view change: update state, URL hash, scroll chart into view
+  const handleViewChange = (v) => {
+    setView(v);
+    setHoveredPoint(null);
+    setPinnedPoint(null);
+    if (typeof window !== 'undefined') {
+      const newHash = v === 'all' ? '' : `#layer=${v}`;
+      window.history.replaceState(null, '', newHash || window.location.pathname);
+    }
+    if (chartNodeRef.current) {
+      const rect = chartNodeRef.current.getBoundingClientRect();
+      if (rect.top > window.innerHeight) {
+        chartNodeRef.current.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      }
+    }
+  };
+
+  // Render a filter button (shared between mobile and desktop)
+  const renderFilterButton = (v, fontSize, padding) => {
+    const isActive = view === v;
+    const isLayer = v !== "all";
+    const label = isLayer
+      ? `${layers[v].name} (${layerCounts[v] || 0})`
+      : (mobile ? `All (${totalCount})` : `All layers (${totalCount})`);
+    return (
+      <button key={v} onClick={() => handleViewChange(v)} style={{
+        background: isActive ? (layers[v]?.color || C.text) : C.surface,
+        color: isActive ? C.bg : C.text,
+        border: `1px solid ${isActive ? (layers[v]?.color || C.text) : `${C.text}20`}`,
+        padding, borderRadius: 4, cursor: "pointer",
+        fontFamily: F.ui, fontSize, fontWeight: isActive ? 700 : 400, transition: "all 0.15s"
+      }}>
+        <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
+          {isLayer && !isActive && (
+            <span style={{ display: "inline-block", width: 8, height: 8, borderRadius: "50%", background: layers[v].color, flexShrink: 0 }} />
+          )}
+          {label}
+        </span>
+      </button>
+    );
+  };
+
   return (
     <div style={{ background: C.bg, minHeight: "100vh", padding: mobile ? "20px 16px" : "32px 40px", fontFamily: F.ui, color: C.text }}>
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
         <div style={{ marginBottom: mobile ? 14 : 20 }}>
           <h1 style={{ fontFamily: F.display, fontSize: mobile ? T.heading.m : T.heading.d, fontWeight: 700, margin: 0, lineHeight: 1.2, color: C.text }}>Agent-Era Infrastructure Map</h1>
-          <p style={{ fontFamily: F.body, fontSize: mobile ? T.body.m : T.body.d, opacity: 0.5, margin: "8px 0 0", lineHeight: 1.5, maxWidth: 640 }}>Companies and protocols scored on how open and how distributed they are, across five layers of the emerging agent stack—each with a maturity verdict.</p>
+          <p style={{ fontFamily: F.body, fontSize: mobile ? T.body.m : T.body.d, opacity: 0.5, margin: "8px 0 0", lineHeight: 1.5, maxWidth: 640 }}>Companies and protocols <a href="#rubric" style={{ color: "inherit", textDecoration: "underline", textDecorationColor: `${C.text}30`, textUnderlineOffset: "3px" }}>scored</a> on how open and how distributed they are, across five layers of the emerging agent stack—each with a maturity verdict.</p>
         </div>
         {mobile ? (
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
-            {["all", ...layerKeys].map(v => (
-              <button key={v} onClick={() => { setView(v); setHoveredPoint(null); }} style={{
-                background: view === v ? (layers[v]?.color || C.text) : C.surface,
-                color: view === v ? C.bg : C.text,
-                border: `1px solid ${view === v ? (layers[v]?.color || C.text) : `${C.text}20`}`,
-                padding: "5px 10px", borderRadius: 4, cursor: "pointer",
-                fontFamily: F.ui, fontSize: 11, fontWeight: view === v ? 700 : 400, transition: "all 0.15s"
-              }}>{v === "all" ? "All" : layers[v].name}</button>
-            ))}
+            {["all", ...layerKeys].map(v => renderFilterButton(v, 11, "5px 10px"))}
             <button onClick={() => setShowDiagonal(!showDiagonal)} style={{
               background: showDiagonal ? `${C.text}20` : "transparent", color: C.text,
               border: `1px solid ${showDiagonal ? `${C.text}40` : `${C.text}20`}`,
@@ -286,15 +376,7 @@ export default function AgentInfraMap() {
           </div>
         ) : (
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 20, alignItems: "center" }}>
-            {["all", ...layerKeys].map(v => (
-              <button key={v} onClick={() => { setView(v); setHoveredPoint(null); }} style={{
-                background: view === v ? (layers[v]?.color || C.text) : C.surface,
-                color: view === v ? C.bg : C.text,
-                border: `1px solid ${view === v ? (layers[v]?.color || C.text) : `${C.text}20`}`,
-                padding: "5px 14px", borderRadius: 4, cursor: "pointer",
-                fontFamily: F.ui, fontSize: T.label.d, fontWeight: view === v ? 700 : 400, transition: "all 0.15s"
-              }}>{v === "all" ? "All layers" : layers[v].name}</button>
-            ))}
+            {["all", ...layerKeys].map(v => renderFilterButton(v, T.label.d, "5px 14px"))}
             <div style={{ flex: 1 }} />
             <button onClick={() => setShowDiagonal(!showDiagonal)} style={{
               background: showDiagonal ? `${C.text}20` : "transparent", color: C.text,
@@ -316,14 +398,14 @@ export default function AgentInfraMap() {
           Select a layer to reveal labels
         </div>
         <div ref={setChartRef}>
-          <ScatterPlot data={data} layers={layers} width={chartWidth} height={chartHeight} selectedLayer={view} hoveredPoint={hoveredPoint} setHoveredPoint={setHoveredPoint} showDiagonal={showDiagonal} />
+          <ScatterPlot data={data} layers={layers} width={chartWidth} height={chartHeight} selectedLayer={view} hoveredPoint={hoveredPoint} setHoveredPoint={setHoveredPoint} pinnedPoint={pinnedPoint} setPinnedPoint={setPinnedPoint} showDiagonal={showDiagonal} />
         </div>
         <div style={{ marginTop: mobile ? 20 : 28, padding: "16px 0", borderTop: `1px solid ${C.text}15` }}>
           <div style={{ fontFamily: F.ui, fontSize: mobile ? T.detail.m : T.detail.d, color: C.text, opacity: 0.4, marginBottom: mobile ? 10 : 14, letterSpacing: "0.05em" }}>LAYER MATURITY</div>
           {mobile ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {layerKeys.map(key => (
-                <div key={key} style={{ display: "flex", flexDirection: "column", gap: 2 }}>
+                <div key={key} onClick={() => handleViewChange(key)} style={{ display: "flex", flexDirection: "column", gap: 2, cursor: "pointer", padding: "6px 0" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                     <div style={{ width: 8, height: 8, borderRadius: "50%", background: layers[key].color, flexShrink: 0 }} />
                     <div style={{ fontFamily: F.ui, fontSize: T.label.m, color: layers[key].color, fontWeight: "bold" }}>{layers[key].name}</div>
@@ -336,12 +418,17 @@ export default function AgentInfraMap() {
           ) : (
             <div style={{ display: "grid", gridTemplateColumns: `repeat(${layerKeys.length}, 1fr)`, gap: 10 }}>
               {layerKeys.map(key => (
-                <div key={key} style={{
-                  background: C.surface,
-                  border: "1px solid transparent",
-                  borderRadius: 6, padding: "14px 16px", textAlign: "left",
-                  display: "flex", flexDirection: "column",
-                }}>
+                <div key={key}
+                  onClick={() => handleViewChange(key)}
+                  onMouseEnter={(e) => { if (view !== key) e.currentTarget.style.borderColor = `${layers[key].color}30`; }}
+                  onMouseLeave={(e) => { if (view !== key) e.currentTarget.style.borderColor = 'transparent'; }}
+                  style={{
+                    background: C.surface,
+                    border: `1px solid ${view === key ? layers[key].color + '60' : 'transparent'}`,
+                    borderRadius: 6, padding: "14px 16px", textAlign: "left",
+                    display: "flex", flexDirection: "column",
+                    cursor: "pointer", transition: "border-color 0.15s",
+                  }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
                     <div style={{ width: 10, height: 10, borderRadius: "50%", background: layers[key].color, flexShrink: 0 }} />
                     <div style={{ fontFamily: F.ui, fontSize: T.label.d, color: layers[key].color, fontWeight: "bold" }}>{layers[key].name}</div>
