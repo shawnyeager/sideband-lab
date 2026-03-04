@@ -8,7 +8,9 @@ const activeProjects = getActiveProjects(projects);
 const [featured, ...rest] = activeProjects;
 ---
 
-<Base>
+<Base
+  description="AI is reshaping everything. Sideband is the signal underneath—control, trust, money, and who wins. The lab is where those ideas become something you can see."
+>
   {featured ? (
     <div class="projects">
       <ProjectCard
