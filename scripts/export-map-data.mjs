@@ -44,9 +44,17 @@ if (entitiesErr) { console.error(`entities: ${entitiesErr.message}`); process.ex
 
 const output = {
   exported_at: new Date().toISOString(),
-  rubric: {
-    x_axis: 'Closed (0) → Open (100): Who decides if you can participate?',
-    y_axis: 'Centralized (0) → Distributed (100): Where does it run and who operates it?',
+  scoring: {
+    method: 'deterministic-signal-extraction',
+    description: 'LLM extracts structured factual signals from source material. A deterministic weighted formula computes scores from those signals. The LLM never picks a score.',
+    x_axis: {
+      label: 'Closed (0) → Open (100): Who decides if you can participate?',
+      signals: ['spec_license', 'governance', 'permission_required', 'independent_implementations', 'fork_modify_allowed', 'tos_restrictions'],
+    },
+    y_axis: {
+      label: 'Centralized (0) → Distributed (100): Where does it run and who operates it?',
+      signals: ['deployment_model', 'operator_count', 'single_point_of_failure', 'self_hostable', 'works_offline', 'central_coordination_required'],
+    },
   },
   layers: layers.map(l => ({
     key: l.key,

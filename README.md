@@ -51,9 +51,20 @@ See `CLAUDE.md` for the full scaffolding template and conventions.
 ```
 src/           Source code — components, pages, layouts, styles
 public/        Static assets — fonts, images, project HTML
-scripts/       CLI tools — screenshot capture, entity scoring
+scripts/       CLI tools — screenshot capture, entity scoring, data export
 supabase/      Database migrations
+data/          Exported snapshots (map-entities.json)
 ```
+
+## Map scoring
+
+Entity scores are computed deterministically from structured signals. An LLM reads source material and extracts factual signals (license type, governance model, operator count, etc.) — it never picks a score. A weighted formula then computes the 0-100 position on each axis from those signals.
+
+**X-axis** (Closed → Open): `spec_license`, `governance`, `permission_required`, `independent_implementations`, `fork_modify_allowed`, `tos_restrictions`
+
+**Y-axis** (Centralized → Distributed): `deployment_model`, `operator_count`, `single_point_of_failure`, `self_hostable`, `works_offline`, `central_coordination_required`
+
+Same evidence in, same score out. Each score is auditable: you can trace exactly which signal contributed how many points and what source text supported it. Signal definitions and weights live in `scripts/score-entities.mjs`.
 
 ## Contributing
 

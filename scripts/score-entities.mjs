@@ -13,14 +13,16 @@ import { parseArgs } from 'node:util';
 
 const { values: flags } = parseArgs({
   options: {
-    layer:    { type: 'string' },
-    id:       { type: 'string' },
-    'dry-run': { type: 'boolean', default: false },
+    layer:          { type: 'string' },
+    id:             { type: 'string' },
+    'dry-run':      { type: 'boolean', default: false },
+    'extract-only': { type: 'boolean', default: false },
   },
   strict: true,
 });
 
 const dryRun = flags['dry-run'];
+const extractOnly = flags['extract-only'];
 
 // ---------------------------------------------------------------------------
 // Env
@@ -43,28 +45,98 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 const anthropic = new Anthropic({ apiKey: ANTHROPIC_KEY });
 
 // ---------------------------------------------------------------------------
-// Rubric (embedded from build spec)
+// Signal schemas & weight tables (OpenSSF Scorecard pattern)
 // ---------------------------------------------------------------------------
 
-const RUBRIC = `X Axis: Closed (0) to Open (100) — Who decides if you can participate?
+// Point values map to rubric band midpoints: 10 (Closed/Centralized),
+// 30 (Gated/Hosted), 50 (Mixed/Federated), 70 (Open-governed/Multi-op),
+// 90 (Permissionless/Fully distributed). No 0s or 100s — every signal
+// has a floor and ceiling that matches the rubric's continuous scale.
 
-| Score | Label | Criteria | Diagnostic test |
-|-------|-------|----------|-----------------|
-| 0-20 | Closed | Single entity controls access, pricing, rules, and can revoke at will. Proprietary spec or no spec. | Can you use this without one company's agreement? No. |
-| 20-40 | Gated | Multiple vendors or open-ish spec, but participation requires approval or ecosystem buy-in. | Could a solo dev ship on this in a weekend without asking? Unlikely. |
-| 40-60 | Mixed | Open spec, but practical usage involves controlled components: auth layers, hosting, compliance. | Open spec AND usable without a controlled dependency? Partially. |
-| 60-80 | Open-governed | Open spec under neutral governance (IETF, Linux Foundation, W3C). Anyone can implement. | Neutral governance body AND multiple independent implementations? Yes. |
-| 80-100 | Permissionless | No permission needed. No account, no API key, no ToS. Fork it, run it, modify it. | Use it right now with zero interaction with any organization? Yes. |
+// X-axis: Who decides if you can participate? (Closed 0 → Open 100)
+const X_SIGNALS = {
+  spec_license: {
+    question: 'What license governs using this specific thing (not the underlying protocol, but THIS deployment/product)?',
+    type: 'enum',
+    values: ['proprietary', 'source-available', 'open-standard', 'public-domain'],
+    points: { proprietary: 10, 'source-available': 40, 'open-standard': 75, 'public-domain': 90 },
+    weight: 0.15,
+  },
+  governance: {
+    question: 'Who controls how this specific thing evolves? (If an open spec has vendor-controlled deployment, answer about the deployment.)',
+    type: 'enum',
+    values: ['single-company', 'consortium', 'neutral-foundation', 'no-governance'],
+    points: { 'single-company': 10, consortium: 40, 'neutral-foundation': 75, 'no-governance': 90 },
+    weight: 0.15,
+  },
+  permission_required: {
+    question: 'To USE this specific thing as described, must you register, create an account, get API keys, or obtain approval from any entity? (Include OAuth client registration, RBAC enrollment, app store approval, etc.)',
+    type: 'boolean',
+    points: { true: 10, false: 90 },
+    weight: 0.25,
+  },
+  independent_implementations: {
+    question: 'How many independent implementations of THIS specific deployment pattern exist? (Not the underlying protocol — the specific pattern described.)',
+    type: 'enum',
+    values: ['zero', 'one', 'few', 'several', 'many'],
+    points: { zero: 10, one: 25, few: 45, several: 70, many: 90 },
+    weight: 0.15,
+  },
+  fork_modify_allowed: {
+    question: 'Can anyone fork, modify, and deploy their own version without permission from any entity?',
+    type: 'boolean',
+    points: { true: 90, false: 10 },
+    weight: 0.15,
+  },
+  tos_restrictions: {
+    question: 'Are there Terms of Service, acceptable use policies, or platform rules that restrict how this can be used?',
+    type: 'boolean',
+    points: { true: 10, false: 90 },
+    weight: 0.15,
+  },
+};
 
-Y Axis: Centralized (0) to Distributed (100) — Where does it run and who operates it?
-
-| Score | Label | Criteria | Diagnostic test |
-|-------|-------|----------|-----------------|
-| 0-20 | Centralized | One company's infrastructure. Single point of failure. One operator. | Company's servers go down, everything stops? Yes. |
-| 20-40 | Hosted | Shared infrastructure, small number of providers. Self-hosting possible but rare. | Fewer than 5 meaningful operators? Yes. |
-| 40-60 | Federated | Multiple independent operators, compatible infrastructure. No single point of failure. | 10+ independent parties operate without coordinating? Getting there. |
-| 60-80 | Multi-operator | Many independent operators. No single entity required. Some concentration remains. | Top 3 operators vanish, keeps working? Probably. |
-| 80-100 | Fully distributed | Thousands+ independent nodes. No privileged operator. Peer-to-peer or on-device. | Works offline or on peer mesh, no central coordination? Yes. |`;
+// Y-axis: Where does it run and who operates it? (Centralized 0 → Distributed 100)
+const Y_SIGNALS = {
+  deployment_model: {
+    question: 'Where does THIS specific thing physically run? (Not where it COULD run — where it ACTUALLY runs as described.)',
+    type: 'enum',
+    values: ['single-server', 'few-providers', 'federated', 'p2p-or-on-device'],
+    points: { 'single-server': 10, 'few-providers': 30, federated: 60, 'p2p-or-on-device': 90 },
+    weight: 0.25,
+  },
+  operator_count: {
+    question: 'How many independent operators currently run THIS specific deployment pattern?',
+    type: 'enum',
+    values: ['one', '2-5', '6-50', '50-plus', 'thousands-plus'],
+    points: { one: 10, '2-5': 25, '6-50': 50, '50-plus': 75, 'thousands-plus': 90 },
+    weight: 0.25,
+  },
+  single_point_of_failure: {
+    question: 'If one company\'s servers go down, does THIS specific thing stop working?',
+    type: 'boolean',
+    points: { true: 10, false: 90 },
+    weight: 0.20,
+  },
+  self_hostable: {
+    question: 'Can anyone run their own instance of THIS specific thing without permission?',
+    type: 'boolean',
+    points: { true: 90, false: 10 },
+    weight: 0.10,
+  },
+  works_offline: {
+    question: 'Does THIS specific thing function without internet connectivity?',
+    type: 'boolean',
+    points: { true: 90, false: 10 },
+    weight: 0.10,
+  },
+  central_coordination_required: {
+    question: 'Is a central authority (auth server, registry, coordinator) required for THIS specific thing to operate?',
+    type: 'boolean',
+    points: { true: 10, false: 90 },
+    weight: 0.10,
+  },
+};
 
 // ---------------------------------------------------------------------------
 // Evidence fetching
@@ -132,57 +204,67 @@ function buildEvidenceBlock(results, failed) {
 }
 
 // ---------------------------------------------------------------------------
-// Scoring prompt
+// Extraction prompt (LLM extracts facts, never picks scores)
 // ---------------------------------------------------------------------------
 
-function buildPrompt(entity, layerName, evidence, previous) {
-  let previousBlock = 'None (first score)';
-  if (previous) {
-    previousBlock = `X: ${previous.current_x} — ${previous.x_reasoning || 'no reasoning recorded'}
-Y: ${previous.current_y} — ${previous.y_reasoning || 'no reasoning recorded'}`;
+function buildSignalSchemaBlock(signals) {
+  const lines = [];
+  for (const [key, sig] of Object.entries(signals)) {
+    if (sig.type === 'boolean') {
+      lines.push(`  "${key}": { "value": true|false|null, "citation": "..." }  // ${sig.question}`);
+    } else {
+      lines.push(`  "${key}": { "value": "${sig.values.join('"|"')}"|null, "citation": "..." }  // ${sig.question}`);
+    }
   }
+  return lines.join('\n');
+}
 
-  return `You are scoring an entity for the Sideband Agent-Era Infrastructure Map.
+function buildExtractionPrompt(entity, layerName, evidence) {
+  return `You are extracting factual signals about a SPECIFIC DEPLOYMENT PATTERN for the Sideband Agent-Era Infrastructure Map.
 
 ENTITY: ${entity.full_name}
 LAYER: ${layerName}
+DESCRIPTION: ${entity.note || 'No description provided'}
+
+CRITICAL: You are scoring the DEPLOYMENT PATTERN described, NOT the underlying protocol or technology.
+
+Think of it this way: if a developer wants to USE "${entity.full_name}" as the DESCRIPTION describes it, what would they actually encounter?
+
+Examples of the distinction:
+- "MCP (enterprise)" described as "Open spec + OAuth/RBAC adds control" → The underlying MCP spec is open, but THIS entity is about enterprise deployment WITH OAuth. A developer MUST set up OAuth client registration to participate. Answer about the enterprise deployment, not the open spec.
+- "Apple Neural Engine" described as "2.5B devices, but Apple controls chip + App Store" → The chips are physically distributed on billions of devices. But access requires Apple hardware and App Store approval. Answer about what a developer encounters.
+- "OAuth 2.1 (enterprise)" described as "Open spec, centralized deployment" → The IETF spec is open, but enterprise OAuth runs on centralized auth servers (Azure AD, Okta). Answer about the enterprise deployment.
+
+FRAMING CHECK: Before answering each signal, ask yourself: "Am I answering about ${entity.full_name} AS DESCRIBED ('${entity.note || ''}'), or about the underlying technology?" If the latter, reframe your answer.
 
 SOURCE MATERIAL:
 ${evidence}
 
-PREVIOUS SCORE (if any):
-${previousBlock}
+For each signal, extract the answer as it applies to THIS SPECIFIC DEPLOYMENT PATTERN.
+- "value": the answer (use the exact enum values or true/false)
+- "citation": a direct quote from source material OR "DESCRIPTION" if the description provides the answer
+- If the source material does NOT contain evidence, set BOTH value and citation to null
+- Do NOT guess. Only report what evidence states or what directly follows from the DESCRIPTION.
 
-RUBRIC:
-${RUBRIC}
-
-Score this entity on both axes. For each axis:
-1. Apply each rubric level's diagnostic test
-2. Identify which level best fits based on the evidence
-3. Assign a specific score within that level's range
-4. Cite specific evidence from the source material supporting your score
-
-If this is a re-score, note what changed from the previous assessment and why.
-
-Respond in this exact JSON format:
+Respond with this exact JSON structure:
 {
-  "x_score": <integer 0-100>,
-  "x_reasoning": "<reasoning with specific citations>",
-  "y_score": <integer 0-100>,
-  "y_reasoning": "<reasoning with specific citations>",
-  "confidence_notes": "<anything uncertain or worth flagging for editorial review>",
-  "change_summary": "<if re-score, what moved and why; null otherwise>"
+  "x_signals": {
+${buildSignalSchemaBlock(X_SIGNALS)}
+  },
+  "y_signals": {
+${buildSignalSchemaBlock(Y_SIGNALS)}
+  }
 }`;
 }
 
 // ---------------------------------------------------------------------------
-// Claude API call
+// Claude API call (extraction, not scoring)
 // ---------------------------------------------------------------------------
 
-async function scoreEntity(prompt) {
+async function extractSignals(prompt) {
   const message = await anthropic.messages.create({
     model: 'claude-sonnet-4-5-20250929',
-    max_tokens: 2048,
+    max_tokens: 4096,
     temperature: 0,
     messages: [{ role: 'user', content: prompt }],
   });
@@ -190,21 +272,95 @@ async function scoreEntity(prompt) {
   const text = message.content[0]?.text;
   if (!text) throw new Error('Empty response from Claude');
 
-  // Extract JSON from response (may be wrapped in markdown code fences)
   const jsonMatch = text.match(/\{[\s\S]*\}/);
   if (!jsonMatch) throw new Error(`No JSON found in response: ${text.slice(0, 200)}`);
 
   const parsed = JSON.parse(jsonMatch[0]);
 
-  // Validate required fields
-  if (typeof parsed.x_score !== 'number' || typeof parsed.y_score !== 'number') {
-    throw new Error('Missing x_score or y_score in response');
-  }
-  if (parsed.x_score < 0 || parsed.x_score > 100 || parsed.y_score < 0 || parsed.y_score > 100) {
-    throw new Error(`Scores out of range: x=${parsed.x_score}, y=${parsed.y_score}`);
+  if (!parsed.x_signals || !parsed.y_signals) {
+    throw new Error('Missing x_signals or y_signals in response');
   }
 
   return parsed;
+}
+
+// ---------------------------------------------------------------------------
+// Deterministic scoring (pure arithmetic, no LLM)
+// ---------------------------------------------------------------------------
+
+function computeAxisScore(signals, signalDefs) {
+  let weightedSum = 0;
+  let totalWeight = 0;
+  const details = {};
+
+  for (const [key, def] of Object.entries(signalDefs)) {
+    const extracted = signals[key];
+    const value = extracted?.value;
+
+    if (value == null) {
+      details[key] = { value: null, points: null, weight: def.weight, citation: null };
+      continue;
+    }
+
+    // Look up points for this value
+    const pointKey = typeof value === 'boolean' ? String(value) : value;
+    const points = def.points[pointKey];
+
+    if (points == null) {
+      details[key] = { value, points: null, weight: def.weight, citation: extracted?.citation, error: `unknown value: ${value}` };
+      continue;
+    }
+
+    weightedSum += points * def.weight;
+    totalWeight += def.weight;
+    details[key] = { value, points, weight: def.weight, citation: extracted?.citation };
+  }
+
+  // Normalize: score out of 100, using only non-null signals
+  const score = totalWeight > 0 ? Math.round(weightedSum / totalWeight) : null;
+  const coverage = Object.keys(signalDefs).length;
+  const answered = Object.values(details).filter(d => d.points != null).length;
+
+  return { score, details, coverage: `${answered}/${coverage}` };
+}
+
+function buildAxisReasoning(details, signalDefs, axisLabel) {
+  const parts = [];
+  for (const [key, d] of Object.entries(details)) {
+    const def = signalDefs[key];
+    if (d.value == null) {
+      parts.push(`${key}: no evidence found`);
+    } else if (d.error) {
+      parts.push(`${key}: ${d.error}`);
+    } else {
+      const citation = d.citation ? ` (${d.citation})` : '';
+      parts.push(`${key}=${d.value} → ${d.points}pts${citation}`);
+    }
+  }
+  return parts.join('; ');
+}
+
+function computeScores(extracted) {
+  const x = computeAxisScore(extracted.x_signals, X_SIGNALS);
+  const y = computeAxisScore(extracted.y_signals, Y_SIGNALS);
+
+  const xNulls = Object.entries(x.details).filter(([, d]) => d.value == null).map(([k]) => k);
+  const yNulls = Object.entries(y.details).filter(([, d]) => d.value == null).map(([k]) => k);
+  const allNulls = [...xNulls, ...yNulls];
+  const totalSignals = Object.keys(X_SIGNALS).length + Object.keys(Y_SIGNALS).length;
+  const lowCoverage = allNulls.length / totalSignals > 0.4;
+
+  return {
+    x_score: x.score,
+    y_score: y.score,
+    x_reasoning: buildAxisReasoning(x.details, X_SIGNALS, 'X'),
+    y_reasoning: buildAxisReasoning(y.details, Y_SIGNALS, 'Y'),
+    x_coverage: x.coverage,
+    y_coverage: y.coverage,
+    null_signals: allNulls.length > 0 ? allNulls : null,
+    low_coverage: lowCoverage,
+    extracted_signals: extracted,
+  };
 }
 
 // ---------------------------------------------------------------------------
@@ -212,26 +368,26 @@ async function scoreEntity(prompt) {
 // ---------------------------------------------------------------------------
 
 async function writeScore(entity, result) {
-  // Insert score_history row
+  // Insert score_history row with extracted signals for auditability
   const { error: histErr } = await supabase.from('score_history').insert({
     entity_id: entity.id,
     x: result.x_score,
     y: result.y_score,
     x_reasoning: result.x_reasoning,
     y_reasoning: result.y_reasoning,
-    change_note: result.change_summary || null,
+    change_note: null,
     reviewed: false,
+    extracted_signals: result.extracted_signals || null,
   });
   if (histErr) throw new Error(`score_history insert: ${histErr.message}`);
 
-  // Update entity
+  // Update entity — do NOT set reviewed=false here; that would hide the entity
   const { error: entErr } = await supabase.from('entities').update({
     current_x: result.x_score,
     current_y: result.y_score,
     x_reasoning: result.x_reasoning,
     y_reasoning: result.y_reasoning,
     scored_at: new Date().toISOString(),
-    reviewed: false,
     updated_at: new Date().toISOString(),
   }).eq('id', entity.id);
   if (entErr) throw new Error(`entity update: ${entErr.message}`);
@@ -489,19 +645,31 @@ for (const entity of entities) {
 
   const evidence = buildEvidenceBlock(evidenceResults, evidenceFailed);
 
-  // 2. Build previous score context
-  const previous = (entity.current_x != null && entity.scored_at)
-    ? entity
-    : null;
-
-  // 3. Build prompt & call Claude
-  const prompt = buildPrompt(entity, layerMap[entity.layer] || entity.layer, evidence, previous);
+  // 2. Extract structured signals via LLM
+  const prompt = buildExtractionPrompt(entity, layerMap[entity.layer] || entity.layer, evidence);
 
   try {
-    const result = await scoreEntity(prompt);
-    console.log(`  x=${result.x_score} y=${result.y_score}`);
-    if (result.change_summary) {
-      console.log(`  change: ${result.change_summary}`);
+    const extracted = await extractSignals(prompt);
+
+    if (extractOnly) {
+      console.log(`  signals: ${JSON.stringify(extracted, null, 2)}`);
+      scored++;
+      affectedLayers.add(entity.layer);
+      continue;
+    }
+
+    // 3. Compute scores deterministically
+    const result = computeScores(extracted);
+
+    if (result.x_score == null || result.y_score == null) {
+      console.log(`  SKIP — insufficient signal coverage (x=${result.x_coverage}, y=${result.y_coverage})`);
+      skipped++;
+      continue;
+    }
+
+    console.log(`  x=${result.x_score} (${result.x_coverage}) y=${result.y_score} (${result.y_coverage})`);
+    if (result.low_coverage) {
+      console.log(`  ⚠ low coverage — null signals: ${result.null_signals.join(', ')}`);
     }
 
     // 4. Write to DB

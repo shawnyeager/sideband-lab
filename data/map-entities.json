@@ -1,44 +1,66 @@
 {
-  "exported_at": "2026-03-03T23:25:18.884Z",
-  "rubric": {
-    "x_axis": "Closed (0) → Open (100): Who decides if you can participate?",
-    "y_axis": "Centralized (0) → Distributed (100): Where does it run and who operates it?"
+  "exported_at": "2026-03-04T01:11:10.438Z",
+  "scoring": {
+    "method": "deterministic-signal-extraction",
+    "description": "LLM extracts structured factual signals from source material. A deterministic weighted formula computes scores from those signals. The LLM never picks a score.",
+    "x_axis": {
+      "label": "Closed (0) → Open (100): Who decides if you can participate?",
+      "signals": [
+        "spec_license",
+        "governance",
+        "permission_required",
+        "independent_implementations",
+        "fork_modify_allowed",
+        "tos_restrictions"
+      ]
+    },
+    "y_axis": {
+      "label": "Centralized (0) → Distributed (100): Where does it run and who operates it?",
+      "signals": [
+        "deployment_model",
+        "operator_count",
+        "single_point_of_failure",
+        "self_hostable",
+        "works_offline",
+        "central_coordination_required"
+      ]
+    }
   },
   "layers": [
     {
       "key": "compute",
       "name": "Compute",
       "color": "#0EA5C9",
-      "status": "Splitting",
-      "status_note": "Two distinct camps forming, neither dominant"
+      "status": "Fragmenting",
+      "status_note": "silhouette=0.00, spread=29/35"
     },
     {
       "key": "protocols",
       "name": "Protocols",
       "color": "#38BDF8",
-      "status": "Settling",
-      "status_note": "Clear winners emerging, governance established"
+      "status": "Fragmenting",
+      "status_note": "silhouette=0.00, spread=33/34"
     },
     {
       "key": "discovery",
       "name": "Discovery",
       "color": "#5B9B84",
-      "status": "Fragmenting",
-      "status_note": "Multiple competing approaches, no convergence yet"
+      "status": "Splitting",
+      "status_note": "silhouette=0.66, centroid distance=73, center gap=1, spread=27/29"
     },
     {
       "key": "identity",
       "name": "Identity",
       "color": "#C9A050",
-      "status": "Wide open",
-      "status_note": "Critical gap, almost nothing production-ready"
+      "status": "Splitting",
+      "status_note": "silhouette=0.54, centroid distance=77, center gap=1, spread=29/31"
     },
     {
       "key": "payments",
       "name": "Payments",
       "color": "#A97C40",
-      "status": "Forking",
-      "status_note": "Two paradigms diverging: platform-mediated vs. permissionless"
+      "status": "Wide open",
+      "status_note": "spread=35/31"
     }
   ],
   "entities": [
@@ -46,337 +68,424 @@
       "name": "Apple Neural Engine",
       "short_name": "Apple",
       "layer": "compute",
-      "x": 15,
-      "y": 85,
+      "x": 10,
+      "y": 90,
       "note": "2.5B devices, but Apple controls chip + App Store",
-      "x_reasoning": null,
-      "y_reasoning": null,
-      "source_urls": [],
-      "scored_at": null
+      "x_reasoning": "spec_license=proprietary → 10pts (DESCRIPTION: Apple controls chip + App Store); governance=single-company → 10pts (DESCRIPTION: Apple controls chip + App Store); permission_required=true → 10pts (DESCRIPTION: Apple controls chip + App Store (App Store approval required for distribution)); independent_implementations=zero → 10pts (DESCRIPTION: Apple controls chip (hardware is proprietary Apple silicon, no independent implementations possible)); fork_modify_allowed=false → 10pts (DESCRIPTION: Apple controls chip (proprietary hardware cannot be forked or independently deployed)); tos_restrictions=true → 10pts (DESCRIPTION: Apple controls chip + App Store (App Store has terms of service and platform rules))",
+      "y_reasoning": "deployment_model=p2p-or-on-device → 90pts (Core ML models run strictly on the user's device and remove any need for a network connection); operator_count=thousands-plus → 90pts (DESCRIPTION: 2.5B devices (billions of individual device owners operate their own instances)); single_point_of_failure=false → 90pts (Core ML models run strictly on the user's device and remove any need for a network connection (each device operates independently)); self_hostable=true → 90pts (Core ML models run strictly on the user's device (each user 'hosts' on their own device, though they must use Apple hardware)); works_offline=true → 90pts (Core ML models run strictly on the user's device and remove any need for a network connection); central_coordination_required=false → 90pts (Core ML models run strictly on the user's device and remove any need for a network connection (no central coordination needed for inference execution))",
+      "source_urls": [
+        "https://machinelearning.apple.com/research/neural-engine-transformers",
+        "https://developer.apple.com/machine-learning/core-ml/"
+      ],
+      "scored_at": "2026-03-04T01:09:35.81+00:00"
     },
     {
       "name": "Open-weight on cloud",
       "short_name": "Llama/cloud",
       "layer": "compute",
-      "x": 70,
-      "y": 15,
+      "x": 16,
+      "y": 19,
       "note": "Llama on AWS, open model, rented infra",
-      "x_reasoning": null,
-      "y_reasoning": null,
-      "source_urls": [],
-      "scored_at": null
+      "x_reasoning": "spec_license: no evidence found; governance=single-company → 10pts (DESCRIPTION); permission_required=true → 10pts (Create an AWS account); independent_implementations=few → 45pts (AWS Bedrock and Together.ai both offer Llama models as managed services on cloud infrastructure); fork_modify_allowed=false → 10pts (DESCRIPTION); tos_restrictions=true → 10pts (Amazon Bedrock is a turnkey way for developers to get started using Llama... you don't have to manage any infrastructure)",
+      "y_reasoning": "deployment_model=few-providers → 30pts (Llama on AWS... Amazon Bedrock... Together AI infrastructure); operator_count=2-5 → 25pts (AWS Bedrock and Together.ai are shown as providers offering Llama models on cloud infrastructure); single_point_of_failure=true → 10pts (DESCRIPTION); self_hostable=false → 10pts (Amazon Bedrock is serverless, you don't have to manage any infrastructure... Zero infrastructure management); works_offline=false → 10pts (DESCRIPTION); central_coordination_required=true → 10pts (The Amazon Bedrock managed API makes using Llama models easier than ever)",
+      "source_urls": [
+        "https://ai.meta.com/llama/",
+        "https://aws.amazon.com/bedrock/llama/",
+        "https://www.together.ai/models"
+      ],
+      "scored_at": "2026-03-04T01:05:20.675+00:00"
     },
     {
       "name": "Open-weight on local",
       "short_name": "Llama/local",
       "layer": "compute",
-      "x": 92,
-      "y": 95,
+      "x": 85,
+      "y": 90,
       "note": "No API key, no account, runs offline",
-      "x_reasoning": null,
-      "y_reasoning": null,
-      "source_urls": [],
-      "scored_at": null
+      "x_reasoning": "spec_license=open-standard → 75pts (DESCRIPTION); governance=no-governance → 90pts (DESCRIPTION); permission_required=false → 90pts (No API key, no account, runs offline); independent_implementations=several → 70pts (Ollama (https://ollama.com/), LM Studio (https://lmstudio.ai/), and llmster deployment options all provide local open-weight model execution); fork_modify_allowed=true → 90pts (Your open source AI assistant... Run AI models, locally and privately... LM Studio is free for home and work use); tos_restrictions=false → 90pts (DESCRIPTION)",
+      "y_reasoning": "deployment_model=p2p-or-on-device → 90pts (runs offline... Run AI models, locally and privately. Use local LLMs... locally on your own hardware); operator_count=thousands-plus → 90pts (Over 40,000 integrations... Download for Windows... Download the app (indicating widespread individual deployment)); single_point_of_failure=false → 90pts (runs offline); self_hostable=true → 90pts (Run AI models, locally and privately. Use local LLMs... locally on your own hardware); works_offline=true → 90pts (runs offline); central_coordination_required=false → 90pts (No API key, no account, runs offline)",
+      "source_urls": [
+        "https://ollama.com/",
+        "https://lmstudio.ai/",
+        "https://ai.meta.com/llama/"
+      ],
+      "scored_at": "2026-03-04T01:07:25.762+00:00"
     },
     {
       "name": "OpenAI / Anthropic / Google API",
       "short_name": "Cloud APIs",
       "layer": "compute",
       "x": 10,
-      "y": 10,
+      "y": 19,
       "note": "Proprietary models, API keys, content policy",
-      "x_reasoning": null,
-      "y_reasoning": null,
-      "source_urls": [],
-      "scored_at": null
+      "x_reasoning": "spec_license=proprietary → 10pts (DESCRIPTION: Proprietary models, API keys, content policy); governance=single-company → 10pts (OpenAI is an American artificial intelligence (AI) research organization comprising both a non-profit foundation and a controlled for-profit public benefit corporation (PBC), headquartered in San Francisco); permission_required=true → 10pts (DESCRIPTION: API keys); independent_implementations=zero → 10pts (DESCRIPTION: Proprietary models); fork_modify_allowed=false → 10pts (DESCRIPTION: Proprietary models); tos_restrictions=true → 10pts (DESCRIPTION: content policy)",
+      "y_reasoning": "deployment_model=few-providers → 30pts (Models are available via the Claude API, AWS Bedrock, and Google Vertex AI); operator_count=2-5 → 25pts (DESCRIPTION: OpenAI / Anthropic / Google API - three distinct companies operating their respective proprietary model APIs); single_point_of_failure=true → 10pts (DESCRIPTION: Proprietary models, API keys - each provider's API depends on that specific company's servers); self_hostable=false → 10pts (DESCRIPTION: Proprietary models, API keys); works_offline=false → 10pts (DESCRIPTION: API keys - APIs require internet connectivity to reach provider servers); central_coordination_required=true → 10pts (DESCRIPTION: API keys, content policy - each provider operates centralized API endpoints with authentication and content filtering)",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/OpenAI",
+        "https://docs.anthropic.com/en/docs/about-claude/models",
+        "https://ai.google.dev/gemini-api/docs"
+      ],
+      "scored_at": "2026-03-04T01:07:47.556+00:00"
     },
     {
       "name": "Qualcomm / MediaTek NPUs",
       "short_name": "NPUs",
       "layer": "compute",
-      "x": 45,
-      "y": 82,
+      "x": 10,
+      "y": 90,
       "note": "Distributed hardware, vendor SDK control",
-      "x_reasoning": null,
-      "y_reasoning": null,
-      "source_urls": [],
-      "scored_at": null
+      "x_reasoning": "spec_license=proprietary → 10pts (DESCRIPTION: vendor SDK control); governance=single-company → 10pts (DESCRIPTION: vendor SDK control); permission_required=true → 10pts (MediaTek NeuroPilot SDK supports all MediaTek AI-capable hardware... The software ecosystem covers both Android and Linux OS' and offers a complete compiler, profiler and application libraries.); independent_implementations=zero → 10pts (DESCRIPTION: vendor SDK control - developers must use Qualcomm or MediaTek's proprietary SDKs to access the NPUs); fork_modify_allowed=false → 10pts (DESCRIPTION: vendor SDK control - the SDKs and hardware are controlled by the vendors); tos_restrictions=true → 10pts (DESCRIPTION: vendor SDK control - SDK usage implies vendor terms of service)",
+      "y_reasoning": "deployment_model=p2p-or-on-device → 90pts (DESCRIPTION: Distributed hardware... Edge AI... process AI-enhancements 'at the edge' in products at home, in vehicle or about person); operator_count=thousands-plus → 90pts (DESCRIPTION: Distributed hardware - NPUs are deployed in millions of consumer devices across multiple product lines (smartphones, automotive, smart home, IoT)); single_point_of_failure=false → 90pts (DESCRIPTION: Distributed hardware... Advantages of this edge-computing include real-time immediacy, data privacy and overall lower power consumption); self_hostable=true → 90pts (DESCRIPTION: Distributed hardware - the NPUs run on-device in consumer products); works_offline=true → 90pts (process AI-enhancements 'at the edge' in products at home, in vehicle or about person, rather than rely solely on Cloud-connected support... Advantages of this edge-computing include real-time immediacy, data privacy); central_coordination_required=false → 90pts (DESCRIPTION: Distributed hardware... rather than rely solely on Cloud-connected support... no need to roll out supporting Cloud infrastructure)",
+      "source_urls": [
+        "https://www.qualcomm.com/developer/artificial-intelligence",
+        "https://www.mediatek.com/technology/artificial-intelligence"
+      ],
+      "scored_at": "2026-03-04T01:05:38.531+00:00"
     },
     {
       "name": "A2A Agent Cards",
       "short_name": "Agent Cards",
       "layer": "discovery",
-      "x": 88,
-      "y": 88,
+      "x": 80,
+      "y": 75,
       "note": "Self-describing, self-hosted",
-      "x_reasoning": null,
-      "y_reasoning": null,
-      "source_urls": [],
-      "scored_at": null
+      "x_reasoning": "spec_license=open-standard → 75pts (A2A Protocol is an open standard that enables AI agents to communicate and collaborate across different platforms and frameworks); governance=consortium → 40pts (Join over 50 technology partners including Atlassian, Box, Cohere, Intuit, Langchain, MongoDB, PayPal, Salesforce, SAP, ServiceNow, UKG, and Workday); permission_required=false → 90pts (DESCRIPTION); independent_implementations=many → 90pts (DESCRIPTION); fork_modify_allowed=true → 90pts (DESCRIPTION); tos_restrictions=false → 90pts (DESCRIPTION)",
+      "y_reasoning": "deployment_model=federated → 60pts (DESCRIPTION); operator_count=thousands-plus → 90pts (DESCRIPTION); single_point_of_failure=false → 90pts (DESCRIPTION); self_hostable=true → 90pts (DESCRIPTION); works_offline=false → 10pts (Agents advertise their capabilities using an 'Agent Card' in JSON format... Client fetches the Agent Card from the server's well-known URL); central_coordination_required=false → 90pts (DESCRIPTION)",
+      "source_urls": [
+        "https://a2aprotocol.ai/",
+        "https://github.com/google/A2A"
+      ],
+      "scored_at": "2026-03-04T01:06:08.92+00:00"
     },
     {
       "name": "AGNTCY DHT",
       "short_name": "AGNTCY",
       "layer": "discovery",
-      "x": 90,
-      "y": 92,
+      "x": 76,
+      "y": 79,
       "note": "Kademlia P2P, IETF draft submitted",
-      "x_reasoning": null,
-      "y_reasoning": null,
-      "source_urls": [],
-      "scored_at": null
+      "x_reasoning": "spec_license=open-standard → 75pts (DESCRIPTION: IETF draft submitted); governance=neutral-foundation → 75pts (DESCRIPTION: IETF draft submitted); permission_required=false → 90pts (Building this infrastructure as open source ensures it will serve the entire ecosystem, not just individual vendors.); independent_implementations=one → 25pts (GitHub - agntcy/slim: Secure Low-Latency Interactive Messaging); fork_modify_allowed=true → 90pts (Distributed under Apache 2.0 License. See LICENSE for more information.); tos_restrictions=false → 90pts (Distributed under Apache 2.0 License)",
+      "y_reasoning": "deployment_model=p2p-or-on-device → 90pts (DESCRIPTION: Kademlia P2P); operator_count: no evidence found; single_point_of_failure=false → 90pts (DESCRIPTION: Kademlia P2P); self_hostable=true → 90pts (Start a SLIM server node: # Run with basic configuration cd data-plane && cargo run --bin slim -- --config ./data-plane/config/base/server-config.yaml); works_offline=false → 10pts (DESCRIPTION: Kademlia P2P); central_coordination_required=false → 90pts (DESCRIPTION: Kademlia P2P)",
+      "source_urls": [
+        "https://agntcy.org/",
+        "https://github.com/agntcy/agp"
+      ],
+      "scored_at": "2026-03-04T01:10:23.091+00:00"
     },
     {
       "name": "GPT Store",
       "short_name": "GPT Store",
       "layer": "discovery",
-      "x": 8,
-      "y": 8,
+      "x": 10,
+      "y": 10,
       "note": "3M+ GPTs, OpenAI curates + revenue share",
-      "x_reasoning": null,
-      "y_reasoning": null,
-      "source_urls": [],
-      "scored_at": null
+      "x_reasoning": "spec_license=proprietary → 10pts (DESCRIPTION: OpenAI curates + revenue share); governance=single-company → 10pts (The GPT Store is a platform developed by OpenAI that enables users and developers to create, publish, and monetize GPTs); permission_required=true → 10pts (Product availability will depend on customized settings, such as the set level of visibility and the creator's profile.); independent_implementations=zero → 10pts (The legitimate platform can only be accessed through the official GPT online website.); fork_modify_allowed=false → 10pts (The legitimate platform can only be accessed through the official GPT online website.); tos_restrictions=true → 10pts (The policies prohibit activities such as promoting harm, harassment, defamation, violence, or terrorism, among other forms of misuse. They also require creators to respect privacy rights by avoiding the disclosure of non-public information without prior authorization.)",
+      "y_reasoning": "deployment_model=single-server → 10pts (DESCRIPTION: OpenAI curates + revenue share); operator_count=one → 10pts (The GPT Store is a platform developed by OpenAI); single_point_of_failure=true → 10pts (The legitimate platform can only be accessed through the official GPT online website.); self_hostable=false → 10pts (The legitimate platform can only be accessed through the official GPT online website.); works_offline=false → 10pts (The GPT Store is a platform developed by OpenAI that enables users and developers to create, publish, and monetize GPTs); central_coordination_required=true → 10pts (DESCRIPTION: OpenAI curates + revenue share)",
+      "source_urls": [
+        "https://en.wikipedia.org/wiki/GPT_Store"
+      ],
+      "scored_at": "2026-03-04T01:08:04.958+00:00"
     },
     {
       "name": "MCP Registry",
       "short_name": "MCP Registry",
       "layer": "discovery",
-      "x": 75,
-      "y": 28,
+      "x": 38,
+      "y": 18,
       "note": "Open governance, federated, central infra",
-      "x_reasoning": null,
-      "y_reasoning": null,
-      "source_urls": [],
-      "scored_at": null
+      "x_reasoning": "spec_license=open-standard → 75pts (LICENSE file shows MIT License, and the registry is described as 'Open governance, federated, central infra' with open source code available); governance=single-company → 10pts (Current key maintainers: Adam Jones (Anthropic) @domdomegg Tadas Antanavicius (PulseMCP) @tadasant Toby Padilla (GitHub) @toby Radoslav (Rado) Dimitrov (Stacklok) @rdimitrov - with Anthropic maintainer listed first and the modelcontextprotocol organization controlling the repository); permission_required=true → 10pts (To publish a server, we've built a simple CLI... See the publisher guide for more details - and the auth system includes 'Authentication (GitHub OAuth, JWT, namespace blocking)'); independent_implementations=one → 25pts (The GitHub repository shows this is the single implementation of the MCP Registry service, described as 'A community driven registry service for Model Context Protocol (MCP) servers'); fork_modify_allowed=true → 90pts (LICENSE file shows MIT License and the code is open source on GitHub, allowing forking and modification); tos_restrictions: no evidence found",
+      "y_reasoning": "deployment_model=single-server → 10pts (DESCRIPTION: 'central infra' and the repository shows deployment configuration with 'make dev-compose' starting 'the registry at localhost:8080 with PostgreSQL' as a centralized service); operator_count=one → 10pts (The registry is operated as a single service by the modelcontextprotocol organization, with 'Pre-built Docker images are automatically published to GitHub Container Registry' indicating centralized deployment); single_point_of_failure=true → 10pts (DESCRIPTION: 'central infra' - the registry operates as a centralized service that MCP clients query for server listings); self_hostable=true → 90pts (Running the server: make dev-compose starts the registry at localhost:8080 with PostgreSQL... Alternative: Running a pre-built Docker image docker run -p 8080:8080 ghcr.io/modelcontextprotocol/registry:latest); works_offline=false → 10pts (By default, the registry seeds from the production API... For offline development you can seed from a file - indicating the primary deployment requires internet connectivity to function); central_coordination_required=true → 10pts (DESCRIPTION: 'central infra' and 'The MCP registry provides MCP clients with a list of MCP servers, like an app store for MCP servers' - clients query the central registry for server discovery)",
+      "source_urls": [
+        "https://modelcontextprotocol.io/specification/2025-03-26/basic/index",
+        "https://github.com/modelcontextprotocol/registry"
+      ],
+      "scored_at": "2026-03-04T01:06:00.705+00:00"
     },
     {
       "name": "NANDA Index (MIT)",
       "short_name": "NANDA",
       "layer": "discovery",
-      "x": 90,
-      "y": 88,
+      "x": 65,
+      "y": 59,
       "note": "ZK proofs, cryptographic verification",
-      "x_reasoning": null,
-      "y_reasoning": null,
-      "source_urls": [],
-      "scored_at": null
+      "x_reasoning": "spec_license: no evidence found; governance=consortium → 40pts (Project NANDA employs a three-pronged approach: (i) Technology: Building technology, standards, and reference implementations through a collective of top minds... Early partners in the coalition gain preferential access to emerging standards, reference implementations, and the academic-industry consortium that will influence the emerging frameworks globally.); permission_required: no evidence found; independent_implementations: no evidence found; fork_modify_allowed=true → 90pts (Open source and open governance project structure with modular, decentralized stack for the agentic era); tos_restrictions: no evidence found",
+      "y_reasoning": "deployment_model=federated → 60pts (DESCRIPTION: ZK proofs, cryptographic verification - combined with 'Decentralized Registry System: Functions like DNS for agents, enabling discovery, authentication, and verifiable interaction across the network' and 'distributed agent intelligence infrastructure'); operator_count: no evidence found; single_point_of_failure=false → 90pts (DESCRIPTION: ZK proofs, cryptographic verification - combined with 'Decentralized Registry System' and 'decentralized networks' and 'distributed agent intelligence infrastructure'); self_hostable=true → 90pts (Open source and open governance project structure with modular, decentralized stack for the agentic era); works_offline=false → 10pts (DESCRIPTION: ZK proofs, cryptographic verification - requires network interaction for 'discovery, authentication, and verifiable interaction across the network'); central_coordination_required=true → 10pts (DESCRIPTION: ZK proofs, cryptographic verification - combined with 'Index Infrastructure: NANDA Index for agent discovery' and 'Decentralized Registry System: Functions like DNS for agents')",
+      "source_urls": [
+        "https://projectnanda.org/",
+        "https://github.com/projnanda/projnanda",
+        "https://www.media.mit.edu/projects/mit-nanda/overview/"
+      ],
+      "scored_at": "2026-03-04T01:07:02.006+00:00"
     },
     {
       "name": "Oracle / Salesforce Marketplaces",
       "short_name": "Enterprise mkts",
       "layer": "discovery",
       "x": 10,
-      "y": 10,
+      "y": 14,
       "note": "Enterprise-gatekept",
-      "x_reasoning": null,
-      "y_reasoning": null,
-      "source_urls": [],
-      "scored_at": null
+      "x_reasoning": "spec_license=proprietary → 10pts (DESCRIPTION); governance=single-company → 10pts (DESCRIPTION); permission_required=true → 10pts (DESCRIPTION); independent_implementations=zero → 10pts (DESCRIPTION); fork_modify_allowed=false → 10pts (DESCRIPTION); tos_restrictions=true → 10pts (DESCRIPTION)",
+      "y_reasoning": "deployment_model=single-server → 10pts (DESCRIPTION); operator_count=2-5 → 25pts (DESCRIPTION); single_point_of_failure=true → 10pts (DESCRIPTION); self_hostable=false → 10pts (DESCRIPTION); works_offline=false → 10pts (DESCRIPTION); central_coordination_required=true → 10pts (DESCRIPTION)",
+      "source_urls": [
+        "https://www.oracle.com/artificial-intelligence/ai-agents/",
+        "https://appexchange.salesforce.com/"
+      ],
+      "scored_at": "2026-03-04T01:10:13.031+00:00"
     },
     {
       "name": "Smithery / PulseMCP",
       "short_name": "Smithery",
       "layer": "discovery",
-      "x": 55,
-      "y": 22,
+      "x": 59,
+      "y": 10,
       "note": "Community-run, open listing, central hosting",
-      "x_reasoning": null,
-      "y_reasoning": null,
-      "source_urls": [],
-      "scored_at": null
+      "x_reasoning": "spec_license: no evidence found; governance=no-governance → 90pts (DESCRIPTION: Community-run, open listing); permission_required=false → 90pts (DESCRIPTION: open listing); independent_implementations=one → 25pts (DESCRIPTION: Smithery / PulseMCP describes a single specific deployment pattern with central hosting); fork_modify_allowed: no evidence found; tos_restrictions=true → 10pts (Terms of service)",
+      "y_reasoning": "deployment_model=single-server → 10pts (DESCRIPTION: central hosting); operator_count=one → 10pts (DESCRIPTION: central hosting - implies single operator running the centralized service); single_point_of_failure=true → 10pts (DESCRIPTION: central hosting - a single centralized hosting point creates a single point of failure); self_hostable: no evidence found; works_offline=false → 10pts (DESCRIPTION: central hosting - requires connection to the central host); central_coordination_required=true → 10pts (DESCRIPTION: central hosting - the central host is required for the service to function)",
+      "source_urls": [
+        "https://www.pulsemcp.com/"
+      ],
+      "scored_at": "2026-03-04T01:05:28.454+00:00"
     },
     {
       "name": "Descope / WorkOS",
       "short_name": "Descope",
       "layer": "identity",
-      "x": 48,
-      "y": 22,
+      "x": 15,
+      "y": 19,
       "note": "Vendor-neutral but hosted IdPs",
-      "x_reasoning": null,
-      "y_reasoning": null,
-      "source_urls": [],
-      "scored_at": null
+      "x_reasoning": "spec_license=proprietary → 10pts (DESCRIPTION: 'Vendor-neutral but hosted IdPs' - These are proprietary commercial platforms (Descope and WorkOS) that provide hosted identity services); governance=single-company → 10pts (Descope is governed by Descope (descope.com) and WorkOS is governed by WorkOS (workos.com) - each is a separate single-company product); permission_required=true → 10pts (Sign up / Get started / Get your API key - both platforms require account creation and API keys to use their services); independent_implementations=few → 45pts (DESCRIPTION: 'Descope / WorkOS' - The entity describes two independent implementations of vendor-neutral hosted IdP services); fork_modify_allowed=false → 10pts (DESCRIPTION: 'hosted IdPs' - These are proprietary hosted services that cannot be forked or modified by users); tos_restrictions=true → 10pts (These are commercial SaaS platforms requiring sign-up and API keys, which inherently involve Terms of Service governing acceptable use)",
+      "y_reasoning": "deployment_model=few-providers → 30pts (DESCRIPTION: 'Descope / WorkOS' and 'hosted IdPs' - Two specific vendors providing hosted identity provider services); operator_count=2-5 → 25pts (DESCRIPTION: 'Descope / WorkOS' - The entity explicitly names two operators of this deployment pattern); single_point_of_failure=true → 10pts (DESCRIPTION: 'hosted IdPs' - Each vendor operates their own hosted service; if Descope's servers go down, applications using Descope for auth stop working); self_hostable=false → 10pts (DESCRIPTION: 'hosted IdPs' - These are explicitly hosted services, not self-hostable software); works_offline=false → 10pts (DESCRIPTION: 'hosted IdPs' - Hosted identity providers require internet connectivity to authenticate users); central_coordination_required=true → 10pts (DESCRIPTION: 'hosted IdPs' - Identity provider services require central coordination through the vendor's hosted authentication servers)",
+      "source_urls": [
+        "https://www.descope.com/",
+        "https://workos.com/"
+      ],
+      "scored_at": "2026-03-04T01:10:37.759+00:00"
     },
     {
       "name": "IETF delegation draft",
       "short_name": "IETF draft",
       "layer": "identity",
-      "x": 82,
-      "y": 50,
+      "x": 61,
+      "y": 27,
       "note": "Extends OAuth for delegation chains",
-      "x_reasoning": null,
-      "y_reasoning": null,
-      "source_urls": [],
-      "scored_at": null
+      "x_reasoning": "spec_license=open-standard → 75pts (This is an Internet Standards Track document. This document is a product of the Internet Engineering Task Force (IETF). It represents the consensus of the IETF community.); governance=neutral-foundation → 75pts (This document is a product of the Internet Engineering Task Force (IETF). It represents the consensus of the IETF community.); permission_required=true → 10pts (DESCRIPTION: Extends OAuth for delegation chains - OAuth requires client registration and authorization server coordination for delegation); independent_implementations: no evidence found; fork_modify_allowed=true → 90pts (This document is subject to BCP 78 and the IETF Trust's Legal Provisions Relating to IETF Documents... Code Components extracted from this document must include Revised BSD License text); tos_restrictions=false → 90pts (This document is subject to BCP 78 and the IETF Trust's Legal Provisions Relating to IETF Documents (https://trustee.ietf.org/license-info) in effect on the date of publication of this document.)",
+      "y_reasoning": "deployment_model=few-providers → 30pts (DESCRIPTION: Extends OAuth for delegation chains - OAuth deployments run on centralized authorization servers operated by identity providers); operator_count: no evidence found; single_point_of_failure=true → 10pts (DESCRIPTION: Extends OAuth for delegation chains - delegation chains require the authorization server to be available for token issuance and validation); self_hostable=true → 90pts (Transaction Tokens (Txn-Tokens) are designed to maintain and propagate user identity, workload identity and authorization context throughout the Call Chain within a trusted domain); works_offline=false → 10pts (12.1. Txn-Token Request... 12.4. Txn-Token Response - tokens must be requested from and validated by the Txn-Token Service (TTS)); central_coordination_required=true → 10pts (11. Txn-Token Service (TTS)... 12. Requesting Txn-Tokens... Txn-Token Request Processing - central TTS required for token issuance and validation in delegation chains)",
+      "source_urls": [
+        "https://datatracker.ietf.org/doc/draft-ietf-oauth-transaction-tokens/",
+        "https://datatracker.ietf.org/doc/draft-ietf-gnap-core-protocol/"
+      ],
+      "scored_at": "2026-03-04T01:09:05.635+00:00"
     },
     {
       "name": "Keypair identity (Nostr)",
       "short_name": "Nostr npub",
       "layer": "identity",
-      "x": 96,
-      "y": 96,
+      "x": 90,
+      "y": 82,
       "note": "No authority, cryptographic only",
-      "x_reasoning": null,
-      "y_reasoning": null,
-      "source_urls": [],
-      "scored_at": null
+      "x_reasoning": "spec_license=public-domain → 90pts (Nostr is an inclusive communication commons. A simple standard that defines a scalable architecture of clients and servers that can be used to spread information freely. Not controlled by any corporation or government, anyone can build on Nostr and anyone can use it.); governance=no-governance → 90pts (DESCRIPTION: No authority, cryptographic only); permission_required=false → 90pts (DESCRIPTION: No authority, cryptographic only); independent_implementations=many → 90pts (A protocol is like a common language that multiple different software can use to talk to each other... there are many apps that talk the same language and can be used (mostly) interchangeably — and each has its own take on how to do and display things.); fork_modify_allowed=true → 90pts (anyone can build on Nostr and anyone can use it... If you are a programmer or know how to run servers it is trivial to run your own relay with your own rules.); tos_restrictions=false → 90pts (DESCRIPTION: No authority, cryptographic only)",
+      "y_reasoning": "deployment_model=p2p-or-on-device → 90pts (In Nostr, every user is represented by a secret number called a 'key' and every message carries a digital 'signature' that proves its authorship and authenticity without the need for any authority to say so.); operator_count=thousands-plus → 90pts (Clients are smart and act as agents for the users who install them. They decide which relays to connect to and when and what data to request according to the circumstance and user preferences.); single_point_of_failure=false → 90pts (If Patricia's current relay bans her or shuts down, she can easily switch to different relays — perhaps some run by friends, a paid service, or her own server. She simply publishes a new announcement and continues to post without losing her audience.); self_hostable=true → 90pts (If you are a programmer or know how to run servers it is trivial to run your own relay with your own rules.); works_offline=false → 10pts (Relays as distribution centres These are the servers that notes are published to and read from.); central_coordination_required=false → 90pts (DESCRIPTION: No authority, cryptographic only)",
+      "source_urls": [
+        "https://nostr.com/",
+        "https://github.com/nostr-protocol/nips"
+      ],
+      "scored_at": "2026-03-04T01:08:27.88+00:00"
     },
     {
       "name": "Microsoft Entra Agent ID",
       "short_name": "Entra",
       "layer": "identity",
-      "x": 8,
-      "y": 8,
+      "x": 10,
+      "y": 10,
       "note": "Most comprehensive enterprise, M365-bound",
-      "x_reasoning": null,
-      "y_reasoning": null,
-      "source_urls": [],
-      "scored_at": null
+      "x_reasoning": "spec_license=proprietary → 10pts (DESCRIPTION); governance=single-company → 10pts (Microsoft Entra ID documentation - Microsoft Entra ID | Microsoft Learn); permission_required=true → 10pts (Try free for 30 days Contact Sales); independent_implementations=zero → 10pts (DESCRIPTION); fork_modify_allowed=false → 10pts (DESCRIPTION); tos_restrictions=true → 10pts (See plans and pricing Try free for 30 days)",
+      "y_reasoning": "deployment_model=single-server → 10pts (A cloud identity and access management (IAM) solution); operator_count=one → 10pts (DESCRIPTION); single_point_of_failure=true → 10pts (DESCRIPTION); self_hostable=false → 10pts (A cloud identity and access management (IAM) solution); works_offline=false → 10pts (A cloud identity and access management (IAM) solution); central_coordination_required=true → 10pts (Manage all your identities and access to all your applications in a central location)",
+      "source_urls": [
+        "https://learn.microsoft.com/en-us/entra/identity/",
+        "https://www.microsoft.com/en-us/security/business/identity-access/microsoft-entra-id"
+      ],
+      "scored_at": "2026-03-04T01:11:02.303+00:00"
     },
     {
       "name": "OAuth 2.1 (enterprise)",
       "short_name": "OAuth 2.1",
       "layer": "identity",
-      "x": 45,
-      "y": 20,
+      "x": 54,
+      "y": 39,
       "note": "Open spec, centralized deployment",
-      "x_reasoning": null,
-      "y_reasoning": null,
-      "source_urls": [],
-      "scored_at": null
+      "x_reasoning": "spec_license=open-standard → 75pts (This Internet-Draft is submitted in full conformance with the provisions of BCP 78 and BCP 79... Internet-Drafts are working documents of the Internet Engineering Task Force (IETF)); governance=neutral-foundation → 75pts (Discussion of this document takes place on the OAuth Working Group mailing list (oauth@ietf.org)... Internet Engineering Task Force (IETF)); permission_required=true → 10pts (DESCRIPTION); independent_implementations=many → 90pts (DESCRIPTION); fork_modify_allowed=true → 90pts (DESCRIPTION); tos_restrictions=true → 10pts (DESCRIPTION)",
+      "y_reasoning": "deployment_model=few-providers → 30pts (DESCRIPTION); operator_count=50-plus → 75pts (DESCRIPTION); single_point_of_failure=true → 10pts (DESCRIPTION); self_hostable=true → 90pts (DESCRIPTION); works_offline=false → 10pts (DESCRIPTION); central_coordination_required=true → 10pts (DESCRIPTION)",
+      "source_urls": [
+        "https://datatracker.ietf.org/doc/html/draft-ietf-oauth-v2-1-12",
+        "https://oauth.net/2.1/"
+      ],
+      "scored_at": "2026-03-04T01:08:11.769+00:00"
     },
     {
       "name": "UCAN",
       "short_name": "UCAN",
       "layer": "identity",
-      "x": 92,
+      "x": 74,
       "y": 90,
       "note": "Self-certifying, delegable, no central auth",
-      "x_reasoning": null,
-      "y_reasoning": null,
-      "source_urls": [],
-      "scored_at": null
+      "x_reasoning": "spec_license=open-standard → 75pts (Community_Specification_License-v1.md); governance=consortium → 40pts (© 2025 UCAN Working Group. All rights reserved.); permission_required=false → 90pts (DESCRIPTION: Self-certifying, delegable, no central auth); independent_implementations=few → 45pts (Available Libraries JavaScript Rust Go); fork_modify_allowed=true → 90pts (UCAN allows for the creation, delegation, and invocation of authority by any agent with a DID); tos_restrictions=false → 90pts (DESCRIPTION: Self-certifying, delegable, no central auth)",
+      "y_reasoning": "deployment_model=p2p-or-on-device → 90pts (UCAN is a trustless, secure, local-first authorization network... No central server required for permission verification. Operate completely offline with peer-to-peer authorization.); operator_count=thousands-plus → 90pts (UCAN allows for the creation, delegation, and invocation of authority by any agent with a DID); single_point_of_failure=false → 90pts (No central authority required... All authorizations are cryptographically signed and verifiable without contacting the issuer); self_hostable=true → 90pts (Local-First Works offline... Operate completely offline with peer-to-peer authorization); works_offline=true → 90pts (Local-First Works offline... Decentralized No central server required for permission verification. Operate completely offline); central_coordination_required=false → 90pts (DESCRIPTION: Self-certifying, delegable, no central auth... No central authority... No central server required for permission verification)",
+      "source_urls": [
+        "https://ucan.xyz/",
+        "https://github.com/ucan-wg/spec"
+      ],
+      "scored_at": "2026-03-04T01:10:46.784+00:00"
     },
     {
       "name": "W3C DIDs",
       "short_name": "DIDs",
       "layer": "identity",
-      "x": 88,
-      "y": 82,
+      "x": 83,
+      "y": 78,
       "note": "Standard since 2022, low enterprise adoption",
-      "x_reasoning": null,
-      "y_reasoning": null,
-      "source_urls": [],
-      "scored_at": null
+      "x_reasoning": "spec_license=open-standard → 75pts (W3C Recommendation is a specification that, after extensive consensus-building, is endorsed by W3C and its Members, and has commitments from Working Group members to royalty-free licensing for implementations.); governance=neutral-foundation → 75pts (This document was published by the Decentralized Identifier Working Group as a Recommendation using the Recommendation track.); permission_required=false → 90pts (the design enables the controller of a DID to prove control over it without requiring permission from any other party); independent_implementations=several → 70pts (At the time of publication, there existed 103 experimental DID Method specifications, 32 experimental DID Method driver implementations, a test suite that determines whether or not a given implementation is conformant with this specification and 46 implementations submitted to the conformance test suite.); fork_modify_allowed=true → 90pts (W3C Recommendation... has commitments from Working Group members to royalty-free licensing for implementations.); tos_restrictions=false → 90pts (W3C liability, trademark and permissive document license rules apply.)",
+      "y_reasoning": "deployment_model=federated → 60pts (At the time of publication, there existed 103 experimental DID Method specifications, 32 experimental DID Method driver implementations); operator_count=50-plus → 75pts (At the time of publication, there existed 103 experimental DID Method specifications, 32 experimental DID Method driver implementations... and 46 implementations submitted to the conformance test suite.); single_point_of_failure=false → 90pts (DIDs have been designed so that they may be decoupled from centralized registries, identity providers, and certificate authorities); self_hostable=true → 90pts (the design enables the controller of a DID to prove control over it without requiring permission from any other party); works_offline: no evidence found; central_coordination_required=false → 90pts (while other parties might be used to help enable the discovery of information related to a DID, the design enables the controller of a DID to prove control over it without requiring permission from any other party)",
+      "source_urls": [
+        "https://www.w3.org/TR/did-core/",
+        "https://w3c.github.io/did-extensions/"
+      ],
+      "scored_at": "2026-03-04T01:06:18.945+00:00"
     },
     {
       "name": "Cashu",
       "short_name": "Cashu",
       "layer": "payments",
-      "x": 92,
-      "y": 90,
+      "x": 88,
+      "y": 71,
       "note": "Ecash, mint-based, strongest privacy",
-      "x_reasoning": null,
-      "y_reasoning": null,
-      "source_urls": [],
-      "scored_at": null
+      "x_reasoning": "spec_license=open-standard → 75pts (Cashu is a free and open-source protocol. Anyone can run a mint.); governance=no-governance → 90pts (Cashu is a free and open-source protocol. Anyone can run a mint.); permission_required=false → 90pts (Anyone can run a mint for their application, be it a wallet, a web paywall, paid streaming services, or a voucher and rewards system for a super market.); independent_implementations=many → 90pts (Wallets: Nutshell cdk cashu-ts Macadamia Minibits Nutstash Cashu.me Boardwalk Mints: Nutshell cdk-mintd Nutmix); fork_modify_allowed=true → 90pts (Cashu is a free and open-source protocol. Anyone can run a mint.); tos_restrictions=false → 90pts (Cashu is a free and open-source protocol. Anyone can run a mint.)",
+      "y_reasoning": "deployment_model=federated → 60pts (An ecash system consists of two parts, the mint and the wallet. Anyone can run a mint for their application... For transfers between mints, payments are routed through the lightning network); operator_count=50-plus → 75pts (There are many open source apps that have already implemented the Cashu protocol available as mobile apps for iOS and Android, progressive web apps (PWA), and command-line tools (CLI).); single_point_of_failure=false → 90pts (Anyone can run a mint for their application... For transfers between mints, payments are routed through the lightning network); self_hostable=true → 90pts (Anyone can run a mint for their application, be it a wallet, a web paywall, paid streaming services, or a voucher and rewards system for a super market.); works_offline=false → 10pts (For transfers between mints, payments are routed through the lightning network for fast, secure transfers.); central_coordination_required=false → 90pts (Anyone can run a mint for their application... Ecash transactions between users or service providers respect the user's privacy. A mint does not store a database of user accounts)",
+      "source_urls": [
+        "https://cashu.space/",
+        "https://github.com/cashubtc/nuts"
+      ],
+      "scored_at": "2026-03-04T01:09:17.126+00:00"
     },
     {
       "name": "Coinbase x402",
       "short_name": "x402",
       "layer": "payments",
-      "x": 65,
-      "y": 72,
+      "x": 64,
+      "y": 75,
       "note": "Coinbase-originated, open HTTP protocol",
-      "x_reasoning": null,
-      "y_reasoning": null,
-      "source_urls": [],
-      "scored_at": null
+      "x_reasoning": "spec_license=open-standard → 75pts (x402 is an open, neutral standard for internet-native payments); governance=single-company → 10pts (While x402 is an open and neutral standard, this website is maintained by Coinbase Developer Platform.); permission_required=false → 90pts (No account setup, instant onboarding... No signups or approvals required); independent_implementations=many → 90pts (Join a global community of thousands of builders contributing to an open codebase... 22K Sellers); fork_modify_allowed=true → 90pts (Anyone on the internet can build on or extend x402); tos_restrictions=true → 10pts (By using this site, you agree to be bound by the CDP Terms of Service and Global Privacy Policy)",
+      "y_reasoning": "deployment_model=federated → 60pts (22K Sellers... Anyone on the internet can build on or extend x402); operator_count=thousands-plus → 90pts (22K Sellers); single_point_of_failure=false → 90pts (22K Sellers... Anyone on the internet can build on or extend x402); self_hostable=true → 90pts (Accept payments with a single line of code app.use(paymentMiddleware... That's it. Add one line of code); works_offline=false → 10pts (x402 is built-in to existing HTTP requests... Money moves at the speed of the internet); central_coordination_required=false → 90pts (Zero centralization... x402 is a neutral standard, not tied to any specific network)",
+      "source_urls": [
+        "https://github.com/coinbase/x402",
+        "https://www.x402.org/"
+      ],
+      "scored_at": "2026-03-04T01:10:54.896+00:00"
     },
     {
       "name": "Google AP2",
       "short_name": "Google AP2",
       "layer": "payments",
-      "x": 18,
-      "y": 12,
+      "x": 10,
+      "y": 10,
       "note": "60+ partners, Google-governed",
-      "x_reasoning": null,
-      "y_reasoning": null,
-      "source_urls": [],
-      "scored_at": null
+      "x_reasoning": "spec_license=proprietary → 10pts (DESCRIPTION); governance=single-company → 10pts (DESCRIPTION: Google-governed); permission_required=true → 10pts (If you want to offer Google Pay to your merchants as a PSP, fill out a request to express your interest. Qualified partners will be contacted.); independent_implementations=zero → 10pts (DESCRIPTION: Google-governed); fork_modify_allowed=false → 10pts (DESCRIPTION: Google-governed); tos_restrictions=true → 10pts (DESCRIPTION: Google-governed)",
+      "y_reasoning": "deployment_model=single-server → 10pts (Customer payment data is end-to-end encrypted from Google's servers to your payment processor.); operator_count=one → 10pts (DESCRIPTION: Google-governed); single_point_of_failure=true → 10pts (DESCRIPTION: Google-governed); self_hostable=false → 10pts (DESCRIPTION: Google-governed); works_offline=false → 10pts (Customer payment data is end-to-end encrypted from Google's servers to your payment processor.); central_coordination_required=true → 10pts (Customer payment data is end-to-end encrypted from Google's servers to your payment processor.)",
+      "source_urls": [
+        "https://developers.google.com/pay/api",
+        "https://blog.google/products/google-pay/"
+      ],
+      "scored_at": "2026-03-04T01:08:35.442+00:00"
     },
     {
       "name": "Lightning",
       "short_name": "Lightning",
       "layer": "payments",
-      "x": 90,
-      "y": 88,
+      "x": 85,
+      "y": 82,
       "note": "Permissionless, 400ms, $14B network",
-      "x_reasoning": null,
-      "y_reasoning": null,
-      "source_urls": [],
-      "scored_at": null
+      "x_reasoning": "spec_license=open-standard → 75pts (The Lightning Network paper is licenced Creative Commons Attribution 4.0 International (CC BY 4.0)); governance=no-governance → 90pts (BOLT: Basis of Lightning Technology (Lightning Network Specifications)... Pull requests and comments welcome, seeking input from community stakeholders); permission_required=false → 90pts (DESCRIPTION: Permissionless); independent_implementations=several → 70pts (GitHub repository shows open specifications (BOLTs) with 524 forks and 2.2k stars, indicating multiple independent implementations of the Lightning Network protocol); fork_modify_allowed=true → 90pts (This work is licensed under a Creative Commons Attribution 4.0 International License); tos_restrictions=false → 90pts (DESCRIPTION: Permissionless)",
+      "y_reasoning": "deployment_model=p2p-or-on-device → 90pts (Lightning is a decentralized network using smart contract functionality in the blockchain to enable instant payments across a network of participants... By creating a network of these two-party ledger entries, it is possible to find a path across the network similar to routing packets on the internet); operator_count=thousands-plus → 90pts (DESCRIPTION: $14B network (indicating substantial network with many independent node operators)); single_point_of_failure=false → 90pts (Lightning is a decentralized network... By creating a network of these two-party ledger entries, it is possible to find a path across the network similar to routing packets on the internet. The nodes along the path are not trusted); self_hostable=true → 90pts (Lightning is a decentralized network using smart contract functionality in the blockchain to enable instant payments across a network of participants); works_offline=false → 10pts (By creating a network of these two-party ledger entries, it is possible to find a path across the network similar to routing packets on the internet); central_coordination_required=false → 90pts (Lightning is a decentralized network... The nodes along the path are not trusted, as the payment is enforced using a script which enforces the atomicity)",
+      "source_urls": [
+        "https://lightning.network/",
+        "https://github.com/lightning/bolts",
+        "https://mempool.space/lightning"
+      ],
+      "scored_at": "2026-03-04T01:06:50.395+00:00"
     },
     {
       "name": "Nostr zaps",
       "short_name": "Zaps",
       "layer": "payments",
-      "x": 92,
-      "y": 88,
+      "x": 88,
+      "y": 75,
       "note": "Social + payment combined",
-      "x_reasoning": null,
-      "y_reasoning": null,
-      "source_urls": [],
-      "scored_at": null
+      "x_reasoning": "spec_license=open-standard → 75pts (NIP-57 Lightning Zaps draft optional This NIP defines two new event types for recording lightning payments between users.); governance=no-governance → 90pts (Not controlled by any corporation or government, anyone can build on Nostr and anyone can use it.); permission_required=false → 90pts (Not controlled by any corporation or government, anyone can build on Nostr and anyone can use it.); independent_implementations=many → 90pts (there are many apps that talk the same language and can be used (mostly) interchangeably — and each has its own take on how to do and display things.); fork_modify_allowed=true → 90pts (anyone can build on Nostr and anyone can use it... List of repositories on GitHub); tos_restrictions=false → 90pts (being privately owned, can follow their own criteria for rejecting content as they please and users are free to choose what to read and from where)",
+      "y_reasoning": "deployment_model=federated → 60pts (In Nostr clients connect to many... Clients are smart and act as agents for the users who install them. They decide which relays to connect to and when and what data to request according to the circumstance and user preferences. Relays as distribution centres These are the servers that notes are published to and read from.); operator_count=thousands-plus → 90pts (If you are a programmer or know how to run servers it is trivial to run your own relay with your own rules.); single_point_of_failure=false → 90pts (If Patricia's current relay bans her or shuts down, she can easily switch to different relays — perhaps some run by friends, a paid service, or her own server. She simply publishes a new announcement and continues to post without losing her audience.); self_hostable=true → 90pts (If you are a programmer or know how to run servers it is trivial to run your own relay with your own rules.); works_offline=false → 10pts (DESCRIPTION); central_coordination_required=false → 90pts (relays is a list of relays the recipient's wallet should publish its zap receipt to... the event MUST include the following tags: relays is a list of relays)",
+      "source_urls": [
+        "https://github.com/nostr-protocol/nips/blob/master/57.md",
+        "https://nostr.com/"
+      ],
+      "scored_at": "2026-03-04T01:06:27.973+00:00"
     },
     {
       "name": "Stripe SPTs",
       "short_name": "Stripe SPTs",
       "layer": "payments",
-      "x": 15,
+      "x": 10,
       "y": 10,
       "note": "Programmable but platform-mediated",
-      "x_reasoning": null,
-      "y_reasoning": null,
-      "source_urls": [],
-      "scored_at": null
+      "x_reasoning": "spec_license=proprietary → 10pts (DESCRIPTION: 'Programmable but platform-mediated' - Stripe SPTs are a proprietary Stripe product, not an open standard); governance=single-company → 10pts (The Stripe API documentation shows Stripe controls the API evolution: 'The Stripe API differs for every account as we release new versions and tailor functionality'); permission_required=true → 10pts (The Stripe API uses API keys to authenticate requests. You can view and manage your API keys in the Stripe Dashboard. Test mode secret keys have the prefix sk_test_ and live mode secret keys have the prefix sk_live_); independent_implementations=zero → 10pts (DESCRIPTION: 'platform-mediated' - Stripe SPTs run exclusively on Stripe's platform, no independent implementations exist); fork_modify_allowed=false → 10pts (DESCRIPTION: 'platform-mediated' - This is a proprietary Stripe service that cannot be forked or independently deployed); tos_restrictions=true → 10pts (All API requests must be made over HTTPS. Calls made over plain HTTP will fail. API requests without authentication will also fail... Do not share your secret API keys in publicly accessible areas such as GitHub, client-side code, and so forth.)",
+      "y_reasoning": "deployment_model=single-server → 10pts (Base URL https://api.stripe.com - All requests go to Stripe's centralized API endpoint); operator_count=one → 10pts (DESCRIPTION: 'platform-mediated' and the API documentation shows only Stripe operates the service at api.stripe.com); single_point_of_failure=true → 10pts (DESCRIPTION: 'platform-mediated' - All Stripe SPT functionality depends on Stripe's servers being operational); self_hostable=false → 10pts (DESCRIPTION: 'platform-mediated' - This is a hosted Stripe service that cannot be self-hosted); works_offline=false → 10pts (Base URL https://api.stripe.com - All API requests require internet connectivity to reach Stripe's servers); central_coordination_required=true → 10pts (DESCRIPTION: 'platform-mediated' and 'All API requests must be made over HTTPS' to api.stripe.com - Stripe's central platform is required for all operations)",
+      "source_urls": [
+        "https://stripe.com/docs/api",
+        "https://stripe.com/docs/connect"
+      ],
+      "scored_at": "2026-03-04T01:07:14.67+00:00"
     },
     {
       "name": "USDC / stablecoins",
       "short_name": "USDC",
       "layer": "payments",
-      "x": 50,
-      "y": 50,
+      "x": 20,
+      "y": 15,
       "note": "Open rails + controlled issuance",
-      "x_reasoning": null,
-      "y_reasoning": null,
-      "source_urls": [],
-      "scored_at": null
+      "x_reasoning": "spec_license=open-standard → 75pts (DESCRIPTION: Open rails + controlled issuance - the 'rails' (blockchain protocols) are open standards); governance=single-company → 10pts (USDC is a regulated digital currency you can redeem 1:1 for US dollars... issued by Circle); permission_required=true → 10pts (Circle Mint enables exchanges, institutional traders, banks, and large financial institutions to directly redeem USDC 1:1 for USD from Circle. Mint is not available to individuals or small businesses.); independent_implementations=zero → 10pts (DESCRIPTION: controlled issuance - only Circle issues USDC, no independent implementations of USDC issuance exist); fork_modify_allowed=false → 10pts (DESCRIPTION: controlled issuance - Circle controls USDC issuance; others cannot fork and issue their own USDC); tos_restrictions=true → 10pts (Circle Mint enables exchanges, institutional traders, banks, and large financial institutions to directly redeem USDC 1:1 for USD from Circle. Mint is not available to individuals or small businesses.)",
+      "y_reasoning": "deployment_model=few-providers → 30pts (USDC is natively issued on 30 blockchain networks... A network of leading global banks that enable FX settlement with diverse fiat currencies); operator_count=one → 10pts (Issued by Circle... USDC is the world's largest regulated stablecoin, issued by Circle); single_point_of_failure=true → 10pts (DESCRIPTION: controlled issuance - Circle is the single issuer; if Circle stops issuing/redeeming, the system fails); self_hostable=false → 10pts (DESCRIPTION: controlled issuance - only Circle can issue USDC; individuals cannot self-host issuance); works_offline=false → 10pts (Available to anyone with an internet connection — all around the world, 24/7); central_coordination_required=true → 10pts (USDC is a digital dollar backed 100% by highly liquid cash and cash-equivalent assets and is redeemable 1:1 for US dollars... Circle Mint enables exchanges, institutional traders, banks, and large financial institutions to directly redeem USDC 1:1 for USD from Circle)",
+      "source_urls": [
+        "https://www.circle.com/usdc",
+        "https://www.circle.com/developers"
+      ],
+      "scored_at": "2026-03-04T01:06:40.141+00:00"
     },
     {
       "name": "Visa / Mastercard",
       "short_name": "Visa/MC",
       "layer": "payments",
-      "x": 5,
-      "y": 5,
+      "x": 10,
+      "y": 19,
       "note": "Traditional rails, KYC, legal entity required",
-      "x_reasoning": null,
-      "y_reasoning": null,
-      "source_urls": [],
-      "scored_at": null
+      "x_reasoning": "spec_license=proprietary → 10pts (DESCRIPTION: 'Traditional rails, KYC, legal entity required' — Visa and Mastercard payment networks operate under proprietary rules and specifications controlled by the respective companies); governance=single-company → 10pts (DESCRIPTION: 'Visa / Mastercard' — Each network is governed by its respective single company (Visa Inc. and Mastercard Inc.)); permission_required=true → 10pts (DESCRIPTION: 'KYC, legal entity required' — To use Visa/Mastercard payment rails, entities must complete KYC and establish legal entity relationships); independent_implementations=zero → 10pts (DESCRIPTION: 'Traditional rails' — Visa and Mastercard each operate their own proprietary payment networks; there are no independent implementations of these specific networks); fork_modify_allowed=false → 10pts (DESCRIPTION: 'Traditional rails, KYC, legal entity required' — The proprietary nature and legal entity requirements prevent forking or independent deployment); tos_restrictions=true → 10pts (DESCRIPTION: 'KYC, legal entity required' — Access to payment rails requires compliance with network rules, operating regulations, and contractual terms)",
+      "y_reasoning": "deployment_model=few-providers → 30pts (DESCRIPTION: 'Visa / Mastercard' — Two separate companies operating their respective payment networks); operator_count=2-5 → 25pts (DESCRIPTION: 'Visa / Mastercard' — Two primary operators (Visa Inc. and Mastercard Inc.) of these traditional payment rails); single_point_of_failure=true → 10pts (DESCRIPTION: 'Traditional rails' — Each network (Visa or Mastercard) is operated by a single company; if that company's network goes down, transactions on that specific rail stop); self_hostable=false → 10pts (DESCRIPTION: 'Traditional rails, KYC, legal entity required' — The payment networks are centrally operated; entities cannot self-host their own Visa or Mastercard network); works_offline=false → 10pts (DESCRIPTION: 'Traditional rails' — Payment authorization and settlement through Visa/Mastercard networks require connectivity to central processing systems); central_coordination_required=true → 10pts (DESCRIPTION: 'Traditional rails, KYC, legal entity required' — All transactions must be processed through and coordinated by the central Visa or Mastercard network infrastructure)",
+      "source_urls": [
+        "https://developer.visa.com/",
+        "https://developer.mastercard.com/"
+      ],
+      "scored_at": "2026-03-04T01:08:51.699+00:00"
     },
     {
       "name": "A2A Agent Cards",
       "short_name": "A2A",
       "layer": "protocols",
-      "x": 82,
-      "y": 82,
+      "x": 80,
+      "y": 75,
       "note": "Self-hosted at well-known URLs",
-      "x_reasoning": null,
-      "y_reasoning": null,
-      "source_urls": [],
-      "scored_at": null
+      "x_reasoning": "spec_license=open-standard → 75pts (A2A Protocol is an open standard that enables AI agents to communicate and collaborate across different platforms and frameworks); governance=consortium → 40pts (Join over 50 technology partners including Atlassian, Box, Cohere, Intuit, Langchain, MongoDB, PayPal, Salesforce, SAP, ServiceNow, UKG, and Workday); permission_required=false → 90pts (DESCRIPTION); independent_implementations=many → 90pts (DESCRIPTION); fork_modify_allowed=true → 90pts (DESCRIPTION); tos_restrictions=false → 90pts (DESCRIPTION)",
+      "y_reasoning": "deployment_model=federated → 60pts (DESCRIPTION); operator_count=thousands-plus → 90pts (DESCRIPTION); single_point_of_failure=false → 90pts (DESCRIPTION); self_hostable=true → 90pts (DESCRIPTION); works_offline=false → 10pts (Client fetches the Agent Card from the server's well-known URL); central_coordination_required=false → 90pts (DESCRIPTION)",
+      "source_urls": [
+        "https://a2aprotocol.ai/",
+        "https://github.com/google/A2A"
+      ],
+      "scored_at": "2026-03-04T01:05:45.502+00:00"
     },
     {
       "name": "Copilot Studio",
@@ -385,46 +494,60 @@
       "x": 10,
       "y": 10,
       "note": "Microsoft platform, M365 lock-in",
-      "x_reasoning": null,
-      "y_reasoning": null,
-      "source_urls": [],
-      "scored_at": null
+      "x_reasoning": "spec_license=proprietary → 10pts (DESCRIPTION); governance=single-company → 10pts (DESCRIPTION); permission_required=true → 10pts (Microsoft 365 Copilot may not be available for all markets and languages. To purchase, customers must have a qualifying Microsoft 365 plan for enterprise or business.); independent_implementations=zero → 10pts (DESCRIPTION); fork_modify_allowed=false → 10pts (DESCRIPTION); tos_restrictions=true → 10pts (Important Microsoft Copilot Studio (1) is not intended or made available as a medical device for the diagnosis of disease or other conditions, or in the cure, mitigation, treatment or prevention of disease, or otherwise to be used as a component of any clinical offering or product, and no license or right is granted to use Microsoft Copilot Studio for such purposes)",
+      "y_reasoning": "deployment_model=single-server → 10pts (DESCRIPTION); operator_count=one → 10pts (DESCRIPTION); single_point_of_failure=true → 10pts (DESCRIPTION); self_hostable=false → 10pts (DESCRIPTION); works_offline=false → 10pts (Access Copilot Studio as a standalone web app or as a discrete app within Teams... Go to the web app at https://copilotstudio.microsoft.com); central_coordination_required=true → 10pts (DESCRIPTION)",
+      "source_urls": [
+        "https://www.microsoft.com/en-us/microsoft-copilot/microsoft-copilot-studio",
+        "https://learn.microsoft.com/en-us/microsoft-copilot-studio/fundamentals-what-is-copilot-studio"
+      ],
+      "scored_at": "2026-03-04T01:07:54.861+00:00"
     },
     {
       "name": "MCP (enterprise)",
       "short_name": "MCP enterprise",
       "layer": "protocols",
-      "x": 45,
-      "y": 20,
+      "x": 51,
+      "y": 47,
       "note": "Open spec + OAuth/RBAC adds control",
-      "x_reasoning": null,
-      "y_reasoning": null,
-      "source_urls": [],
-      "scored_at": null
+      "x_reasoning": "spec_license=open-standard → 75pts (DESCRIPTION); governance=neutral-foundation → 75pts (Standards like MCP are shaped in the open, through collaboration across companies, platforms, communities, and organizations, such as the newly formed Agentic AI Foundation.); permission_required=true → 10pts (DESCRIPTION); independent_implementations=several → 70pts (You can try out this new flow today in VSCode, the first MCP client to ship support for CIMD... You can also learn more and test it out at the excellent website the folks at Stytch created: client.dev); fork_modify_allowed=true → 90pts (When Autodesk began experimenting with the Model Context Protocol (MCP), an emerging open-source standard designed to help AI-powered tools securely connect to services and data); tos_restrictions=true → 10pts (The IdP checks corporate policy. 'Is Engineering allowed to use Claude to access Asana?' If the policy passes, the IdP issues a temporary token)",
+      "y_reasoning": "deployment_model=federated → 60pts (This creates a decentralized trust model based on DNS... Enterprise-Managed Authorization... The flow puts the enterprise Identity Provider (IdP) back in the driver's seat); operator_count=50-plus → 75pts (You can't expect a developer of a new AI Agent to manually register with every single one of the 2,000 MCP servers in the MCP server registry); single_point_of_failure=true → 10pts (Single Sign-On: First you log into an MCP Client (like Claude or an IDE) using your corporate SSO... Token Exchange: Instead of the client starting an OAuth flow to ask the user to manually approve access to a downstream tool... the client takes that ID token back to the Enterprise IdP to ask for access); self_hostable=true → 90pts (Instead of the client registering with each authorization server, the client establishes its own identity with a URL it controls and uses the URL to identify itself during an OAuth flow); works_offline=false → 10pts (When the client starts an OAuth request to the MCP authorization server, it says, 'Hi, I'm https://example-app.com/client.json.' The server fetches the JSON document at that URL); central_coordination_required=true → 10pts (The flow puts the enterprise Identity Provider (IdP) back in the driver's seat... Policy Check: The IdP checks corporate policy... If you want to shut down AI access to a specific internal tool, you do it in one place: your IdP)",
+      "source_urls": [
+        "https://auth0.com/blog/mcp-specs-update-all-about-auth/",
+        "https://aaronparecki.com/2025/11/25/1/mcp-authorization-spec-update",
+        "https://adsknews.autodesk.com/en/views/how-autodesk-helped-make-the-model-context-protocol-enterprise-ready/"
+      ],
+      "scored_at": "2026-03-04T01:09:58.663+00:00"
     },
     {
       "name": "MCP (self-hosted)",
       "short_name": "MCP self-host",
       "layer": "protocols",
-      "x": 88,
-      "y": 85,
+      "x": 86,
+      "y": 90,
       "note": "Anyone runs a server, anyone connects",
-      "x_reasoning": null,
-      "y_reasoning": null,
-      "source_urls": [],
-      "scored_at": null
+      "x_reasoning": "spec_license=open-standard → 75pts (MCP (Model Context Protocol) is an open-source standard for connecting AI applications to external systems.); governance=neutral-foundation → 75pts (The repository served by this README is dedicated to housing just the small number of reference servers maintained by the MCP steering group.); permission_required=false → 90pts (Anyone runs a server, anyone connects); independent_implementations=many → 90pts (Typically, each MCP server is implemented with an MCP SDK: C# MCP SDK Go MCP SDK Java MCP SDK Kotlin MCP SDK PHP MCP SDK Python MCP SDK Ruby MCP SDK Rust MCP SDK Swift MCP SDK TypeScript MCP SDK); fork_modify_allowed=true → 90pts (MCP (Model Context Protocol) is an open-source standard for connecting AI applications to external systems.); tos_restrictions=false → 90pts (Anyone runs a server, anyone connects)",
+      "y_reasoning": "deployment_model=p2p-or-on-device → 90pts (Anyone runs a server, anyone connects); operator_count=thousands-plus → 90pts (Anyone runs a server, anyone connects); single_point_of_failure=false → 90pts (Anyone runs a server, anyone connects); self_hostable=true → 90pts (Anyone runs a server, anyone connects); works_offline=true → 90pts (DESCRIPTION); central_coordination_required=false → 90pts (Anyone runs a server, anyone connects)",
+      "source_urls": [
+        "https://modelcontextprotocol.io/introduction",
+        "https://github.com/modelcontextprotocol/servers"
+      ],
+      "scored_at": "2026-03-04T01:09:25.228+00:00"
     },
     {
       "name": "MCP (spec)",
       "short_name": "MCP spec",
       "layer": "protocols",
-      "x": 85,
-      "y": 55,
+      "x": 86,
+      "y": 90,
       "note": "Linux Foundation/AAIF, 97M SDK downloads",
-      "x_reasoning": null,
-      "y_reasoning": null,
-      "source_urls": [],
-      "scored_at": null
+      "x_reasoning": "spec_license=open-standard → 75pts (This project is licensed under the MIT License.); governance=neutral-foundation → 75pts (DESCRIPTION: Linux Foundation/AAIF); permission_required=false → 90pts (MCP (Model Context Protocol) is an open-source standard for connecting AI applications to external systems... The protocol uses JSON-RPC 2.0 messages to establish communication); independent_implementations=many → 90pts (DESCRIPTION: 97M SDK downloads); fork_modify_allowed=true → 90pts (This project is licensed under the MIT License.); tos_restrictions=false → 90pts (MCP (Model Context Protocol) is an open-source standard... This project is licensed under the MIT License.)",
+      "y_reasoning": "deployment_model=p2p-or-on-device → 90pts (The protocol uses JSON-RPC 2.0 messages to establish communication between: Hosts : LLM applications that initiate connections Clients : Connectors within the host application Servers : Services that provide context and capabilities); operator_count=thousands-plus → 90pts (DESCRIPTION: 97M SDK downloads); single_point_of_failure=false → 90pts (The protocol uses JSON-RPC 2.0 messages to establish communication between: Hosts : LLM applications that initiate connections Clients : Connectors within the host application Servers : Services that provide context and capabilities); self_hostable=true → 90pts (Build servers Create MCP servers to expose your data and tools Build clients Develop applications that connect to MCP servers); works_offline=true → 90pts (Connect to local MCP servers... Servers : Services that provide context and capabilities); central_coordination_required=false → 90pts (The protocol uses JSON-RPC 2.0 messages to establish communication between: Hosts : LLM applications that initiate connections Clients : Connectors within the host application Servers : Services that provide context and capabilities)",
+      "source_urls": [
+        "https://modelcontextprotocol.io/introduction",
+        "https://modelcontextprotocol.io/specification/2025-03-26",
+        "https://github.com/modelcontextprotocol/specification"
+      ],
+      "scored_at": "2026-03-04T01:07:34.98+00:00"
     },
     {
       "name": "Salesforce Agentforce",
@@ -433,10 +556,13 @@
       "x": 10,
       "y": 10,
       "note": "CRM-bound, vendor-specific",
-      "x_reasoning": null,
-      "y_reasoning": null,
-      "source_urls": [],
-      "scored_at": null
+      "x_reasoning": "spec_license=proprietary → 10pts (DESCRIPTION: vendor-specific); governance=single-company → 10pts (DESCRIPTION: vendor-specific (Salesforce Agentforce is a Salesforce product)); permission_required=true → 10pts (DESCRIPTION: CRM-bound, vendor-specific (requires Salesforce account and CRM access)); independent_implementations=zero → 10pts (DESCRIPTION: vendor-specific (Salesforce Agentforce is a proprietary Salesforce product with no independent implementations)); fork_modify_allowed=false → 10pts (DESCRIPTION: vendor-specific (proprietary Salesforce product cannot be forked)); tos_restrictions=true → 10pts (DESCRIPTION: vendor-specific (Salesforce products operate under Salesforce Terms of Service))",
+      "y_reasoning": "deployment_model=single-server → 10pts (DESCRIPTION: CRM-bound, vendor-specific (runs on Salesforce's infrastructure)); operator_count=one → 10pts (DESCRIPTION: vendor-specific (operated exclusively by Salesforce)); single_point_of_failure=true → 10pts (DESCRIPTION: CRM-bound, vendor-specific (depends on Salesforce infrastructure)); self_hostable=false → 10pts (DESCRIPTION: CRM-bound, vendor-specific (cannot be self-hosted outside Salesforce infrastructure)); works_offline=false → 10pts (DESCRIPTION: CRM-bound (requires connection to Salesforce CRM)); central_coordination_required=true → 10pts (DESCRIPTION: CRM-bound, vendor-specific (requires Salesforce's central infrastructure))",
+      "source_urls": [
+        "https://www.salesforce.com/agentforce/",
+        "https://help.salesforce.com/s/articleView?id=sf.agents_overview.htm"
+      ],
+      "scored_at": "2026-03-04T01:10:08.141+00:00"
     }
   ]
 }
