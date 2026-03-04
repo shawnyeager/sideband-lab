@@ -113,7 +113,7 @@ const Y_SIGNALS = {
     weight: 0.25,
   },
   single_point_of_failure: {
-    question: 'If one company\'s servers go down, does THIS specific thing stop working?',
+    question: 'If one operator disappears, do users of THIS specific thing lose functionality or assets? (For payments: include whether users would lose funds or access to their balance.)',
     type: 'boolean',
     points: { true: 10, false: 90 },
     weight: 0.20,

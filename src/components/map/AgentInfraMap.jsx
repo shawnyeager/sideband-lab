@@ -48,6 +48,22 @@ function ScatterPlot({ data, layers, width, height, selectedLayer, hoveredPoint,
   const filtered = isSingleLayer ? data.filter(d => d.layer === selectedLayer) : data;
   const labelSize = narrow ? T.chart.axis.m : T.chart.axis.d;
 
+  // Nudge overlapping labels apart vertically
+  const labelOffsets = {};
+  if (isSingleLayer && !narrow) {
+    const buckets = {};
+    for (const d of filtered) {
+      const key = `${Math.round(toX(d.x))},${Math.round(toY(d.y))}`;
+      (buckets[key] ||= []).push(d.id);
+    }
+    for (const ids of Object.values(buckets)) {
+      if (ids.length < 2) continue;
+      const step = 14;
+      const start = -((ids.length - 1) * step) / 2;
+      ids.forEach((id, i) => { labelOffsets[id] = start + i * step; });
+    }
+  }
+
   return (
     <svg width={width} height={height} style={{ overflow: "visible" }} role="group" aria-label="Scatter plot of agent infrastructure openness vs distribution">
       <rect x={pad.left} y={pad.top} width={pw} height={ph} fill={C.surface} rx={4} onClick={() => setPinnedPoint(null)} />
@@ -84,7 +100,7 @@ function ScatterPlot({ data, layers, width, height, selectedLayer, hoveredPoint,
             style={{ cursor: "pointer", outline: "none" }}>
             <circle cx={cx} cy={cy} r={14} fill="transparent" />
             <circle cx={cx} cy={cy} r={isActive ? 7 : 4} fill={layerColor} opacity={isActive ? 1 : 0.85} stroke={isActive ? C.text : "none"} strokeWidth={2} />
-            {isSingleLayer && !isActive && !narrow && <text x={cx + 8} y={cy + 3} fill={layerColor} fontSize={T.chart.dot.d} fontFamily="monospace" opacity={0.85}>{d.short}</text>}
+            {isSingleLayer && !isActive && !narrow && <text x={cx + 8} y={cy + 3 + (labelOffsets[d.id] || 0)} fill={layerColor} fontSize={T.chart.dot.d} fontFamily="monospace" opacity={0.85}>{d.short}</text>}
             {isActive && (() => {
               const maxChars = Math.max(d.name.length, d.note.length);
               const charW = narrow ? 6.2 : 7.2;
