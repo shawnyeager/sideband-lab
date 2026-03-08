@@ -410,6 +410,34 @@
     margin-top: var(--sp-2);
   }
 
+  /* Transport controls (pause / step-forward) */
+  .transport-controls {
+    display: none;
+    align-items: center;
+    gap: 2px;
+  }
+  .transport-controls.visible { display: flex; }
+  .transport-btn {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    border-radius: 3px;
+    background: none;
+    color: var(--viz-text-dim);
+    font-size: 12px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.15s ease, background 0.15s ease;
+  }
+  .transport-btn:hover { color: var(--viz-text); background: var(--viz-bg-light); }
+  .transport-btn:focus-visible { outline: 2px solid var(--viz-text); outline-offset: 1px; }
+  .transport-btn:disabled { opacity: 0.3; cursor: default; pointer-events: none; }
+  .transport-btn svg { width: 14px; height: 14px; fill: currentColor; }
+
   /* Actor popover */
   .popover {
     position: absolute;
@@ -774,8 +802,11 @@
         </div>
 
         <div class="panel-footer">
+          <div class="transport-controls" id="x402-transport">
+            <button class="transport-btn" id="x402-pause" aria-label="Pause"><svg viewBox="0 0 14 14" aria-hidden="true"><rect x="2" y="1" width="3.5" height="12" rx="0.5"/><rect x="8.5" y="1" width="3.5" height="12" rx="0.5"/></svg></button>
+            <button class="transport-btn" id="x402-step" aria-label="Next step" disabled><svg viewBox="0 0 14 14" aria-hidden="true"><polygon points="1,1 9,7 1,13"/><rect x="10" y="1" width="3" height="12" rx="0.5"/></svg></button>
+          </div>
           <div class="progress-bar"><div class="progress-fill x402" id="x402-progress"></div></div>
-
           <span class="done-badge x402" id="x402-done">Done</span>
         </div>
         <div class="dep-tally" id="x402-tally">Verification and settlement require Coinbase's Facilitator</div>
@@ -844,8 +875,11 @@
         </div>
 
         <div class="panel-footer">
+          <div class="transport-controls" id="l402-transport">
+            <button class="transport-btn" id="l402-pause" aria-label="Pause"><svg viewBox="0 0 14 14" aria-hidden="true"><rect x="2" y="1" width="3.5" height="12" rx="0.5"/><rect x="8.5" y="1" width="3.5" height="12" rx="0.5"/></svg></button>
+            <button class="transport-btn" id="l402-step" aria-label="Next step" disabled><svg viewBox="0 0 14 14" aria-hidden="true"><polygon points="1,1 9,7 1,13"/><rect x="10" y="1" width="3" height="12" rx="0.5"/></svg></button>
+          </div>
           <div class="progress-bar"><div class="progress-fill l402" id="l402-progress"></div></div>
-
           <span class="done-badge l402" id="l402-done">Done</span>
         </div>
         <div class="dep-tally" id="l402-tally"><span class="tally-num clear">0</span> of 5 steps need permission</div>
@@ -1023,10 +1057,16 @@
     let gen = Symbol();       // generational token
     let step = -1;
     let pauseReq = false;
+    let stepOnce = false;     // step-forward: play one step then pause
     const svgEl = $(`#${protocol}-svg`);
     const lifelineSvg = $(`#${protocol}-lifelines`);
     const actorsContainer = $(`#${protocol}-actors`);
     const stepsContainer = $(`#${protocol}-steps`);
+    const transportEl = $(`#${protocol}-transport`);
+    const pauseBtn = $(`#${protocol}-pause`);
+    const stepBtn = $(`#${protocol}-step`);
+    const ICON_PAUSE = '<svg viewBox="0 0 14 14" aria-hidden="true"><rect x="2" y="1" width="3.5" height="12" rx="0.5"/><rect x="8.5" y="1" width="3.5" height="12" rx="0.5"/></svg>';
+    const ICON_PLAY = '<svg viewBox="0 0 14 14" aria-hidden="true"><polygon points="2,1 12,7 2,13"/></svg>';
 
     function getActorX(idx) {
       const actors = $$('.actor', actorsContainer);
@@ -1085,6 +1125,30 @@
         ll.setAttribute('y2', '9999');
         ll.classList.add('lifeline');
         lifelineSvg.appendChild(ll);
+      }
+    }
+
+    function updateControls() {
+      if (state === 'idle') {
+        transportEl.classList.remove('visible');
+        return;
+      }
+      transportEl.classList.add('visible');
+      if (state === 'paused') {
+        pauseBtn.innerHTML = ICON_PLAY;  // safe: hardcoded SVG constant
+        pauseBtn.setAttribute('aria-label', 'Play');
+        pauseBtn.disabled = false;
+        stepBtn.disabled = (step >= totalSteps - 1);
+      } else if (state === 'complete') {
+        pauseBtn.innerHTML = ICON_PLAY;  // safe: hardcoded SVG constant
+        pauseBtn.setAttribute('aria-label', 'Play');
+        pauseBtn.disabled = true;
+        stepBtn.disabled = true;
+      } else {
+        pauseBtn.innerHTML = ICON_PAUSE;  // safe: hardcoded SVG constant
+        pauseBtn.setAttribute('aria-label', 'Pause');
+        pauseBtn.disabled = false;
+        stepBtn.disabled = true;
       }
     }
 
@@ -1196,6 +1260,7 @@
       const tallyEl = $(`#${protocol}-tally`);
       if (tallyEl) tallyEl.classList.add('visible');
       announce(`${protocol.toUpperCase()} sequence complete. ${totalSteps} steps total.`);
+      updateControls();
       checkBothDone();
     }
 
@@ -1206,6 +1271,7 @@
       state = 'transitioning';
       step = i;
       updateProgress();
+      updateControls();
 
       // Highlight current row
       rows.forEach((r, idx) => {
@@ -1239,10 +1305,12 @@
       }
       if (myGen !== gen || state === 'idle') return;
 
-      // Check pause request
-      if (pauseReq) {
+      // Check pause request or step-once
+      if (pauseReq || stepOnce) {
         state = 'paused';
         pauseReq = false;
+        stepOnce = false;
+        updateControls();
         return;
       }
 
@@ -1251,9 +1319,11 @@
       if (d.pause > 0) {
         await delay(d.pause);
         if (myGen !== gen || state === 'idle') return;
-        if (pauseReq) {
+        if (pauseReq || stepOnce) {
           state = 'paused';
           pauseReq = false;
+          stepOnce = false;
+          updateControls();
           return;
         }
       }
@@ -1267,13 +1337,16 @@
 
       play() {
         if (state === 'paused') {
+          stepOnce = false;
           state = 'playing';
+          updateControls();
           runStep(step + 1, gen);
           return;
         }
         if (state === 'idle') {
           drawLifelines();
           state = 'playing';
+          updateControls();
           runStep(0, gen);
         }
       },
@@ -1281,6 +1354,7 @@
       pause() {
         if (state === 'playing') {
           state = 'paused';
+          updateControls();
         } else if (state === 'transitioning') {
           pauseReq = true;
         }
@@ -1288,6 +1362,16 @@
 
       resume() {
         if (state === 'paused') {
+          stepOnce = false;
+          state = 'playing';
+          updateControls();
+          runStep(step + 1, gen);
+        }
+      },
+
+      stepForward() {
+        if (state === 'paused' && step < totalSteps - 1) {
+          stepOnce = true;
           state = 'playing';
           runStep(step + 1, gen);
         }
@@ -1298,6 +1382,7 @@
         state = 'idle';
         step = -1;
         pauseReq = false;
+        stepOnce = false;
         progressEl.style.width = '0%';
         doneEl.classList.remove('visible');
         rows.forEach(r => r.classList.remove('active', 'dimmed', 'completed'));
@@ -1312,6 +1397,7 @@
         while (lifelineSvg.firstChild) lifelineSvg.removeChild(lifelineSvg.firstChild);
         const tallyEl = $(`#${protocol}-tally`);
         if (tallyEl) tallyEl.classList.remove('visible');
+        updateControls();
       },
 
       showFinalState() {
@@ -1326,6 +1412,7 @@
         drawLifelines();
         const tallyEl = $(`#${protocol}-tally`);
         if (tallyEl) tallyEl.classList.add('visible');
+        updateControls();
       },
 
       redrawLifelines() {
@@ -1388,25 +1475,30 @@
     });
   });
 
-  /* ── Hover to pause ── */
-  function setupHoverPause(panel, timeline) {
-    const rows = $$('.step-row', panel);
-    rows.forEach(row => {
-      row.addEventListener('mouseenter', () => timeline.pause());
-      row.addEventListener('mouseleave', () => {
-        if (timeline.state === 'paused') timeline.resume();
-      });
+  /* ── Transport controls ── */
+  function setupTransport(protocol, timeline) {
+    const pauseBtn = $(`#${protocol}-pause`);
+    const stepBtn = $(`#${protocol}-step`);
+    pauseBtn.addEventListener('click', () => {
+      if (timeline.state === 'paused') timeline.play();
+      else timeline.pause();
+    });
+    stepBtn.addEventListener('click', () => {
+      timeline.stepForward();
+    });
+    // Keyboard toggle on step rows
+    $$('.step-row', $(`#panel-${protocol}`)).forEach(row => {
       row.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
-          if (timeline.state === 'paused') timeline.resume();
+          if (timeline.state === 'paused') timeline.play();
           else timeline.pause();
         }
       });
     });
   }
-  setupHoverPause($('#panel-x402'), x402);
-  setupHoverPause($('#panel-l402'), l402);
+  setupTransport('x402', x402);
+  setupTransport('l402', l402);
 
   /* ── Step detail toggles ── */
   $$('.step-row[data-step="1"], .step-row[data-step="3"]').forEach(row => {
