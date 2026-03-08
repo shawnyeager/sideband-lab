@@ -87,6 +87,7 @@ const image = images[imagePath]?.default;
     font-size: 17px;
     line-height: 24px;
     color: var(--text);
+    text-wrap: pretty;
   }
 
   .card__meta {
@@ -109,13 +110,11 @@ const image = images[imagePath]?.default;
   /* ── Featured variant (hero) ── */
   .card--featured {
     border-top: none;
-    padding: 0 0 var(--space-lg);
+    padding: 0 0 var(--space-md);
   }
 
   .card--featured .card__link {
-    grid-template-columns: 3fr 2fr;
-    gap: var(--space-lg);
-    align-items: center;
+    gap: var(--space-md);
   }
 
   .card--featured .card__visual {
@@ -140,7 +139,8 @@ const image = images[imagePath]?.default;
 
   .card--featured .card__desc {
     font-size: 17px;
-    line-height: 24px;
+    line-height: 26px;
+    text-wrap: balance;
     -webkit-line-clamp: unset;
     overflow: visible;
   }
