@@ -1142,8 +1142,13 @@
         { duration, easing: 'cubic-bezier(0.25, 1, 0.5, 1)', fill: 'forwards' }
       );
 
-      await lineAnim.finished;
-      dot.remove();
+      try {
+        await lineAnim.finished;
+      } catch (_) {
+        // Animation cancelled (element removed during reset/replay/tab switch)
+        return;
+      }
+      if (dot.parentNode) dot.remove();
     }
 
     function announce(text) {
@@ -1155,7 +1160,7 @@
       progressEl.style.width = pct + '%';
     }
 
-    function showSigningCard() {
+    function showSigningCard(myGen) {
       const card = $(`#${protocol}-signing-card`);
       if (!card) return Promise.resolve();
       const statusEl = $(`#${protocol}-sign-status`);
@@ -1165,10 +1170,11 @@
 
       return new Promise(resolve => {
         setTimeout(() => {
+          if (myGen !== gen) { resolve(); return; }
           statusEl.textContent = '\u2713 Verified';
           statusEl.className = 'sign-status confirmed';
           setTimeout(() => {
-            card.classList.remove('visible');
+            if (myGen === gen) card.classList.remove('visible');
             resolve();
           }, 400);
         }, 1200);
@@ -1220,7 +1226,7 @@
 
       // Signing card for x402 step 3
       if (d.signing) {
-        await showSigningCard();
+        await showSigningCard(myGen);
         if (myGen !== gen) return;
       }
 
@@ -1230,7 +1236,7 @@
       } else {
         await delay(prefersReduced.matches ? 50 : d.dur);
       }
-      if (myGen !== gen) return;
+      if (myGen !== gen || state === 'idle') return;
 
       // Check pause request
       if (pauseReq) {
@@ -1243,7 +1249,7 @@
       state = 'playing';
       if (d.pause > 0) {
         await delay(d.pause);
-        if (myGen !== gen) return;
+        if (myGen !== gen || state === 'idle') return;
         if (pauseReq) {
           state = 'paused';
           pauseReq = false;
@@ -1374,8 +1380,10 @@
     x402.reset();
     l402.reset();
     requestAnimationFrame(() => {
-      startAnimation();
-      replayLock = false;
+      requestAnimationFrame(() => {
+        startAnimation();
+        replayLock = false;
+      });
     });
   });
 
