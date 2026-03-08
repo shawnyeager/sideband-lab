@@ -111,8 +111,12 @@ const puppeteer = require('puppeteer');
     document.body.style.background = '#1D2733';
   });
 
-  // THUMBNAIL — element screenshot of the main visualization
-  // Find the primary visual element (chart, canvas, visualization container)
+  // THUMBNAIL — element screenshot of the VISUALIZATION ONLY
+  // CRITICAL: Capture ONLY the chart/canvas/SVG — NOT the page title, subtitle,
+  // description, filters, or any other page chrome. The homepage card already
+  // displays the project title and description below the thumbnail, so including
+  // them in the image creates ugly redundancy.
+  // Find the primary visual element (chart SVG, canvas, visualization container)
   const viz = await page.$('.primary-visual-selector');
   await viz.screenshot({ path: 'src/assets/projects/[slug].png', type: 'png' });
 
@@ -132,11 +136,13 @@ const puppeteer = require('puppeteer');
 
 Key rules:
 - `deviceScaleFactor: 2` always — retina-quality captures
+- **Thumbnail must be ONLY the visualization** — the chart, canvas, SVG, or simulation. Never include the page title, subtitle, description, filter controls, or any text that the homepage card already shows. The card renders title + description below the image, so baking them into the thumbnail creates redundancy.
 - Hide the site header and set `body.background` to the visualization's background color so no cream bleeds at edges
+- Also hide page-level headings (h1, subtitle, description) before capture so they don't appear at the top of the screenshot
 - Remove `border-radius` on the captured element if it has rounded corners
 - For animated pages, wait for the completion state before capturing
 - For tall visualizations that don't fit 1200:630, collapse expandable content (accordions, detail blocks) before the OG capture
-- Verify both images look correct by reading them with the Read tool after generation
+- Verify both images look correct by reading them with the Read tool after generation. Check that no page title/subtitle text appears in the thumbnail.
 
 ### 5. Flip to live
 
