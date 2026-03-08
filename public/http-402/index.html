@@ -645,7 +645,8 @@
     .diagrams { flex-direction: column; gap: 0; }
     .protocol-panel { display: none; }
     .protocol-panel.active-tab { display: block; }
-    .arrow-svg, .lifeline-svg { display: none; }
+    /* arrow-svg and lifeline-svg render normally on mobile —
+       positions are computed from DOM layout */
   }
 </style>
 </head>
@@ -1469,6 +1470,10 @@
 
       $(`#panel-${target}`).classList.add('active-tab');
       $(`#panel-${other}`).classList.remove('active-tab');
+
+      // Redraw lifelines for the newly visible panel (positions are 0 while hidden)
+      const engine = target === 'x402' ? x402 : l402;
+      if (engine.state !== 'idle') engine.redrawLifelines();
     });
 
     tab.addEventListener('keydown', (e) => {
