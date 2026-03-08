@@ -31,7 +31,7 @@
     "slug": "http-402",
     "featured": true,
     "title": "Payment Required",
-    "description": "x402 routes every payment through Coinbase. L402 routes through no one. The protocol your agent uses decides who can shut it off.",
+    "description": "x402 requires Coinbase to verify and settle every payment. L402 requires no one. The protocol your agent uses decides who can shut it off.",
     "date": "2026-03-07",
     "thumbnail": "http-402",
     "ogImage": "/img/og/http-402.png",

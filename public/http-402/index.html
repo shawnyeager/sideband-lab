@@ -777,7 +777,7 @@
 
           <span class="done-badge x402" id="x402-done">Done</span>
         </div>
-        <div class="dep-tally" id="x402-tally"><span class="tally-num gated">4</span> of 9 steps require Coinbase</div>
+        <div class="dep-tally" id="x402-tally">Verification and settlement require Coinbase's Facilitator</div>
       </div>
 
       <!-- ═══════════ L402 PANEL ═══════════ -->
@@ -935,7 +935,7 @@
   <!-- Explanation prose -->
   <div class="project-prose">
     <p>HTTP 402 Payment Required has been "reserved for future use" since 1997. Two protocols now claim that future. They've made opposite bets on whether payments need an intermediary.</p>
-    <p><strong>x402</strong> puts Coinbase in the payment path. Four of its nine steps require a Facilitator, a trusted third party that verifies signatures and settles funds on-chain. The agent never touches gas and gets dollar-stable pricing. If the Facilitator goes down, changes its terms, or blocks the wallet, the agent can't pay.</p>
+    <p><strong>x402</strong> requires a Facilitator—Coinbase's infrastructure—to verify signatures and settle funds on-chain. The agent never touches gas and gets dollar-stable pricing. If the Facilitator rejects the request or goes down, the payment doesn't complete.</p>
     <p><strong>L402</strong> has no intermediary. Agent pays a Lightning invoice, server verifies a hash locally, resource delivered. Zero steps require anyone's permission. You run Lightning infrastructure, price in volatile sats, and channel liquidity is your problem.</p>
     <p>An AI agent making thousands of API calls a day will eventually need to pay for one. Whether it can depends on who else has to be involved.</p>
   </div>
