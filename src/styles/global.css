@@ -46,8 +46,29 @@
   --navy-lighter:#2a3a4d;
   --off-white:   #EEEBE4;
   --mid-green:   #5B9B84;
+  --signal-red:      #D4716B;
+  --signal-red-glow: rgba(212, 113, 107, 0.3);
+  --signal-red-bg:   rgba(212, 113, 107, 0.06);
+  --cyan-glow:       rgba(14, 165, 201, 0.4);
+  --amber-bright:    #B8893F;
+  --amber-glow:      rgba(184, 137, 63, 0.3);
   --rule:        rgba(57, 58, 58, 0.08);
   --rule-strong: rgba(57, 58, 58, 0.15);
+
+  /* Dark canvas (visualization islands) */
+  --viz-bg:          #1D2733;
+  --viz-bg-light:    #253040;
+  --viz-bg-mid:      #2E3A48;
+  --viz-text:        #e3dfd3;
+  --viz-text-muted:  #a09d94;
+  --viz-text-dim:    #918E87;
+  --viz-num:         #A8B8C8;
+  --viz-line:        rgba(227, 223, 211, 0.1);
+  --viz-bar-bg:      rgba(227, 223, 211, 0.08);
+  --viz-overlay:     rgba(0, 0, 0, 0.25);
+  --viz-shadow:      0 4px 12px rgba(0, 0, 0, 0.3);
+  --code-bg:         rgba(0, 0, 0, 0.05);
+  --font-mono:       'SF Mono', 'Cascadia Code', 'Fira Code', 'Courier New', monospace;
 
   --bg:          #eeebe4;
   --text:        #393a3a;

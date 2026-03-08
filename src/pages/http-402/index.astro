@@ -1,0 +1,18 @@
+---
+import fs from 'node:fs';
+import path from 'node:path';
+import { projectHeader, fontPreload, projectMeta } from '../../lib/header';
+import projects from '../../content/projects.json';
+
+const project = projects.find(p => p.slug === 'http-402');
+const meta = project ? projectMeta(project) : '';
+
+const htmlPath = path.resolve('public/http-402/index.html');
+let html = fs.readFileSync(htmlPath, 'utf-8');
+html = html.replace(/<head([^>]*)>/, `<head$1>${fontPreload}${meta}`);
+html = html.replace(/<body([^>]*)>/, `<body$1>${projectHeader}`);
+
+return new Response(html, {
+  headers: { 'content-type': 'text/html; charset=utf-8' }
+});
+---

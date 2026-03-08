@@ -7,6 +7,7 @@ interface Project {
   substackTitle?: string;
   thumbnail: string;
   ogImage?: string;
+  featured?: boolean;
   status: string;
 }
 

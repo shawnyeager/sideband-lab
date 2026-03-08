@@ -26,5 +26,15 @@
     "thumbnail": "map",
     "ogImage": "/img/og/map.png",
     "status": "live"
+  },
+  {
+    "slug": "http-402",
+    "featured": true,
+    "title": "Payment Required",
+    "description": "x402 routes every payment through Coinbase. L402 routes through no one. The protocol your agent uses decides who can shut it off.",
+    "date": "2026-03-07",
+    "thumbnail": "http-402",
+    "ogImage": "/img/og/http-402.png",
+    "status": "live"
   }
 ]

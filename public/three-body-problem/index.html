@@ -24,7 +24,6 @@
     --site-text-muted:  #6b6966;
     --site-text-sub:    #9a9793;
     --site-hr:          #d5d2cb;
-    --site-hr-subtle:   #e0ddd6;
 
     /* ── Chart palette (dark canvas) ── */
     --bg:               #1d2733;
@@ -96,23 +95,6 @@
     overflow-x: hidden;
   }
 
-  /* ============================================================
-     TYPOGRAPHY — SITE LEVEL
-     ============================================================ */
-  .body {
-    font-size: var(--fs-body);
-    line-height: var(--lh-body);
-    color: var(--site-text);
-    margin-bottom: var(--sp-3);
-    max-width: 728px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-
-  .body strong {
-    color: var(--site-text);
-    font-weight: 700;
-  }
 
   .zb-footer {
     width: calc(100% + 56px);
@@ -120,19 +102,10 @@
     margin-top: 14px;
     padding-top: 10px;
     border-top: 1px solid rgba(122,119,112,0.15);
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
     font-size: 10px;
     color: #7a7770;
     letter-spacing: 0.02em;
   }
-  .zb-credit a {
-    color: #7a7770;
-    text-decoration: none;
-    border-bottom: 1px solid rgba(122,119,112,0.3);
-  }
-  .zb-credit a:hover { color: #a09d94; }
   .cap-dot {
     width: 8px;
     height: 8px;
@@ -246,80 +219,8 @@
     color: var(--sage-muted);
   }
 
-  /* ============================================================
-     DIVIDERS
-     ============================================================ */
-  .hr {
-    width: 100%;
-    height: 1px;
-    background: var(--site-hr);
-    border: none;
-    margin: 0 0 var(--sp-4);
-  }
-
-  .hr-subtle {
-    width: 100%;
-    max-width: 728px;
-    height: 1px;
-    background: var(--site-hr-subtle);
-    border: none;
-    margin: var(--sp-4) auto;
-  }
-
-  /* ============================================================
-     COLLAPSIBLE DETAILS
-     ============================================================ */
-  .detail-block {
-    margin-top: 0;
-    margin-bottom: var(--sp-3);
-    overflow-wrap: break-word;
-    word-wrap: break-word;
-    max-width: 728px;
-    margin-left: auto;
-    margin-right: auto;
-  }
-
+  /* Project-specific: sources disclosure gets extra top margin */
   .detail-sources { margin-top: var(--sp-2); }
-
-  details summary {
-    font-size: var(--fs-detail-sum);
-    font-weight: 500;
-    color: var(--site-text-muted);
-    cursor: pointer;
-    list-style: none;
-    user-select: none;
-    line-height: var(--lh-body);
-  }
-
-  details summary::-webkit-details-marker { display: none; }
-
-  details summary .chev {
-    display: inline-block;
-    margin-left: 4px;
-    width: 0;
-    height: 0;
-    border-left: 4px solid transparent;
-    border-right: 4px solid transparent;
-    border-top: 5px solid var(--site-text-muted);
-    vertical-align: 2px;
-    transition: transform 0.15s ease;
-  }
-
-  details[open] summary .chev { transform: rotate(180deg); }
-
-  .details-content {
-    font-size: var(--fs-detail-body);
-    line-height: var(--lh-body);
-    color: var(--site-text-muted);
-    margin-top: var(--sp-1);
-    max-width: 728px;
-    overflow-wrap: break-word;
-  }
-
-  .details-content strong {
-    color: var(--site-text);
-    font-weight: 600;
-  }
 
   /* Footnote entries injected by JS */
   #footnotes {
@@ -377,15 +278,11 @@
       padding: 20px 16px 32px;
     }
 
-    /* Typography — fill available width */
-    .body {
+    /* Typography — tighten on mobile */
+    .project-prose {
       font-size: 18px;
       line-height: 1.6;
-      max-width: 100%;
     }
-    .detail-block { max-width: 100%; }
-    .details-content { max-width: 100%; }
-    .hr-subtle { max-width: 100%; }
 
     /* Chart island: full bleed on mobile */
     .chart-island {
@@ -436,8 +333,6 @@
       margin-left: -10px;
       margin-right: -10px;
       padding: 8px 10px 0;
-      flex-direction: column;
-      gap: 2px;
       text-align: center;
       font-size: 8px;
     }
@@ -478,36 +373,39 @@
     </div>
     <div class="zb-footer">
       <div class="zb-key"><span class="cap-dot filled cyan"></span> Filled = capital flow, sized by volume. <span class="cap-dot hollow"></span> Hollow = no public volume data.</div>
-      <div class="zb-credit">Sideband · <a href="https://www.sideband.pub">sideband.pub</a> · Data: 2025 · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a></div>
     </div>
   </div>
 
-  <p class="body">
+  <p class="project-prose">
     The state and incumbent capital form a binary system. Regulation creates moats. Moats fund lobbying. Lobbying creates regulation. <strong>They reinforce each other's gravity</strong> and every major payment rail orbits within their shared well. Visa, Mastercard, PayPal, Stripe—they don't resist the pull. The friction is their business model.
   </p>
-  <p class="body">
+  <p class="project-prose">
     Insurgent capital is money that moves without permission. No KYC, no intermediary, no legal entity required. Keypair identity, cryptographic settlement, open rails. It's been gaining mass for years because people want it. The hypothesis: <strong>agents will accelerate it</strong>, because they need speed, scale, and permissionless access that the control alliance can't offer without dismantling itself. Lightning, Nostr, Cashu orbit here.
   </p>
-  <p class="body">
+  <p class="project-prose">
     The contested zone between them is crowded. Stripe and OpenAI built ACP. Google launched AP2. Visa and Mastercard shipped agent identity protocols. Stablecoins—$33 trillion in 2025—are the native currency of the contested zone, regulated money running on permissionless rails. Both sides are converging on <strong>territory neither fully controls</strong>.
   </p>
-  <p class="body">
+  <p class="project-prose">
     Both sides are gaining mass. The state grows through regulation and enforcement. Insurgent capital grows through agents, speed, and compounding incentive. <strong>The rate of change favors autonomy.</strong>
   </p>
 
   <div class="hr-subtle"></div>
 
-  <details class="detail-block">
-    <summary>How the simulation works <span class="chev"></span></summary>
-    <div class="details-content">
+  <details class="disclosure">
+    <summary>How the simulation works <span class="chev" aria-hidden="true"></span></summary>
+    <div class="disclosure-body">
       This chart is a D3.js force simulation, not a static layout. Each payment method is a particle subject to <strong>radial attraction</strong> toward its aligned body (keeping nodes in orbit at a distance proportional to alignment strength), <strong>directional bias</strong> pulling nodes toward their body's center, and <strong>collision detection</strong> preventing label overlaps. Contested entities feel dual pull—positioned between the incumbent binary system and insurgent capital based on a lean value (0 = pure incumbent, 1 = pure insurgent). The simulation runs in two phases: first, 200 ticks of pure positioning with no collision so nodes find their orbital zones; then 400 ticks ramping collision gradually so overlaps resolve without ejecting nodes from their zones. Nothing is hand-placed—positions, colors, and sizes all derive from the underlying data.
     </div>
   </details>
 
-  <details class="detail-block detail-sources">
-    <summary>Sources <span class="chev"></span></summary>
-    <div id="footnotes" class="details-content"></div>
+  <details class="disclosure detail-sources">
+    <summary>Sources <span class="chev" aria-hidden="true"></span></summary>
+    <div id="footnotes" class="disclosure-body"></div>
   </details>
+
+  <div class="project-credit">
+    <a href="https://www.sideband.pub">Sideband</a> · Data: 2025 · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>
+  </div>
 
 </div>
 

@@ -5,7 +5,17 @@ import { getActiveProjects } from '../lib/utils';
 import projects from '../content/projects.json';
 
 const activeProjects = getActiveProjects(projects);
-const [featured, ...rest] = activeProjects;
+const featured = activeProjects.find(p => p.featured) || activeProjects[0];
+const rest = activeProjects.filter(p => p !== featured);
+
+// Group remaining projects by year
+const byYear = new Map<string, typeof rest>();
+rest.forEach(p => {
+  const year = p.date.slice(0, 4);
+  if (!byYear.has(year)) byYear.set(year, []);
+  byYear.get(year)!.push(p);
+});
+const years = [...byYear.keys()];
 ---
 
 <Base
@@ -23,21 +33,24 @@ const [featured, ...rest] = activeProjects;
         thumbnail={featured.thumbnail}
         featured={true}
       />
-      {rest.length > 0 && (
-        <div class="project-list">
-          {rest.map(project => (
-            <ProjectCard
-              slug={project.slug}
-              title={project.title}
-              description={project.description}
-              date={project.date}
-              substackUrl={project.substackUrl}
-              substackTitle={project.substackTitle}
-              thumbnail={project.thumbnail}
-            />
-          ))}
-        </div>
-      )}
+      {years.map((year, i) => (
+        <>
+          {i > 0 && <h3 class="year-label">{year}</h3>}
+          <div class="project-grid">
+            {byYear.get(year)!.map(project => (
+              <ProjectCard
+                slug={project.slug}
+                title={project.title}
+                description={project.description}
+                date={project.date}
+                substackUrl={project.substackUrl}
+                substackTitle={project.substackTitle}
+                thumbnail={project.thumbnail}
+              />
+            ))}
+          </div>
+        </>
+      ))}
     </div>
   ) : (
     <div class="empty-state">
@@ -46,7 +59,7 @@ const [featured, ...rest] = activeProjects;
   )}
 </Base>
 
-<style>
+<style is:global>
   .projects {
     display: flex;
     flex-direction: column;
@@ -54,9 +67,22 @@ const [featured, ...rest] = activeProjects;
     margin: 0 auto;
   }
 
-  .project-list {
-    display: flex;
-    flex-direction: column;
+  .project-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--space-lg);
+    border-top: 1px solid var(--hr);
+    padding-top: var(--space-lg);
+  }
+
+  .year-label {
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-sub);
+    margin: var(--space-lg) 0 0;
   }
 
   .empty-state {
@@ -67,5 +93,11 @@ const [featured, ...rest] = activeProjects;
     font-family: var(--font-display);
     font-size: 1.125rem;
     color: var(--text-sub);
+  }
+
+  @media (max-width: 640px) {
+    .project-grid {
+      grid-template-columns: 1fr;
+    }
   }
 </style>

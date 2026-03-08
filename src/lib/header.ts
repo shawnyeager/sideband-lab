@@ -151,6 +151,95 @@ export const projectHeader = `
     font-family: 'Roboto Slab', Georgia, 'Times New Roman', serif !important;
     font-weight: 700 !important;
   }
+
+  /* ── Shared: disclosure/accordion ── */
+  .disclosure {
+    max-width: 728px;
+    margin: 0 auto var(--sp-3, 20px);
+  }
+  .disclosure summary {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-size: var(--fs-detail-sum, 16px);
+    color: var(--site-text-muted, #6b6966);
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    user-select: none;
+  }
+  .disclosure summary::-webkit-details-marker { display: none; }
+  .disclosure .chev {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    border-right: 1.5px solid var(--site-text-sub, #9a9793);
+    border-bottom: 1.5px solid var(--site-text-sub, #9a9793);
+    transform: rotate(-45deg);
+    transition: transform 0.2s ease;
+    flex-shrink: 0;
+  }
+  .disclosure[open] .chev { transform: rotate(45deg); }
+  .disclosure-body {
+    margin-top: var(--sp-1, 6px);
+    font-size: var(--fs-detail-body, 15px);
+    line-height: var(--lh-body, 1.65);
+    color: var(--site-text-muted, #6b6966);
+    overflow-wrap: break-word;
+  }
+  .disclosure-body strong {
+    color: var(--site-text, #393a3a);
+    font-weight: 600;
+  }
+  .disclosure-body a {
+    color: var(--site-text-muted, #6b6966);
+    text-decoration: none;
+    border-bottom: 1px solid var(--site-hr, #d5d2cb);
+  }
+  .disclosure-body a:hover { color: var(--site-text, #393a3a); }
+
+  /* ── Shared: reading-column prose ── */
+  .project-prose {
+    font-size: var(--fs-body, 20px);
+    line-height: var(--lh-body, 1.65);
+    color: var(--site-text, #393a3a);
+    max-width: 728px;
+    margin: 0 auto var(--sp-3, 20px);
+  }
+  .project-prose strong {
+    color: var(--site-text, #393a3a);
+    font-weight: 700;
+  }
+  .project-prose p + p {
+    margin-top: var(--sp-2, 14px);
+  }
+
+  /* ── Shared: subtle divider ── */
+  .hr-subtle {
+    max-width: 728px;
+    margin: var(--sp-4, 28px) auto;
+    border: none;
+    border-top: 1px solid var(--site-hr, #d5d2cb);
+  }
+
+  /* ── Shared: footer credit ── */
+  .project-credit {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-size: var(--fs-foot, 14px);
+    color: var(--site-text-sub, #9a9793);
+    max-width: 728px;
+    margin: var(--sp-5, 40px) auto 0;
+  }
+  .project-credit a {
+    color: var(--site-text-sub, #9a9793);
+    text-decoration: none;
+    border-bottom: 1px solid var(--site-hr, #d5d2cb);
+  }
+  .project-credit a:hover { color: var(--site-text-muted, #6b6966); }
+
+  @media (max-width: 640px) {
+    .project-prose, .hr-subtle, .disclosure, .project-credit { max-width: 100%; }
+  }
 </style>
 <div class="site-header-fixed">${projectHeaderMarkup}</div>
 `;

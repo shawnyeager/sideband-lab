@@ -33,3 +33,6 @@ docs/
 
 # test artifacts
 test-results/
+
+# symlinked voice guide
+VOICE.md

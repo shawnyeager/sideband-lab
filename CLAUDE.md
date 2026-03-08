@@ -82,19 +82,68 @@ Optional fields: `substackUrl`, `substackTitle` (shown on the card as a link).
 
 Set status to `"draft"` initially. The homepage only shows `"live"` projects (filtered by `getActiveProjects()` in `src/lib/utils.ts`). Change to `"live"` once the HTML, thumbnail, and OG image are in place.
 
-### 4. Add images
+### 4. Generate preview images with Puppeteer
 
-Two image files are required per project:
+Two image files are required per project. **Generate them automatically** — do not ask the user to provide them.
 
-1. **Thumbnail** — `src/assets/projects/[slug].png`
-   Used on the homepage card. Processed by Astro's `<Image>` component (converted to webp, resized). Should be a high-quality screenshot or preview of the project.
+Prerequisites: the project HTML must be in place and the dev server running at `localhost:4321`.
 
-2. **OG image** — `public/img/og/[slug].png`
-   Used for social sharing previews (Open Graph, Twitter Cards). Must be in `public/` so social crawlers can fetch it directly. Recommended: 1200x630px. Can be the same image as the thumbnail or a custom social card.
+Use Puppeteer (available via `require('puppeteer')`) to capture screenshots. Run as a `node -e "..."` bash command. Template:
 
-### 5. Tell the user what's done and what's still needed
+```javascript
+const puppeteer = require('puppeteer');
+(async () => {
+  const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
+  const page = await browser.newPage();
+  await page.setViewport({ width: 1200, height: 900, deviceScaleFactor: 2 });
+  await page.goto('http://localhost:4321/[slug]/', { waitUntil: 'networkidle0' });
 
-After scaffolding, report what was created and what the user still needs to provide (the actual project HTML and thumbnail image).
+  // If the page has animations, wait for a completion indicator:
+  // await page.waitForSelector('.done-indicator', { timeout: 60000 });
+
+  // Clean up for capture
+  await page.evaluate(() => {
+    // Hide site header
+    const header = document.querySelector('#site-header');
+    if (header) header.style.display = 'none';
+    document.body.style.paddingTop = '0';
+    // Set body background to match the visualization background (no cream bleed)
+    document.body.style.background = '#1D2733';
+  });
+
+  // THUMBNAIL — element screenshot of the main visualization
+  // Find the primary visual element (chart, canvas, visualization container)
+  const viz = await page.$('.primary-visual-selector');
+  await viz.screenshot({ path: 'src/assets/projects/[slug].png', type: 'png' });
+
+  // OG IMAGE — 1200:630 aspect ratio crop of the visualization
+  // For tall elements, clip to the most informative portion
+  const box = await viz.boundingBox();
+  const clipHeight = Math.min(box.height, (630 / 1200) * box.width);
+  await page.screenshot({
+    path: 'public/img/og/[slug].png',
+    type: 'png',
+    clip: { x: box.x, y: box.y, width: box.width, height: clipHeight }
+  });
+
+  await browser.close();
+})().catch(e => { console.error(e); process.exit(1); });
+```
+
+Key rules:
+- `deviceScaleFactor: 2` always — retina-quality captures
+- Hide the site header and set `body.background` to the visualization's background color so no cream bleeds at edges
+- Remove `border-radius` on the captured element if it has rounded corners
+- For animated pages, wait for the completion state before capturing
+- For tall visualizations that don't fit 1200:630, collapse expandable content (accordions, detail blocks) before the OG capture
+- Verify both images look correct by reading them with the Read tool after generation
+
+### 5. Flip to live
+
+Once images are generated and verified:
+1. Change `"status": "draft"` to `"status": "live"` in `projects.json`
+2. Run `npm run build` to verify zero errors
+3. Report what was created
 
 ## Pre-push checklist
 
@@ -136,3 +185,41 @@ For icon-only links (`<a>` containing only an SVG or image with no visible text)
 - Any `<svg>` inside must have `aria-hidden="true"`
 
 Use Astro's `<Image>` component (`astro:assets`) for images in `.astro` files — it handles format conversion, responsive sizing, and attribute generation. Raw `<img>` tags are only for injected HTML strings (e.g. `projectHeader` in `header.ts`) and standalone project HTML in `public/`.
+
+## Design Context
+
+### Users
+Founders, builders, and investors following AI infrastructure shifts. They know what an API is, what Lightning is, what a stablecoin is. They arrive from the Sideband newsletter (sideband.pub) and want to see an idea made tangible — not explained from scratch.
+
+### Brand Personality
+**Sharp, curious, structural.** The lab maps territory. It finds patterns in complex systems and makes them visible. No sales pitch, no thought-leadership posturing, no decoration for its own sake.
+
+### Voice Rules
+
+**Read `VOICE.md` (symlinked in project root) before writing any copy.** It is the canonical voice reference for all Sideband writing.
+
+Key rules for project copy (titles, subtitles, descriptions in `projects.json`):
+- Em dashes have **no spaces**: `word—word` not `word — word`
+- No format-describing copy ("An interactive comparison of..."). Lead with the insight or tension, not the container.
+- No CTAs or reader-addressing ("See how...", "Try this..."). State claims directly.
+- No hedging ("I think", "arguably", "it seems").
+- All featured copy must pass the humanizer skill before committing. No AI slop.
+- Match the register of existing descriptions: short, punchy, specific. State what the project reveals, not what it is.
+
+### Emotional Goals
+- **Clarity.** The visitor sees something they didn't see before. Complexity resolved, not simplified.
+- **Respect.** The work assumes intelligence. No hand-holding, no dumbing down, no explainers for things the audience knows.
+- **Curiosity.** The visitor wants to explore further and share what they found.
+
+### Aesthetic Direction
+- **Reference:** Pudding.cool — visual essays that explain through interaction, not decoration. Each project earns its format.
+- **Anti-references:** Startup marketing (gradient blobs, hero illustrations, "Schedule a demo" energy). Dashboard SaaS (dense grids, metric tiles, sidebar navs).
+- **Theme:** Cream background (#EEEBE4) with dark visualization islands (#1D2733). The shell is warm and quiet. The visualizations are dense and precise. Contrast between the two is deliberate — the data lives in a different register than the prose.
+- **Mode:** Light only. No dark mode. The cream background is the brand.
+
+### Design Principles
+1. **No decoration.** If it doesn't carry meaning, it doesn't belong. Every visual element must earn its place by making something clearer.
+2. **Interaction over illustration.** Show the system working, not a picture of the system. Animated sequences, force simulations, explorable data — not static infographics.
+3. **The visualization is the argument.** The prose frames it, the data proves it. If the visualization doesn't change what the reader understands, it failed.
+4. **Respect the reader's time.** Fast load, immediate clarity, no preamble. The project should communicate its thesis within seconds of the first scroll.
+5. **Each project owns its tools.** No framework mandate. Use D3, React, Svelte, vanilla JS, WebGL — whatever the visualization demands. The shell is shared; the content is sovereign.
