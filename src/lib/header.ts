@@ -26,15 +26,12 @@ const headerStyles = `
     color: #393a3a;
     text-decoration: none;
   }
-  .site-header__brand:hover { color: #393a3a; }
-  .site-header__brand:hover .site-header__title { opacity: 0.7; }
   .site-header__mark { display: block; border-radius: 4px; }
   .site-header__title {
     font-family: 'Roboto Slab', Georgia, 'Times New Roman', serif;
     font-weight: 700;
     font-size: 1rem;
     letter-spacing: 0.01em;
-    transition: opacity 0.15s;
   }
   .site-header__back {
     font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
@@ -43,9 +40,7 @@ const headerStyles = `
     letter-spacing: 0.02em;
     color: #6b6966;
     text-decoration: none;
-    transition: opacity 0.15s;
   }
-  .site-header__back:hover { opacity: 0.7; color: #393a3a; }
   .site-header__nav {
     display: flex;
     align-items: center;
@@ -54,10 +49,8 @@ const headerStyles = `
   .site-header__github {
     color: #6b6966;
     text-decoration: none;
-    transition: opacity 0.15s;
     display: flex;
   }
-  .site-header__github:hover { opacity: 0.7; color: #6b6966; }
   .site-header__github svg { width: 18px; height: 18px; }
   @media (max-width: 640px) {
     .site-header { height: 44px; padding: 0 12px; }
@@ -103,6 +96,7 @@ export const siteHeader = `<style>${headerStyles}</style>${headerMarkup}`;
 
 /** Font preload tags — injected into <head> by project pages */
 export const fontPreload = `
+<style>@view-transition{navigation:auto}::view-transition-old(root){animation:vt-fade-out .15s ease}::view-transition-new(root){animation:vt-fade-in .2s ease}@keyframes vt-fade-out{to{opacity:0}}@keyframes vt-fade-in{from{opacity:0}}</style>
 <link rel="preload" href="/fonts/RobotoSlab-Bold.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/Lora-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="/fonts/SpaceGrotesk-Variable.woff2" as="font" type="font/woff2" crossorigin>

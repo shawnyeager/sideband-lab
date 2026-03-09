@@ -31,24 +31,19 @@ Create `src/pages/[slug]/index.astro` with this exact template:
 ---
 import fs from 'node:fs';
 import path from 'node:path';
-import { projectHeader, fontPreload, projectMeta } from '../../lib/header';
-import projects from '../../content/projects.json';
-
-const project = projects.find(p => p.slug === '[slug]');
-const meta = project ? projectMeta(project) : '';
+import Project from '../../layouts/Project.astro';
 
 const htmlPath = path.resolve('public/[slug]/index.html');
-let html = fs.readFileSync(htmlPath, 'utf-8');
-html = html.replace(/<head([^>]*)>/, `<head$1>${fontPreload}${meta}`);
-html = html.replace(/<body([^>]*)>/, `<body$1>${projectHeader}`);
+const html = fs.readFileSync(htmlPath, 'utf-8');
 
-return new Response(html, {
-  headers: { 'content-type': 'text/html; charset=utf-8' }
-});
+const headContent = html.match(/<head[^>]*>([\s\S]*?)<\/head>/i)?.[1] || '';
+const bodyContent = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i)?.[1] || '';
 ---
+
+<Project slug="[slug]" headContent={headContent} bodyContent={bodyContent} />
 ```
 
-Replace `[slug]` with the actual slug in both the `find()` and `path.resolve()` calls.
+Replace `[slug]` with the actual slug. The `Project` layout handles font preloads, OG meta, and the site header. Do NOT use raw `Response` — it breaks HMR and View Transitions.
 
 ### 2. Create `public/[slug]/` directory
 

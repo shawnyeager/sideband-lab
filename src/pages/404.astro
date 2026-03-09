@@ -5,7 +5,8 @@ import Base from '../layouts/Base.astro';
 <Base title="Not Found">
   <div class="not-found">
     <span class="not-found__code">404</span>
-    <p>This project doesn't exist yet.</p>
+    <div class="not-found__signal" aria-hidden="true"></div>
+    <p>No signal at this frequency.</p>
     <a href="/" class="not-found__back">&larr; All projects</a>
   </div>
 </Base>
@@ -31,6 +32,20 @@ import Base from '../layouts/Base.astro';
     margin-bottom: var(--space-sm);
   }
 
+  .not-found__signal {
+    width: min(280px, 60vw);
+    height: 1px;
+    background: var(--text-sub);
+    margin-bottom: var(--space-sm);
+    transform-origin: left center;
+    animation: flatline 1.5s cubic-bezier(0.25, 1, 0.5, 1) forwards;
+  }
+
+  @keyframes flatline {
+    from { transform: scaleX(0); }
+    to { transform: scaleX(1); }
+  }
+
   .not-found p {
     font-size: 0.95rem;
     color: var(--text-muted);
@@ -38,12 +53,16 @@ import Base from '../layouts/Base.astro';
 
   .not-found__back {
     margin-top: var(--space-sm);
+    font-family: var(--font-sans);
     font-size: 0.8rem;
+    font-weight: 500;
+    letter-spacing: 0.02em;
     color: var(--text-sub);
-    transition: color 0.15s;
   }
 
-  .not-found__back:hover {
-    color: var(--text);
+  @media (prefers-reduced-motion: reduce) {
+    .not-found__signal {
+      animation: none;
+    }
   }
 </style>

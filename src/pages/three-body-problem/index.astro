@@ -1,18 +1,13 @@
 ---
 import fs from 'node:fs';
 import path from 'node:path';
-import { projectHeader, fontPreload, projectMeta } from '../../lib/header';
-import projects from '../../content/projects.json';
-
-const project = projects.find(p => p.slug === 'three-body-problem');
-const meta = project ? projectMeta(project) : '';
+import Project from '../../layouts/Project.astro';
 
 const htmlPath = path.resolve('public/three-body-problem/index.html');
-let html = fs.readFileSync(htmlPath, 'utf-8');
-html = html.replace(/<head([^>]*)>/, `<head$1>${fontPreload}${meta}`);
-html = html.replace(/<body([^>]*)>/, `<body$1>${projectHeader}`);
+const html = fs.readFileSync(htmlPath, 'utf-8');
 
-return new Response(html, {
-  headers: { 'content-type': 'text/html; charset=utf-8' }
-});
+const headContent = html.match(/<head[^>]*>([\s\S]*?)<\/head>/i)?.[1] || '';
+const bodyContent = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i)?.[1] || '';
 ---
+
+<Project slug="three-body-problem" headContent={headContent} bodyContent={bodyContent} />

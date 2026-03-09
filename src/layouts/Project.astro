@@ -1,0 +1,31 @@
+---
+/**
+ * Layout for project pages that embed raw HTML from public/.
+ * Goes through Astro's normal rendering pipeline (unlike raw Response),
+ * so HMR works and View Transitions apply.
+ */
+import { projectHeader, fontPreload, projectMeta } from '../lib/header';
+import projects from '../content/projects.json';
+
+interface Props {
+  slug: string;
+  headContent: string;
+  bodyContent: string;
+}
+
+const { slug, headContent, bodyContent } = Astro.props;
+const project = projects.find(p => p.slug === slug);
+const meta = project ? projectMeta(project) : '';
+---
+
+<html lang="en">
+<head>
+  <Fragment set:html={fontPreload} />
+  <Fragment set:html={meta} />
+  <Fragment set:html={headContent} />
+</head>
+<body style="margin:0; background:#eeebe4;">
+  <Fragment set:html={projectHeader} />
+  <Fragment set:html={bodyContent} />
+</body>
+</html>
