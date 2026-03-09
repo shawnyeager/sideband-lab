@@ -26,7 +26,7 @@ const headerStyles = `
     color: #393a3a;
     text-decoration: none;
   }
-  .site-header__mark { display: block; border-radius: 4px; }
+  .site-header__mark { display: block; border-radius: 4px; color: transparent; }
   .site-header__title {
     font-family: 'Roboto Slab', Georgia, 'Times New Roman', serif;
     font-weight: 700;
