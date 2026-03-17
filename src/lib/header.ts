@@ -86,6 +86,7 @@ const projectHeaderMarkup = `
 <header class="site-header">
   ${brandLink}
   <nav class="site-header__nav">
+    <a href="/" class="site-header__back">All projects</a>
     ${githubLink}
   </nav>
 </header>
@@ -283,12 +284,40 @@ export const projectHeader = `
     background: rgba(14, 165, 201, 0.25);
   }
 
+  /* ── Shared: breadcrumb ── */
+  .project-breadcrumb {
+    max-width: 728px;
+    margin: 0 auto var(--sp-3, 20px);
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.03em;
+    color: var(--site-text-sub, #9a9793);
+  }
+  .project-breadcrumb a {
+    color: var(--site-text-sub, #9a9793);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .project-breadcrumb a:hover {
+    color: var(--site-text-muted, #6b6966);
+  }
+  .project-breadcrumb__sep {
+    margin: 0 6px;
+  }
+
   @media (max-width: 640px) {
-    .project-prose, .hr-subtle, .disclosure, .project-credit, .project-subscribe { max-width: 100%; }
+    .project-prose, .hr-subtle, .disclosure, .project-credit, .project-subscribe, .project-breadcrumb { max-width: 100%; }
   }
 </style>
 <div class="site-header-fixed">${projectHeaderMarkup}</div>
 `;
+
+/** Generate breadcrumb for a project page */
+export function projectBreadcrumb(project: { title: string }) {
+  const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return `<nav class="project-breadcrumb" aria-label="Breadcrumb"><a href="/">Sideband Lab</a><span class="project-breadcrumb__sep">›</span>${esc(project.title)}</nav>`;
+}
 
 /** Generate subscribe CTA for a project page */
 export function projectSubscribe(project: {
@@ -316,8 +345,9 @@ export function projectMeta(project: {
   ogImage?: string;
   favicon?: string;
 }) {
+  const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   const siteUrl = 'https://lab.sideband.pub';
-  const pageTitle = `${project.title} | Sideband Lab`;
+  const pageTitle = esc(`${project.title} | Sideband Lab`);
   const ogImage = `${siteUrl}${project.ogImage || '/img/og-default.png'}`;
   const canonical = `${siteUrl}/${project.slug}/`;
   const faviconTag = project.favicon
@@ -325,17 +355,19 @@ export function projectMeta(project: {
     : '<link rel="icon" type="image/png" href="/img/sideband-icon.png" />';
   return `
 <title>${pageTitle}</title>
-<meta name="description" content="${project.description}" />
+<meta name="description" content="${esc(project.description)}" />
 <link rel="canonical" href="${canonical}" />
 ${faviconTag}
 <meta property="og:type" content="website" />
 <meta property="og:title" content="${pageTitle}" />
-<meta property="og:description" content="${project.description}" />
+<meta property="og:description" content="${esc(project.description)}" />
 <meta property="og:image" content="${ogImage}" />
+<meta property="og:image:width" content="1200" />
+<meta property="og:image:height" content="630" />
 <meta property="og:site_name" content="Sideband Lab" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="${pageTitle}" />
-<meta name="twitter:description" content="${project.description}" />
+<meta name="twitter:description" content="${esc(project.description)}" />
 <meta name="twitter:image" content="${ogImage}" />
 <script async src="https://plausible.io/js/pa-FEW5RDsDRliedckfbUUV2.js"></script>
 <script>window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init()</script>

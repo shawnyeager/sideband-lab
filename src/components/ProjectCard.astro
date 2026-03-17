@@ -27,7 +27,7 @@ const image = images[imagePath]?.default;
       {image ? (
         <Image src={image} alt={title} loading={featured ? 'eager' : 'lazy'} />
       ) : (
-        <img src={`/img/projects/${thumbnail}.png`} alt={title} loading={featured ? 'eager' : 'lazy'} />
+        <img src={`/img/projects/${thumbnail}.png`} alt={title} width="860" height="538" loading={featured ? 'eager' : 'lazy'} />
       )}
     </div>
     <div class="card__body">
