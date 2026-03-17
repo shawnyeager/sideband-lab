@@ -157,16 +157,17 @@
     position: absolute;
     top: 16px;
     right: 20px;
-    background: none;
+    background: rgba(29, 39, 51, 0.85);
     border: 1px solid #3a4a5a;
     border-radius: 4px;
-    color: #5a6a7a;
+    color: #8a9aaa;
     font-family: 'Space Grotesk', system-ui, sans-serif;
-    font-size: 12px;
-    padding: 6px 12px;
+    font-size: 13px;
+    padding: 8px 16px;
     cursor: pointer;
     z-index: 1;
     transition: color 0.15s, border-color 0.15s;
+    -webkit-tap-highlight-color: transparent;
   }
   .fs-close:hover { color: #e3dfd3; border-color: #5a6a7a; }
   .chart-island.fullscreen .fs-close { display: block; }
@@ -201,7 +202,7 @@
 
   <div class="chart-island" id="chart-island">
     <span class="expand-hint"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 6V1h5M15 6V1h-5M1 10v5h5M15 10v5h-5"/></svg>Expand</span>
-    <button class="fs-close" aria-label="Close fullscreen">Esc</button>
+    <button class="fs-close" aria-label="Close fullscreen">&times; Close</button>
     <div class="chart-container">
       <svg viewBox="0 0 1000 685" xmlns="http://www.w3.org/2000/svg">
         <defs>
@@ -389,7 +390,13 @@ function exitFullscreen() {
 }
 
 island.addEventListener('click', (e) => {
-  if (island.classList.contains('fullscreen')) return;
+  if (island.classList.contains('fullscreen')) {
+    // Tapping the background (not the SVG) exits fullscreen
+    if (e.target === island || e.target.classList.contains('chart-container')) {
+      exitFullscreen();
+    }
+    return;
+  }
   enterFullscreen();
 });
 
