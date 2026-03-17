@@ -231,12 +231,82 @@ export const projectHeader = `
   }
   .project-credit a:hover { color: var(--site-text-muted, #6b6966); }
 
+  /* ── Shared: subscribe CTA ── */
+  .project-subscribe {
+    max-width: 728px;
+    margin: var(--sp-5, 40px) auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+  }
+  .project-subscribe__rule {
+    width: 40px;
+    height: 1px;
+    background: var(--site-hr, #d5d2cb);
+    margin-bottom: 4px;
+  }
+  .project-subscribe__read {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    letter-spacing: 0.02em;
+    color: var(--site-text-muted, #6b6966);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .project-subscribe__read:hover {
+    color: var(--site-text, #393a3a);
+  }
+  .project-subscribe__prompt {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-size: 14px;
+    letter-spacing: 0.03em;
+    color: var(--site-text-sub, #9a9793);
+  }
+  .project-subscribe__btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    height: 40px;
+    padding: 0 24px;
+    background: rgba(14, 165, 201, 0.15);
+    color: #0a8faf;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-weight: 600;
+    font-size: 15px;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: background 0.15s;
+  }
+  .project-subscribe__btn:hover {
+    background: rgba(14, 165, 201, 0.25);
+  }
+
   @media (max-width: 640px) {
-    .project-prose, .hr-subtle, .disclosure, .project-credit { max-width: 100%; }
+    .project-prose, .hr-subtle, .disclosure, .project-credit, .project-subscribe { max-width: 100%; }
   }
 </style>
 <div class="site-header-fixed">${projectHeaderMarkup}</div>
 `;
+
+/** Generate subscribe CTA for a project page */
+export function projectSubscribe(project: {
+  substackUrl?: string;
+  substackTitle?: string;
+}) {
+  const readLink = project.substackUrl
+    ? `<a href="${project.substackUrl}" class="project-subscribe__read plausible-event-name=Read+Analysis">Read the full analysis →</a>`
+    : '';
+  return `
+<div class="project-subscribe">
+  <div class="project-subscribe__rule"></div>
+  ${readLink}
+  <p class="project-subscribe__prompt">Get the next one in your inbox</p>
+  <a href="https://www.sideband.pub/subscribe" class="project-subscribe__btn plausible-event-name=Subscribe+Click">Subscribe</a>
+</div>
+`;
+}
 
 /** Generate meta + og tags for a project page */
 export function projectMeta(project: {

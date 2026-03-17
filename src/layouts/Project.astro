@@ -4,7 +4,7 @@
  * Goes through Astro's normal rendering pipeline (unlike raw Response),
  * so HMR works and View Transitions apply.
  */
-import { projectHeader, fontPreload, projectMeta } from '../lib/header';
+import { projectHeader, fontPreload, projectMeta, projectSubscribe } from '../lib/header';
 import projects from '../content/projects.json';
 
 interface Props {
@@ -16,6 +16,23 @@ interface Props {
 const { slug, headContent, bodyContent } = Astro.props;
 const project = projects.find(p => p.slug === slug);
 const meta = project ? projectMeta(project) : '';
+const subscribe = project ? projectSubscribe(project) : '';
+
+// Inject subscribe CTA in place of hr-subtle (between prose and disclosures)
+let finalBody = bodyContent;
+if (subscribe) {
+  if (bodyContent.includes('<div class="hr-subtle"></div>')) {
+    finalBody = bodyContent.replace(
+      '<div class="hr-subtle"></div>',
+      subscribe
+    );
+  } else {
+    finalBody = bodyContent.replace(
+      '<div class="project-credit">',
+      `${subscribe}<div class="project-credit">`
+    );
+  }
+}
 ---
 
 <html lang="en">
@@ -26,6 +43,6 @@ const meta = project ? projectMeta(project) : '';
 </head>
 <body style="margin:0; background:#eeebe4;">
   <Fragment set:html={projectHeader} />
-  <Fragment set:html={bodyContent} />
+  <Fragment set:html={finalBody} />
 </body>
 </html>

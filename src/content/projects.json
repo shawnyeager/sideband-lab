@@ -6,6 +6,8 @@
     "date": "2026-03-01",
     "thumbnail": "three-body-problem",
     "ogImage": "/img/og/three-body-problem.png",
+    "substackUrl": "https://www.sideband.pub/p/agent-payments-have-a-three-body",
+    "substackTitle": "Agent payments have a three-body problem",
     "status": "live"
   },
   {
@@ -25,6 +27,8 @@
     "date": "2026-03-03",
     "thumbnail": "map",
     "ogImage": "/img/og/map.png",
+    "substackUrl": "https://www.sideband.pub/p/agent-era-infrastructure",
+    "substackTitle": "Agent-era infrastructure",
     "status": "live"
   },
   {
@@ -34,6 +38,8 @@
     "date": "2026-03-07",
     "thumbnail": "http-402",
     "ogImage": "/img/og/http-402.png",
+    "substackUrl": "https://www.sideband.pub/p/agent-era-infrastructure",
+    "substackTitle": "Agent-era infrastructure",
     "status": "live"
   },
   {
@@ -44,6 +50,8 @@
     "date": "2026-03-17",
     "thumbnail": "return-of-the-computer",
     "ogImage": "/img/og/return-of-the-computer.png",
+    "substackUrl": "https://www.sideband.pub/p/agents-need-computers-not-compute",
+    "substackTitle": "Agents need computers, not compute",
     "status": "live"
   }
 ]
