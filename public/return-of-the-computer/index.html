@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preload" href="/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
+<style>
+  @font-face {
+    font-family: 'Inter';
+    font-style: normal;
+    font-weight: 300 600;
+    font-display: swap;
+    src: url('/fonts/Inter-Variable.woff2') format('woff2');
+  }
+
+  /* ============================================================
+     DESIGN TOKENS
+     ============================================================ */
+  :root {
+    --site-bg:          #eeebe4;
+    --site-text:        #393a3a;
+    --site-text-muted:  #6b6966;
+    --site-text-sub:    #9a9793;
+    --site-hr:          #d5d2cb;
+
+    --bg:               #1d2733;
+
+    --fs-h1:            34px;
+    --fs-sub:           20px;
+    --fs-body:          20px;
+    --fs-detail-sum:    16px;
+    --fs-detail-body:   15px;
+    --fs-foot:          14px;
+
+    --lh-heading:       1.15;
+    --lh-body:          1.65;
+
+    --sp-1:             6px;
+    --sp-2:             12px;
+    --sp-3:             20px;
+    --sp-4:             28px;
+    --sp-5:             40px;
+  }
+
+  /* ============================================================
+     BASE
+     ============================================================ */
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { overflow-x: hidden; overflow-y: scroll; max-width: 100%; }
+  body {
+    background: var(--site-bg);
+    color: var(--site-text);
+    display: flex;
+    justify-content: center;
+  }
+  .page {
+    width: 100%;
+    max-width: 1050px;
+    padding: 40px 55px 48px;
+    overflow-x: hidden;
+  }
+
+  /* ============================================================
+     TYPOGRAPHY — SITE LEVEL
+     ============================================================ */
+  .title-block {
+    max-width: 728px;
+    margin: 0 auto var(--sp-5);
+  }
+  .title-block h1 {
+    font-size: var(--fs-h1);
+    line-height: var(--lh-heading);
+    color: var(--site-text);
+    margin-bottom: var(--sp-1);
+    letter-spacing: -0.01em;
+  }
+  .title-block .subtitle {
+    font-size: var(--fs-sub);
+    line-height: var(--lh-body);
+    color: var(--site-text-muted);
+  }
+
+  /* ============================================================
+     CHART ISLAND
+     ============================================================ */
+  .chart-island {
+    background: var(--bg);
+    border-radius: 3px;
+    padding: 40px 24px 28px;
+    margin-left: -27px;
+    margin-right: -27px;
+    margin-bottom: var(--sp-4);
+    cursor: pointer;
+    position: relative;
+  }
+
+  .chart-container {
+    width: 100%;
+  }
+
+  .chart-container svg {
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+
+  /* Expand hint */
+  .expand-hint {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-size: 11px;
+    color: #5a6a7a;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+    pointer-events: none;
+  }
+  .chart-island:hover .expand-hint { opacity: 1; }
+  .expand-hint svg { width: 14px; height: 14px; }
+
+  /* Fullscreen state */
+  .chart-island.fullscreen {
+    position: fixed;
+    inset: 0;
+    z-index: 20000;
+    margin: 0;
+    border-radius: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: default;
+  }
+  .chart-island.fullscreen .chart-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px;
+  }
+  .chart-island.fullscreen .chart-container svg {
+    max-width: 100%;
+    max-height: 100%;
+    width: auto;
+    height: auto;
+  }
+  .chart-island.fullscreen .expand-hint { display: none; }
+
+  /* Close button (fullscreen only) */
+  .fs-close {
+    display: none;
+    position: absolute;
+    top: 16px;
+    right: 20px;
+    background: none;
+    border: 1px solid #3a4a5a;
+    border-radius: 4px;
+    color: #5a6a7a;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-size: 12px;
+    padding: 6px 12px;
+    cursor: pointer;
+    z-index: 1;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .fs-close:hover { color: #e3dfd3; border-color: #5a6a7a; }
+  .chart-island.fullscreen .fs-close { display: block; }
+
+  /* ============================================================
+     MOBILE
+     ============================================================ */
+  @media (max-width: 768px) {
+    .page {
+      padding: 20px 16px 32px;
+    }
+    .title-block h1 { font-size: 28px; }
+    .project-prose { font-size: 18px; }
+
+    .chart-island {
+      width: calc(100% + 32px);
+      margin-left: -16px;
+      margin-right: -16px;
+      max-width: none;
+      border-radius: 0;
+      padding: 24px 16px 20px;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="title-block">
+    <h1>The return of the computer</h1>
+    <p class="subtitle">Each computing era optimized its infrastructure around a smaller unit of work. Agents reversed the trend.</p>
+  </div>
+
+  <div class="chart-island" id="chart-island">
+    <span class="expand-hint"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 6V1h5M15 6V1h-5M1 10v5h5M15 10v5h-5"/></svg>Expand</span>
+    <button class="fs-close" aria-label="Close fullscreen">Esc</button>
+    <div class="chart-container">
+      <svg viewBox="0 0 1000 685" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <style>
+            text { font-family: 'Inter', sans-serif; }
+            .title { font-size: 12px; font-weight: 600; letter-spacing: 3.5px; text-transform: uppercase; fill: #e3dfd3; }
+            .y-axis-label { font-size: 9px; font-weight: 400; letter-spacing: 1.5px; text-transform: uppercase; fill: #5a6a7a; }
+            .grid-label { font-size: 10px; font-weight: 400; fill: #5a6a7a; }
+            .x-label-name { font-size: 11px; font-weight: 500; fill: #e3dfd3; }
+            .x-label-year { font-size: 9.5px; font-weight: 400; fill: #6a7a8a; }
+            .x-label-accent { font-size: 11px; font-weight: 600; fill: #0ea5c9; }
+            .x-year-accent { font-size: 9.5px; font-weight: 400; fill: #0ea5c9; opacity: 0.7; }
+          </style>
+          <linearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0%" stop-color="#0ea5c9"/>
+            <stop offset="18%" stop-color="#a78bfa"/>
+            <stop offset="40%" stop-color="#f59e0b"/>
+            <stop offset="60%" stop-color="#f59e0b"/>
+            <stop offset="80%" stop-color="#a78bfa"/>
+            <stop offset="100%" stop-color="#0ea5c9"/>
+          </linearGradient>
+          <filter id="endpointGlow" x="-50%" y="-50%" width="200%" height="200%">
+            <feGaussianBlur stdDeviation="4" result="blur"/>
+            <feMerge>
+              <feMergeNode in="blur"/>
+              <feMergeNode in="SourceGraphic"/>
+            </feMerge>
+          </filter>
+        </defs>
+
+        <text x="500" y="35" text-anchor="middle" class="title">The return of the computer</text>
+
+        <text x="0" y="0" text-anchor="middle" class="y-axis-label"
+              transform="translate(28, 300) rotate(-90)">Infrastructure primitive duration</text>
+
+        <!--
+          Chart area: x=[100, 950], y=[70, 520]
+          Log scale: y maps log10(seconds) from -2 (10ms) to 5 (~28hr)
+          y_pixel = 520 - (log10(val) + 2) / 7 * 450
+        -->
+
+        <!-- Gridlines -->
+        <line x1="95" y1="455.7" x2="955" y2="455.7" stroke="#2a3644" stroke-width="0.7"/>
+        <text x="90" y="459" text-anchor="end" class="grid-label">100ms</text>
+
+        <line x1="95" y1="391.4" x2="955" y2="391.4" stroke="#2a3644" stroke-width="0.7"/>
+        <text x="90" y="395" text-anchor="end" class="grid-label">1s</text>
+
+        <line x1="95" y1="327.1" x2="955" y2="327.1" stroke="#2a3644" stroke-width="0.7"/>
+        <text x="90" y="331" text-anchor="end" class="grid-label">10s</text>
+
+        <line x1="95" y1="277.1" x2="955" y2="277.1" stroke="#2a3644" stroke-width="0.7"/>
+        <text x="90" y="281" text-anchor="end" class="grid-label">1 min</text>
+
+        <line x1="95" y1="212.9" x2="955" y2="212.9" stroke="#2a3644" stroke-width="0.7"/>
+        <text x="90" y="216.5" text-anchor="end" class="grid-label">10 min</text>
+
+        <line x1="95" y1="162.9" x2="955" y2="162.9" stroke="#2a3644" stroke-width="0.7"/>
+        <text x="90" y="166.5" text-anchor="end" class="grid-label">1 hr</text>
+
+        <line x1="95" y1="98.6" x2="955" y2="98.6" stroke="#2a3644" stroke-width="0.7"/>
+        <text x="90" y="102.2" text-anchor="end" class="grid-label">10 hr</text>
+
+        <!-- Data line -->
+        <polyline
+          points="100,182.2 222,187.3 343,246.4 464,436.4 586,520.0 707,397.7 829,222.8 950,162.9"
+          fill="none"
+          stroke="url(#lineGradient)"
+          stroke-width="2"
+          stroke-linejoin="round"
+          stroke-linecap="round"/>
+
+        <!-- Data points -->
+        <circle cx="100" cy="182.2" r="8" fill="#0ea5c9" filter="url(#endpointGlow)"/>
+        <text x="100" y="170" text-anchor="middle" class="grid-label" style="fill:#0ea5c9; font-weight:500">30 min</text>
+
+        <circle cx="222" cy="187.3" r="4" fill="#a78bfa"/>
+        <text x="222" y="175" text-anchor="middle" class="grid-label" style="fill:#a78bfa">25 min</text>
+
+        <circle cx="343" cy="246.4" r="4" fill="#a78bfa"/>
+        <text x="343" y="234" text-anchor="middle" class="grid-label" style="fill:#a78bfa">3 min</text>
+
+        <circle cx="464" cy="436.4" r="4" fill="#f59e0b"/>
+        <text x="464" y="425" text-anchor="middle" class="grid-label" style="fill:#f59e0b">200 ms</text>
+
+        <circle cx="586" cy="520.0" r="4" fill="#f59e0b"/>
+        <text x="586" y="509" text-anchor="middle" class="grid-label" style="fill:#f59e0b">10 ms</text>
+
+        <circle cx="707" cy="397.7" r="4" fill="#f59e0b"/>
+        <text x="707" y="386" text-anchor="middle" class="grid-label" style="fill:#f59e0b">800 ms</text>
+
+        <circle cx="829" cy="222.8" r="4" fill="#a78bfa"/>
+        <text x="829" y="211" text-anchor="middle" class="grid-label" style="fill:#a78bfa">7 min</text>
+
+        <circle cx="950" cy="162.9" r="8" fill="#0ea5c9" filter="url(#endpointGlow)"/>
+        <text x="950" y="151" text-anchor="middle" class="grid-label" style="fill:#0ea5c9; font-weight:500">1 hr</text>
+
+        <!-- X-axis labels -->
+        <text x="100" y="545" text-anchor="middle" class="x-label-accent">Terminal</text>
+        <text x="100" y="559" text-anchor="middle" class="x-year-accent">~1990</text>
+        <text x="100" y="572" text-anchor="middle" style="font-size:8.5px; fill:#0ea5c9; opacity:0.7; font-family:'Inter',sans-serif">the login session</text>
+
+        <text x="222" y="545" text-anchor="middle" class="x-label-name">Web browsing</text>
+        <text x="222" y="559" text-anchor="middle" class="x-label-year">~2000</text>
+        <text x="222" y="572" text-anchor="middle" style="font-size:8.5px; fill:#6a7a8a; font-family:'Inter',sans-serif">the page request</text>
+
+        <text x="343" y="545" text-anchor="middle" class="x-label-name">Web apps</text>
+        <text x="343" y="559" text-anchor="middle" class="x-label-year">~2005</text>
+        <text x="343" y="572" text-anchor="middle" style="font-size:8.5px; fill:#6a7a8a; font-family:'Inter',sans-serif">the HTTP cycle</text>
+
+        <text x="464" y="545" text-anchor="middle" class="x-label-name">Mobile APIs</text>
+        <text x="464" y="559" text-anchor="middle" class="x-label-year">~2012</text>
+        <text x="464" y="572" text-anchor="middle" style="font-size:8.5px; fill:#6a7a8a; font-family:'Inter',sans-serif">the API call</text>
+
+        <text x="586" y="545" text-anchor="middle" class="x-label-name">Microservices</text>
+        <text x="586" y="559" text-anchor="middle" class="x-label-year">~2015</text>
+        <text x="586" y="572" text-anchor="middle" style="font-size:8.5px; fill:#6a7a8a; font-family:'Inter',sans-serif">the service hop</text>
+
+        <text x="707" y="545" text-anchor="middle" class="x-label-name">Serverless</text>
+        <text x="707" y="559" text-anchor="middle" class="x-label-year">~2018</text>
+        <text x="707" y="572" text-anchor="middle" style="font-size:8.5px; fill:#6a7a8a; font-family:'Inter',sans-serif">the invocation</text>
+
+        <text x="829" y="545" text-anchor="middle" class="x-label-name">Copilots</text>
+        <text x="829" y="559" text-anchor="middle" class="x-label-year">~2023</text>
+        <text x="829" y="572" text-anchor="middle" style="font-size:8.5px; fill:#6a7a8a; font-family:'Inter',sans-serif">the inference turn</text>
+
+        <text x="950" y="545" text-anchor="middle" class="x-label-accent">Agents</text>
+        <text x="950" y="559" text-anchor="middle" class="x-year-accent">~2025</text>
+        <text x="950" y="572" text-anchor="middle" style="font-size:8.5px; fill:#0ea5c9; opacity:0.7; font-family:'Inter',sans-serif">the task</text>
+
+        <!-- Axes -->
+        <line x1="95" y1="525" x2="955" y2="525" stroke="#2a3644" stroke-width="1"/>
+        <line x1="95" y1="70" x2="95" y2="525" stroke="#2a3644" stroke-width="1"/>
+
+        <!-- Interpretive note -->
+        <text x="500" y="611" text-anchor="middle" style="font-size:12px; fill:#6a7a8a; font-family:'Inter',sans-serif; font-weight:400; font-style:italic">Each era optimized its infrastructure around a smaller unit of work. Agents reversed the trend.</text>
+
+        <!-- Sources -->
+        <text x="500" y="637" text-anchor="middle" style="font-size:11px; fill:#3a4a5a; font-family:'Inter',sans-serif; font-weight:300">Sources: DTSS study (terminal) · Mozilla Metrics 2010 (browsing) · Google Analytics benchmarks (web apps) · Datadog State of Serverless 2020 (Lambda median 800ms)</text>
+        <text x="500" y="654" text-anchor="middle" style="font-size:11px; fill:#3a4a5a; font-family:'Inter',sans-serif; font-weight:300">SimilarWeb/Elfsight 2025 (ChatGPT sessions) · METR Time Horizons benchmark, Feb 2026 (agent 80% reliability threshold: 1 hr; 50% threshold: 14.5 hrs, doubling every 7 months)</text>
+      </svg>
+    </div>
+  </div>
+
+  <div class="project-prose">
+    <p>For three decades, infrastructure got faster by getting smaller. Monoliths became microservices. Pages became API calls. Functions became invocations. Every generation shaved orders of magnitude off the primitive.</p>
+    <p>Agents broke the pattern. A single agent task&mdash;writing code, researching a topic, executing a multi-step workflow&mdash;runs for minutes to hours. Infrastructure now has to hold state, manage context, and stay alive for durations we haven&rsquo;t seen since the terminal era.</p>
+  </div>
+
+  <div class="hr-subtle"></div>
+
+  <details class="disclosure">
+    <summary>How to read this chart <span class="chev" aria-hidden="true"></span></summary>
+    <div class="disclosure-body">
+      <p>The y-axis shows how long a single infrastructure primitive lasts in each era, on a logarithmic scale. A &ldquo;primitive&rdquo; is the atomic unit of work that the infrastructure of that era was optimized around.</p>
+      <p style="margin-top: var(--sp-2)">Terminal sessions lasted 30 minutes. Microservice hops lasted 10 milliseconds. The entire history of computing infrastructure bent toward making that unit smaller and faster&mdash;until agents reversed the curve.</p>
+    </div>
+  </details>
+
+  <details class="disclosure">
+    <summary>Sources and methodology <span class="chev" aria-hidden="true"></span></summary>
+    <div class="disclosure-body">
+      <p>Terminal session duration from Dartmouth Time-Sharing System (DTSS) usage studies. Web browsing from Mozilla Metrics 2010 median session length. Web app response times from Google Analytics industry benchmarks. Mobile API latency from platform median response times circa 2012.</p>
+      <p style="margin-top: var(--sp-2)">Microservice hop duration from industry P50 latency data. Serverless invocation from Datadog State of Serverless 2020 (Lambda median 800ms). Copilot inference turns from SimilarWeb/Elfsight 2025 ChatGPT session analysis. Agent task duration from METR Time Horizons benchmark, February 2026.</p>
+    </div>
+  </details>
+
+  <div class="project-credit">
+    <a href="https://www.sideband.pub">Sideband</a> · Data: 2026 · <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>
+  </div>
+</div>
+
+<script>
+const island = document.getElementById('chart-island');
+const close = island.querySelector('.fs-close');
+
+function enterFullscreen() {
+  island.classList.add('fullscreen');
+  document.body.style.overflow = 'hidden';
+}
+
+function exitFullscreen() {
+  island.classList.remove('fullscreen');
+  document.body.style.overflow = '';
+}
+
+island.addEventListener('click', (e) => {
+  if (island.classList.contains('fullscreen')) return;
+  enterFullscreen();
+});
+
+close.addEventListener('click', (e) => {
+  e.stopPropagation();
+  exitFullscreen();
+});
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && island.classList.contains('fullscreen')) {
+    exitFullscreen();
+  }
+});
+</script>
+</body>
+</html>

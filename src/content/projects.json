@@ -29,12 +29,21 @@
   },
   {
     "slug": "http-402",
-    "featured": true,
     "title": "Payment Required",
     "description": "x402 requires Coinbase to verify and settle every payment. L402 requires no one. The protocol your agent uses decides who can shut it off.",
     "date": "2026-03-07",
     "thumbnail": "http-402",
     "ogImage": "/img/og/http-402.png",
+    "status": "live"
+  },
+  {
+    "slug": "return-of-the-computer",
+    "featured": true,
+    "title": "The return of the computer",
+    "description": "For three decades, infrastructure primitives got shorter—30-minute sessions to 10ms hops. Agents reversed the curve back to hour-long tasks.",
+    "date": "2026-03-17",
+    "thumbnail": "return-of-the-computer",
+    "ogImage": "/img/og/return-of-the-computer.png",
     "status": "live"
   }
 ]

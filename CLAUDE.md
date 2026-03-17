@@ -49,11 +49,17 @@ Replace `[slug]` with the actual slug. The `Project` layout handles font preload
 
 The user will add their standalone `index.html` here. It must have `<head>` and `<body>` tags (the Astro route injects font preloads into head and the fixed header into body).
 
-Project HTML should follow these conventions (see `public/three-body-problem/index.html` as reference):
+Project HTML should follow these conventions (see `public/http-402/index.html` as the canonical reference):
+- **Use shared classes from `projectHeader` (`src/lib/header.ts`).** It provides font-face declarations, body/heading font overrides, fixed header, AND shared CSS classes. Do NOT redefine fonts, accordions, prose, dividers, or footers — use the classes it provides:
+  - `.title-block` (with `h1` + `.subtitle`) — page heading within 728px reading column
+  - `.project-prose` — body text paragraphs within 728px reading column
+  - `.disclosure` (with `summary` containing `.chev` span + `.disclosure-body`) — accordions
+  - `.hr-subtle` — divider between prose and disclosures
+  - `.project-credit` — footer credit line
 - Reading column: max-width 728px, centered via `margin-left: auto; margin-right: auto`. Applies to h1, subtitle, body text, accordions, HRs, and footer credit line. Charts/visuals can be wider (940px).
 - Type scale for 728px column: body 20px, subtitle 20px, detail-summary 16px, detail-body 15px, footer 14px. h1 stays 34px.
 - Footer: left-aligned credit line within the 728px centered column. No subscribe CTA on project pages.
-- Fonts injected by projectHeader: Roboto Slab for h1-h4, Lora for body, Space Grotesk for UI. Raw HTML pages don't get global.css — projectHeader handles font loading and overrides.
+- Fonts injected by projectHeader: Roboto Slab for h1-h4, Lora for body, Space Grotesk for UI. Raw HTML pages don't get global.css — projectHeader handles font loading and overrides. **Do NOT declare your own @font-face rules for these fonts** — they will conflict.
 - All `<img>` tags must have `alt`, `width`, `height`, and `loading` attributes. All icon-only `<a>` tags must have `aria-label`.
 
 ### 3. Add entry to `src/content/projects.json`
