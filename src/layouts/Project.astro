@@ -19,13 +19,15 @@ const meta = project ? projectMeta(project) : '';
 const subscribe = project ? projectSubscribe(project) : '';
 const breadcrumb = project ? projectBreadcrumb(project) : '';
 
-// Inject breadcrumb before the title-block
 let finalBody = bodyContent;
-if (breadcrumb && finalBody.includes('<div class="title-block">')) {
-  finalBody = finalBody.replace(
-    '<div class="title-block">',
-    `${breadcrumb}<div class="title-block">`
-  );
+
+// Inject breadcrumb — before .title-block if present, otherwise at top of body
+if (breadcrumb) {
+  if (finalBody.includes('<div class="title-block">')) {
+    finalBody = finalBody.replace('<div class="title-block">', `${breadcrumb}<div class="title-block">`);
+  } else {
+    finalBody = breadcrumb + finalBody;
+  }
 }
 
 // Inject subscribe CTA in place of hr-subtle (between prose and disclosures)
