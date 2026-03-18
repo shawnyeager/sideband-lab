@@ -97,84 +97,9 @@
   }
 
   .premise-text { display: block; }
-  .premise-tab-hint { display: none; }
 
   @media (max-width: 600px) {
-    .premise-wrap {
-      position: fixed;
-      top: 44px;
-      right: 0;
-      height: auto;
-      z-index: 200;
-    }
-
-    .premise {
-      position: relative;
-      right: auto;
-      top: auto;
-      width: 48px;
-      height: 48px;
-      overflow: hidden;
-      transform: rotate(0deg);
-      border-radius: 0 0 0 6px;
-      padding: 0;
-      cursor: pointer;
-      transition:
-        width 0.28s cubic-bezier(0.34, 1.15, 0.64, 1),
-        height 0.28s cubic-bezier(0.34, 1.15, 0.64, 1),
-        transform 0.28s ease,
-        border-radius 0.15s ease;
-    }
-
-    /* Folded corner on the tab */
-    .premise::after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 0;
-      height: 0;
-      border-style: solid;
-      border-width: 0 0 14px 14px;
-      border-color: transparent transparent rgba(0,0,0,0.12) transparent;
-      transition: opacity 0.15s ease;
-    }
-
-    .premise.open::after { opacity: 0; }
-
-    .premise-tab-hint {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: absolute;
-      inset: 0;
-      font-family: 'Caveat', cursive;
-      font-size: 1.6rem;
-      font-weight: 700;
-      color: #4a3f2f;
-      opacity: 1;
-      transition: opacity 0.1s ease;
-    }
-
-    .premise.open .premise-tab-hint { opacity: 0; pointer-events: none; }
-
-    .premise-text {
-      opacity: 0;
-      transition: opacity 0.12s ease;
-    }
-
-    .premise.open {
-      width: 155px;
-      height: 155px;
-      transform: rotate(-3deg);
-      border-radius: 2px;
-      padding: 16px;
-    }
-
-    .premise.open .premise-text {
-      opacity: 1;
-      transition: opacity 0.18s ease 0.14s;
-    }
+    .premise-wrap { display: none; }
   }
 
   .logo-text {
@@ -475,7 +400,7 @@
   </div>
 
   <div class="premise-wrap">
-    <div class="premise" id="premise-note" role="button" aria-label="Show premise" aria-expanded="false"><span class="premise-tab-hint" aria-hidden="true">?</span><span class="premise-text">What if LLM uptime was a macro­economic indicator?</span></div>
+    <div class="premise"><span class="premise-text">What if LLM uptime was a macro­economic indicator?</span></div>
   </div>
 
   <div class="status-banner degraded">
@@ -505,15 +430,6 @@
 </div>
 
 <script>
-// Collapsible premise note (mobile only)
-const premiseNote = document.getElementById('premise-note');
-if (premiseNote) {
-  premiseNote.addEventListener('click', () => {
-    const open = premiseNote.classList.toggle('open');
-    premiseNote.setAttribute('aria-expanded', String(open));
-  });
-}
-
 // Date helpers
 const now = new Date();
 const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
