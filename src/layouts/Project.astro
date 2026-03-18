@@ -21,10 +21,12 @@ const breadcrumb = project ? projectBreadcrumb(project) : '';
 
 let finalBody = bodyContent;
 
-// Inject breadcrumb — before .title-block if present, otherwise at top of body
+// Inject breadcrumb — find the best anchor inside the page container
 if (breadcrumb) {
   if (finalBody.includes('<div class="title-block">')) {
     finalBody = finalBody.replace('<div class="title-block">', `${breadcrumb}<div class="title-block">`);
+  } else if (finalBody.includes('<div class="page">')) {
+    finalBody = finalBody.replace('<div class="page">', `<div class="page">${breadcrumb}`);
   } else {
     finalBody = breadcrumb + finalBody;
   }
