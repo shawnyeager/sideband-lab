@@ -97,6 +97,7 @@
   }
 
   .premise-text { display: block; }
+  .premise-tab-hint { display: none; }
 
   @media (max-width: 600px) {
     .premise-wrap {
@@ -140,6 +141,22 @@
     }
 
     .premise.open::after { opacity: 0; }
+
+    .premise-tab-hint {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: absolute;
+      inset: 0;
+      font-family: 'Caveat', cursive;
+      font-size: 1.6rem;
+      font-weight: 700;
+      color: #4a3f2f;
+      opacity: 1;
+      transition: opacity 0.1s ease;
+    }
+
+    .premise.open .premise-tab-hint { opacity: 0; pointer-events: none; }
 
     .premise-text {
       opacity: 0;
@@ -458,7 +475,7 @@
   </div>
 
   <div class="premise-wrap">
-    <div class="premise" id="premise-note" role="button" aria-label="Show premise" aria-expanded="false"><span class="premise-text">What if LLM uptime was a macro­economic indicator?</span></div>
+    <div class="premise" id="premise-note" role="button" aria-label="Show premise" aria-expanded="false"><span class="premise-tab-hint" aria-hidden="true">?</span><span class="premise-text">What if LLM uptime was a macro­economic indicator?</span></div>
   </div>
 
   <div class="status-banner degraded">
