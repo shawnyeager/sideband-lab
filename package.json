@@ -19,7 +19,6 @@
     "@anthropic-ai/sdk": "^0.78.0",
     "@astrojs/react": "^4.4.2",
     "@astrojs/sitemap": "^3.7.0",
-    "@supabase/supabase-js": "^2.98.0",
     "astro": "^5.17.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4"

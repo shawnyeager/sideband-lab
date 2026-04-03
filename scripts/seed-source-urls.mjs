@@ -3,19 +3,12 @@
 // Seed source_urls for all map entities so the scoring pipeline has evidence to work from.
 // Run once, then run score-entities.mjs to score against the evidence.
 
-try { process.loadEnvFile(); } catch {}
+import { readFileSync, writeFileSync } from 'node:fs';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-import { createClient } from '@supabase/supabase-js';
-
-const SUPABASE_URL = process.env.SUPABASE_MAP_URL;
-const SUPABASE_KEY = process.env.SUPABASE_MAP_SERVICE_ROLE_KEY;
-
-if (!SUPABASE_URL || !SUPABASE_KEY) {
-  console.error('Missing SUPABASE_MAP_URL or SUPABASE_MAP_SERVICE_ROLE_KEY');
-  process.exit(1);
-}
-
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const DATA_PATH = join(__dirname, '..', 'data', 'map-data.json');
 
 // ---------------------------------------------------------------------------
 // Source URLs by entity full_name
@@ -175,20 +168,13 @@ const SOURCES = {
 // Update
 // ---------------------------------------------------------------------------
 
-const { data: entities, error } = await supabase
-  .from('entities')
-  .select('id, full_name, layer, source_urls');
-
-if (error) {
-  console.error(`Failed to fetch entities: ${error.message}`);
-  process.exit(1);
-}
+const data = JSON.parse(readFileSync(DATA_PATH, 'utf8'));
 
 let updated = 0;
 let skipped = 0;
 let notFound = 0;
 
-for (const entity of entities) {
+for (const entity of data.entities) {
   const urls = SOURCES[entity.full_name];
 
   if (!urls) {
@@ -204,17 +190,14 @@ for (const entity of entities) {
     continue;
   }
 
-  const { error: updateErr } = await supabase
-    .from('entities')
-    .update({ source_urls: urls })
-    .eq('id', entity.id);
+  entity.source_urls = urls;
+  console.log(`SEEDED   ${entity.full_name} (${entity.layer}) — ${urls.length} URLs`);
+  updated++;
+}
 
-  if (updateErr) {
-    console.error(`FAIL     ${entity.full_name}: ${updateErr.message}`);
-  } else {
-    console.log(`SEEDED   ${entity.full_name} (${entity.layer}) — ${urls.length} URLs`);
-    updated++;
-  }
+if (updated > 0) {
+  data.exported_at = new Date().toISOString();
+  writeFileSync(DATA_PATH, JSON.stringify(data, null, 2) + '\n');
 }
 
 console.log(`\nDone: ${updated} seeded, ${skipped} already had URLs, ${notFound} not in source map`);

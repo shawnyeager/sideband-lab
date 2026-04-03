@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { mapClient as supabase } from "../../lib/supabase";
+import mapData from "../../../data/map-data.json";
 
 /* ── Dark palette (sampled from /public/img/sideband-icon.png) ─ */
 const C = {
@@ -226,19 +226,10 @@ export default function AgentInfraMap() {
   };
 
   useEffect(() => {
-    if (!supabase) return;
-    Promise.all([
-      supabase.from("layers").select("*").order("sort_order"),
-      supabase.from("entities").select("*").eq("reviewed", true),
-      supabase.from("insights").select("*").eq("active", true).order("sort_order"),
-    ]).then(([layersRes, entitiesRes, insightsRes]) => {
-      if (layersRes.error) throw layersRes.error;
-      if (entitiesRes.error) throw entitiesRes.error;
-      if (insightsRes.error) throw insightsRes.error;
-
+    try {
       const layersObj = {};
       const keys = [];
-      for (const row of layersRes.data) {
+      for (const row of mapData.layers) {
         keys.push(row.key);
         layersObj[row.key] = {
           name: row.name,
@@ -250,7 +241,7 @@ export default function AgentInfraMap() {
       setLayers(layersObj);
       setLayerKeys(keys);
 
-      setData(entitiesRes.data.map(e => ({
+      setData(mapData.entities.map(e => ({
         id: e.id,
         layer: e.layer,
         short: e.short_name,
@@ -260,15 +251,15 @@ export default function AgentInfraMap() {
         note: e.note,
       })).filter(e => layersObj[e.layer]));
 
-      setInsights(insightsRes.data.map(i => ({
+      setInsights(mapData.insights.map(i => ({
         title: i.title,
         text: i.body,
         color: i.color,
       })));
-    }).catch(err => {
+    } catch (err) {
       console.error("Failed to load map data:", err);
       setError(err.message || "Failed to load map data");
-    });
+    }
   }, []);
 
   // Read layer from URL hash on mount + listen for hashchange

@@ -3,9 +3,11 @@
 // Load .env if present (Node 21+ built-in)
 try { process.loadEnvFile(); } catch {}
 
-import { createClient } from '@supabase/supabase-js';
 import Anthropic from '@anthropic-ai/sdk';
 import { parseArgs } from 'node:util';
+import { readFileSync, writeFileSync } from 'node:fs';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // ---------------------------------------------------------------------------
 // CLI
@@ -28,21 +30,30 @@ const extractOnly = flags['extract-only'];
 // Env
 // ---------------------------------------------------------------------------
 
-const SUPABASE_URL = process.env.SUPABASE_MAP_URL;
-const SUPABASE_KEY = process.env.SUPABASE_MAP_SERVICE_ROLE_KEY;
 const ANTHROPIC_KEY = process.env.ANTHROPIC_API_KEY;
 
-const missing = [];
-if (!SUPABASE_URL)  missing.push('SUPABASE_MAP_URL');
-if (!SUPABASE_KEY)  missing.push('SUPABASE_MAP_SERVICE_ROLE_KEY');
-if (!ANTHROPIC_KEY) missing.push('ANTHROPIC_API_KEY');
-if (missing.length) {
-  console.error(`Missing env vars: ${missing.join(', ')}`);
+if (!ANTHROPIC_KEY) {
+  console.error('Missing env var: ANTHROPIC_API_KEY');
   process.exit(1);
 }
 
-const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
 const anthropic = new Anthropic({ apiKey: ANTHROPIC_KEY });
+
+// ---------------------------------------------------------------------------
+// JSON data file
+// ---------------------------------------------------------------------------
+
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const DATA_PATH = join(__dirname, '..', 'data', 'map-data.json');
+
+function readData() {
+  return JSON.parse(readFileSync(DATA_PATH, 'utf8'));
+}
+
+function writeData(data) {
+  data.exported_at = new Date().toISOString();
+  writeFileSync(DATA_PATH, JSON.stringify(data, null, 2) + '\n');
+}
 
 // ---------------------------------------------------------------------------
 // Signal schemas & weight tables (OpenSSF Scorecard pattern)
@@ -367,30 +378,19 @@ function computeScores(extracted) {
 // DB writes
 // ---------------------------------------------------------------------------
 
-async function writeScore(entity, result) {
-  // Insert score_history row with extracted signals for auditability
-  const { error: histErr } = await supabase.from('score_history').insert({
-    entity_id: entity.id,
-    x: result.x_score,
-    y: result.y_score,
-    x_reasoning: result.x_reasoning,
-    y_reasoning: result.y_reasoning,
-    change_note: null,
-    reviewed: false,
-    extracted_signals: result.extracted_signals || null,
-  });
-  if (histErr) throw new Error(`score_history insert: ${histErr.message}`);
-
-  // Update entity — do NOT set reviewed=false here; that would hide the entity
-  const { error: entErr } = await supabase.from('entities').update({
+function writeScore(entity, result, data) {
+  // Update entity in-memory — caller writes data to disk after the loop
+  const idx = data.entities.findIndex(e => e.id === entity.id);
+  if (idx === -1) throw new Error(`entity not found: ${entity.id}`);
+  const now = new Date().toISOString();
+  Object.assign(data.entities[idx], {
     current_x: result.x_score,
     current_y: result.y_score,
     x_reasoning: result.x_reasoning,
     y_reasoning: result.y_reasoning,
-    scored_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  }).eq('id', entity.id);
-  if (entErr) throw new Error(`entity update: ${entErr.message}`);
+    scored_at: now,
+    updated_at: now,
+  });
 }
 
 // ---------------------------------------------------------------------------
@@ -532,41 +532,27 @@ function computeMaturity(points) {
   };
 }
 
-async function computeLayerMaturity(layerKeys) {
+function computeLayerMaturity(layerKeys, data) {
   const results = {};
 
   for (const layerKey of layerKeys) {
-    // Get ALL reviewed entities in this layer (not just scored ones)
-    const { data: entities, error } = await supabase
-      .from('entities')
-      .select('id, current_x, current_y')
-      .eq('layer', layerKey)
-      .eq('reviewed', true);
+    const layerEntities = data.entities
+      .filter(e => e.layer === layerKey && e.reviewed);
 
-    if (error) {
-      console.error(`  Failed to fetch entities for layer ${layerKey}: ${error.message}`);
-      continue;
-    }
-
-    if (!entities || entities.length === 0) {
+    if (layerEntities.length === 0) {
       results[layerKey] = { label: 'Wide open', note: '0 entities' };
       continue;
     }
 
-    const points = entities.map(e => ({ id: e.id, x: e.current_x, y: e.current_y }));
+    const points = layerEntities.map(e => ({ id: e.id, x: e.current_x, y: e.current_y }));
     const maturity = computeMaturity(points);
     results[layerKey] = maturity;
 
     if (!dryRun) {
-      const { error: updateErr } = await supabase
-        .from('layers')
-        .update({
-          computed_status: maturity.label,
-          computed_status_note: maturity.note,
-        })
-        .eq('key', layerKey);
-      if (updateErr) {
-        console.error(`  Failed to update layer ${layerKey}: ${updateErr.message}`);
+      const layer = data.layers.find(l => l.key === layerKey);
+      if (layer) {
+        layer.computed_status = maturity.label;
+        layer.computed_status_note = maturity.note;
       }
     }
   }
@@ -578,33 +564,18 @@ async function computeLayerMaturity(layerKeys) {
 // Main
 // ---------------------------------------------------------------------------
 
-// Fetch layers (for name lookup)
-const { data: layers, error: layersErr } = await supabase
-  .from('layers')
-  .select('key, name')
-  .order('sort_order');
+// Load data from JSON
+const data = readData();
 
-if (layersErr) {
-  console.error(`Failed to fetch layers: ${layersErr.message}`);
-  process.exit(1);
-}
+const layerMap = Object.fromEntries(data.layers.map(l => [l.key, l.name]));
 
-const layerMap = Object.fromEntries(layers.map(l => [l.key, l.name]));
-
-// Fetch entities to score
-let query = supabase.from('entities').select('*');
+// Filter entities to score
+let entities = data.entities;
 
 if (flags.id) {
-  query = query.eq('id', flags.id);
+  entities = entities.filter(e => e.id === flags.id);
 } else if (flags.layer) {
-  query = query.eq('layer', flags.layer);
-}
-
-const { data: entities, error: entitiesErr } = await query;
-
-if (entitiesErr) {
-  console.error(`Failed to fetch entities: ${entitiesErr.message}`);
-  process.exit(1);
+  entities = entities.filter(e => e.layer === flags.layer);
 }
 
 let scored = 0;
@@ -676,8 +647,8 @@ for (const entity of entities) {
     if (dryRun) {
       console.log(`  [dry-run] would write scores`);
     } else {
-      await writeScore(entity, result);
-      console.log(`  written (reviewed=false)`);
+      writeScore(entity, result, data);
+      console.log(`  written`);
     }
 
     scored++;
@@ -694,11 +665,11 @@ for (const entity of entities) {
 
 const layerKeysToCompute = flags.id || flags.layer
   ? [...affectedLayers]
-  : layers.map(l => l.key);
+  : data.layers.map(l => l.key);
 
 if (layerKeysToCompute.length > 0) {
   console.log('\nLayer maturity:');
-  const maturityResults = await computeLayerMaturity(layerKeysToCompute);
+  const maturityResults = computeLayerMaturity(layerKeysToCompute, data);
   for (const [key, m] of Object.entries(maturityResults)) {
     const pad = (layerMap[key] || key).padEnd(12);
     console.log(`  ${pad} ${m.label.padEnd(13)} (${m.note})`);
@@ -706,19 +677,12 @@ if (layerKeysToCompute.length > 0) {
 }
 
 // ---------------------------------------------------------------------------
-// Export snapshot
+// Write data back to JSON
 // ---------------------------------------------------------------------------
 
 if (!dryRun && scored > 0) {
-  const { execFileSync } = await import('node:child_process');
-  const { fileURLToPath } = await import('node:url');
-  const { dirname, join } = await import('node:path');
-  const scriptDir = dirname(fileURLToPath(import.meta.url));
-  try {
-    execFileSync('node', [join(scriptDir, 'export-map-data.mjs')], { stdio: 'inherit' });
-  } catch {
-    console.error('Warning: data export failed');
-  }
+  writeData(data);
+  console.log(`\nWrote ${DATA_PATH}`);
 }
 
 // ---------------------------------------------------------------------------
