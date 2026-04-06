@@ -83,56 +83,60 @@ Optional fields: `substackUrl`, `substackTitle` (shown on the card as a link).
 
 Set status to `"draft"` initially. The homepage only shows `"live"` projects (filtered by `getActiveProjects()` in `src/lib/utils.ts`). Change to `"live"` once the HTML, thumbnail, and OG image are in place.
 
-### 4. Generate preview images with Puppeteer
+### 4. Generate preview images with agent-browser
 
 Two image files are required per project. **Generate them automatically** — do not ask the user to provide them.
 
-Prerequisites: the project HTML must be in place and the dev server running at `localhost:4321`.
+Prerequisites: the project HTML must be in place and the dev server running at `localhost:4321`. Requires `agent-browser` and `magick` (ImageMagick).
 
-Use Puppeteer (available via `require('puppeteer')`) to capture screenshots. Run as a `node -e "..."` bash command. Template:
+Use agent-browser CLI commands to capture screenshots. For clipped regions, take a full screenshot and crop with ImageMagick. Template:
 
-```javascript
-const puppeteer = require('puppeteer');
-(async () => {
-  const browser = await puppeteer.launch({ headless: true, args: ['--no-sandbox'] });
-  const page = await browser.newPage();
-  await page.setViewport({ width: 1200, height: 900, deviceScaleFactor: 2 });
-  await page.goto('http://localhost:4321/[slug]/', { waitUntil: 'networkidle0' });
+```bash
+#!/usr/bin/env bash
+set -e
+SLUG="[slug]"
+SCALE=2
 
-  // If the page has animations, wait for a completion indicator:
-  // await page.waitForSelector('.done-indicator', { timeout: 60000 });
+agent-browser set viewport 1200 900 "$SCALE"
+agent-browser open "http://localhost:4321/${SLUG}/"
 
-  // Clean up for capture
-  await page.evaluate(() => {
-    // Hide site header
-    const header = document.querySelector('#site-header');
-    if (header) header.style.display = 'none';
-    document.body.style.paddingTop = '0';
-    // Set body background to match the visualization background (no cream bleed)
-    document.body.style.background = '#1D2733';
-  });
+# If the page has animations, wait for a completion indicator:
+# agent-browser wait '.done-indicator'
 
-  // THUMBNAIL — element screenshot of the VISUALIZATION ONLY
-  // CRITICAL: Capture ONLY the chart/canvas/SVG — NOT the page title, subtitle,
-  // description, filters, or any other page chrome. The homepage card already
-  // displays the project title and description below the thumbnail, so including
-  // them in the image creates ugly redundancy.
-  // Find the primary visual element (chart SVG, canvas, visualization container)
-  const viz = await page.$('.primary-visual-selector');
-  await viz.screenshot({ path: 'src/assets/projects/[slug].png', type: 'png' });
+# Clean up for capture — hide header, set background
+agent-browser eval "(() => {
+  const header = document.querySelector('#site-header');
+  if (header) header.style.display = 'none';
+  document.body.style.paddingTop = '0';
+  document.body.style.background = '#1D2733';
+})()"
 
-  // OG IMAGE — 1200:630 aspect ratio crop of the visualization
-  // For tall elements, clip to the most informative portion
-  const box = await viz.boundingBox();
-  const clipHeight = Math.min(box.height, (630 / 1200) * box.width);
-  await page.screenshot({
-    path: 'public/img/og/[slug].png',
-    type: 'png',
-    clip: { x: box.x, y: box.y, width: box.width, height: clipHeight }
-  });
+# THUMBNAIL — element screenshot of the VISUALIZATION ONLY
+# CRITICAL: Capture ONLY the chart/canvas/SVG — NOT the page title, subtitle,
+# description, filters, or any other page chrome. The homepage card already
+# displays the project title and description below the thumbnail, so including
+# them in the image creates ugly redundancy.
+# Get bounding box of the primary visual element
+THUMB=$(agent-browser --json eval "(() => {
+  const viz = document.querySelector('.primary-visual-selector');
+  const r = viz.getBoundingClientRect();
+  return JSON.stringify({x: Math.round(r.x), y: Math.round(r.y), w: Math.round(r.width), h: Math.round(r.height)});
+})()" | jq -r '.data // .')
 
-  await browser.close();
-})().catch(e => { console.error(e); process.exit(1); });
+agent-browser screenshot --full /tmp/ab-full-$$.png
+TX=$(echo "$THUMB" | jq ".x * $SCALE")
+TY=$(echo "$THUMB" | jq ".y * $SCALE")
+TW=$(echo "$THUMB" | jq ".w * $SCALE")
+TH=$(echo "$THUMB" | jq ".h * $SCALE")
+magick /tmp/ab-full-$$.png -crop "${TW}x${TH}+${TX}+${TY}" +repage "src/assets/projects/${SLUG}.png"
+
+# OG IMAGE — 1200:630 aspect ratio crop of the visualization
+# For tall elements, clip to the most informative portion
+OG_H=$(echo "$THUMB" | jq "[.h, (.w * 630 / 1200 | floor)] | min * $SCALE")
+magick /tmp/ab-full-$$.png -crop "${TW}x${OG_H}+${TX}+${TY}" +repage "public/img/og/${SLUG}.png"
+
+rm -f /tmp/ab-full-$$.png
+agent-browser close
 ```
 
 Key rules:
