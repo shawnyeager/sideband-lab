@@ -16,7 +16,7 @@
     "astro": "astro"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.78.0",
+    "@anthropic-ai/sdk": "^0.92.0",
     "@astrojs/react": "^5.0.0",
     "@astrojs/sitemap": "^3.7.0",
     "astro": "^6.0.0",
