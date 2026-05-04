@@ -7,7 +7,7 @@ import projects from '../../content/projects.json';
 const project = projects.find(p => p.slug === 'status');
 const meta = project ? projectMeta(project) : '';
 
-const htmlPath = path.resolve('public/status/index.html');
+const htmlPath = path.resolve('src/projects/status.html');
 let html = fs.readFileSync(htmlPath, 'utf-8');
 // Inject only og meta — no header, no font preloads (gag page must look real)
 if (meta) {

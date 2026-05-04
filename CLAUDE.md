@@ -33,7 +33,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import Project from '../../layouts/Project.astro';
 
-const htmlPath = path.resolve('public/[slug]/index.html');
+const htmlPath = path.resolve('src/projects/[slug].html');
 const html = fs.readFileSync(htmlPath, 'utf-8');
 
 const headContent = html.match(/<head[^>]*>([\s\S]*?)<\/head>/i)?.[1] || '';
@@ -45,11 +45,13 @@ const bodyContent = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i)?.[1] || '';
 
 Replace `[slug]` with the actual slug. The `Project` layout handles font preloads, OG meta, and the site header. Do NOT use raw `Response` — it breaks HMR and View Transitions.
 
-### 2. Create `public/[slug]/` directory
+**Do NOT put the project HTML at `public/[slug]/index.html`** — that path collides with the Astro page route, and Astro 5.18+ resolves the collision by skipping the page route and serving the raw `public/` file (no header, no breadcrumb, no font preloads). Keep project HTML in `src/projects/[slug].html`. Static assets (JS, fonts, images) referenced by the project still belong in `public/[slug]/` since they don't collide.
 
-The user will add their standalone `index.html` here. It must have `<head>` and `<body>` tags (the Astro route injects font preloads into head and the fixed header into body).
+### 2. Create the project HTML at `src/projects/[slug].html`
 
-Project HTML should follow these conventions (see `public/http-402/index.html` as the canonical reference):
+Add the standalone HTML at `src/projects/[slug].html`. It must have `<head>` and `<body>` tags (the Astro route injects font preloads into head and the fixed header into body). If the project ships JS/font/asset files, put those at `public/[slug]/<asset>` and reference them with absolute paths like `/[slug]/d3.v7.min.js`.
+
+Project HTML should follow these conventions (see `src/projects/http-402.html` as the canonical reference):
 - **Use shared classes from `projectHeader` (`src/lib/header.ts`).** It provides font-face declarations, body/heading font overrides, fixed header, AND shared CSS classes. Do NOT redefine fonts, accordions, prose, dividers, or footers — use the classes it provides:
   - `.title-block` (with `h1` + `.subtitle`) — page heading within 728px reading column
   - `.project-prose` — body text paragraphs within 728px reading column
@@ -162,7 +164,7 @@ Once images are generated and verified:
 
 ### For new projects:
 - [ ] `src/pages/[slug]/index.astro` exists and injects `projectHeader` + `projectMeta`
-- [ ] `public/[slug]/index.html` exists with `<head>` and `<body>` tags
+- [ ] `src/projects/[slug].html` exists with `<head>` and `<body>` tags (NOT `public/[slug]/index.html` — that path collides with the page route)
 - [ ] `src/content/projects.json` entry has ALL required fields: `slug`, `title`, `description`, `date`, `thumbnail`, `ogImage`, `status`
 - [ ] Thumbnail exists at `src/assets/projects/[slug].png`
 - [ ] OG image exists at `public/img/og/[slug].png`
