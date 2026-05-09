@@ -232,56 +232,52 @@ export const projectHeader = `
   }
   .project-credit a:hover { color: var(--site-text-muted, #6b6966); }
 
-  /* ── Shared: subscribe CTA ── */
-  .project-subscribe {
-    max-width: 728px;
-    margin: var(--sp-5, 40px) auto;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 8px;
-  }
-  .project-subscribe__rule {
-    width: 40px;
-    height: 1px;
-    background: var(--site-hr, #d5d2cb);
-    margin-bottom: 4px;
-  }
-  .project-subscribe__read {
-    font-family: 'Space Grotesk', system-ui, sans-serif;
-    font-size: 14px;
-    font-weight: 500;
-    letter-spacing: 0.02em;
-    color: var(--site-text-muted, #6b6966);
-    text-decoration: none;
-    transition: color 0.15s;
-  }
-  .project-subscribe__read:hover {
-    color: var(--site-text, #393a3a);
-  }
-  .project-subscribe__prompt {
-    font-family: 'Space Grotesk', system-ui, sans-serif;
-    font-size: 14px;
-    letter-spacing: 0.03em;
-    color: var(--site-text-sub, #9a9793);
-  }
-  .project-subscribe__btn {
+  /* ── Shared: primary cyan CTA (used on project pages) ──
+     Color values mirror the --cta-* tokens in src/styles/global.css.
+     Fallbacks apply on raw HTML pages where global.css is not loaded;
+     tokens win on Astro-rendered pages. Update both in lockstep. */
+  .project-cta {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
-    height: 40px;
-    padding: 0 24px;
-    background: rgba(14, 165, 201, 0.15);
-    color: #0a8faf;
+    min-height: 44px;
+    padding: 0 22px;
+    background: var(--cta-bg, rgba(14, 165, 201, 0.18));
+    color: var(--cta-fg, #075570);
     font-family: 'Space Grotesk', system-ui, sans-serif;
     font-weight: 600;
-    font-size: 15px;
+    font-size: 16px;
+    letter-spacing: 0.01em;
     text-decoration: none;
     border-radius: 8px;
-    transition: background 0.15s;
+    transition: background 0.2s ease, color 0.2s ease;
   }
-  .project-subscribe__btn:hover {
-    background: rgba(14, 165, 201, 0.25);
+  .project-cta:hover {
+    background: var(--cta-bg-hover, rgba(14, 165, 201, 0.30));
+    color: var(--cta-fg-hover, #054458);
+  }
+  .project-cta:active {
+    background: var(--cta-bg-active, rgba(14, 165, 201, 0.36));
+    transform: translateY(1px);
+  }
+  .project-cta:focus-visible {
+    outline: 2px solid #0EA5C9;
+    outline-offset: 3px;
+  }
+
+  /* ── Companion-essay CTA block ── */
+  .project-essay-cta {
+    max-width: 728px;
+    margin: var(--sp-5, 40px) auto;
+    text-align: center;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .project-cta {
+      transition: none;
+    }
+    .project-cta:active {
+      transform: none;
+    }
   }
 
   /* ── Shared: breadcrumb ── */
@@ -307,7 +303,7 @@ export const projectHeader = `
   }
 
   @media (max-width: 640px) {
-    .project-prose, .hr-subtle, .disclosure, .project-credit, .project-subscribe, .project-breadcrumb { max-width: 100%; }
+    .project-prose, .hr-subtle, .disclosure, .project-credit, .project-essay-cta, .project-breadcrumb { max-width: 100%; }
   }
 </style>
 <div class="site-header-fixed">${projectHeaderMarkup}</div>
@@ -319,20 +315,12 @@ export function projectBreadcrumb(project: { title: string }) {
   return `<nav class="project-breadcrumb" aria-label="Breadcrumb"><a href="/">Sideband Lab</a><span class="project-breadcrumb__sep">›</span>${esc(project.title)}</nav>`;
 }
 
-/** Generate subscribe CTA for a project page */
-export function projectSubscribe(project: {
-  substackUrl?: string;
-  substackTitle?: string;
-}) {
-  const readLink = project.substackUrl
-    ? `<a href="${project.substackUrl}" class="project-subscribe__read plausible-event-name=Read+Analysis">Read the full analysis →</a>`
-    : '';
+/** Generate the companion-essay CTA for a project page. Returns '' when no essay is linked. */
+export function projectEssayCTA(project: { substackUrl?: string }) {
+  if (!project.substackUrl) return '';
   return `
-<div class="project-subscribe">
-  <div class="project-subscribe__rule"></div>
-  ${readLink}
-  <p class="project-subscribe__prompt">Get the next one in your inbox</p>
-  <a href="https://www.sideband.pub/subscribe" class="project-subscribe__btn plausible-event-name=Subscribe+Click">Subscribe</a>
+<div class="project-essay-cta">
+  <a href="${project.substackUrl}" class="project-cta plausible-event-name=Read+Analysis">Read the full analysis</a>
 </div>
 `;
 }

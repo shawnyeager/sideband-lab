@@ -83,6 +83,15 @@
   --card-radius: 4px;
   --card-max:    480px;
 
+  /* Cyan CTA button — passes WCAG AA on cream. Mirror these values in
+     src/lib/header.ts (.project-cta), which runs on raw HTML pages
+     without global.css and cannot reference these tokens. */
+  --cta-bg:        rgba(14, 165, 201, 0.18);
+  --cta-bg-hover:  rgba(14, 165, 201, 0.30);
+  --cta-bg-active: rgba(14, 165, 201, 0.36);
+  --cta-fg:        #075570;
+  --cta-fg-hover:  #054458;
+
   --font-display: 'Roboto Slab', Georgia, 'Times New Roman', serif;
   --font-body:    'Lora', Georgia, 'Times New Roman', serif;
   --font-sans:    'Space Grotesk', system-ui, -apple-system, sans-serif;
