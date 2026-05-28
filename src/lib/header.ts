@@ -280,40 +280,12 @@ export const projectHeader = `
     }
   }
 
-  /* ── Shared: breadcrumb ── */
-  .project-breadcrumb {
-    max-width: 728px;
-    margin: 0 auto var(--sp-3, 20px);
-    font-family: 'Space Grotesk', system-ui, sans-serif;
-    font-size: 12px;
-    font-weight: 500;
-    letter-spacing: 0.03em;
-    color: var(--site-text-sub, #9a9793);
-  }
-  .project-breadcrumb a {
-    color: var(--site-text-sub, #9a9793);
-    text-decoration: none;
-    transition: color 0.15s;
-  }
-  .project-breadcrumb a:hover {
-    color: var(--site-text-muted, #6b6966);
-  }
-  .project-breadcrumb__sep {
-    margin: 0 6px;
-  }
-
   @media (max-width: 640px) {
-    .project-prose, .hr-subtle, .disclosure, .project-credit, .project-essay-cta, .project-breadcrumb { max-width: 100%; }
+    .project-prose, .hr-subtle, .disclosure, .project-credit, .project-essay-cta { max-width: 100%; }
   }
 </style>
 <div class="site-header-fixed">${projectHeaderMarkup}</div>
 `;
-
-/** Generate breadcrumb for a project page */
-export function projectBreadcrumb(project: { title: string }) {
-  const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  return `<nav class="project-breadcrumb" aria-label="Breadcrumb"><a href="/">Sideband Lab</a><span class="project-breadcrumb__sep">›</span>${esc(project.title)}</nav>`;
-}
 
 /** Generate the companion-essay CTA for a project page. Returns '' when no essay is linked. */
 export function projectEssayCTA(project: { substackUrl?: string }) {
@@ -341,6 +313,14 @@ export function projectMeta(project: {
   const faviconTag = project.favicon
     ? `<link rel="icon" href="${project.favicon}" />`
     : '<link rel="icon" type="image/png" href="/img/sideband-icon.png" />';
+  const breadcrumbSchema = JSON.stringify({
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Sideband Lab', item: `${siteUrl}/` },
+      { '@type': 'ListItem', position: 2, name: project.title, item: canonical },
+    ],
+  }).replace(/</g, '\\u003c');
   return `
 <title>${pageTitle}</title>
 <meta name="description" content="${esc(project.description)}" />
@@ -357,6 +337,7 @@ ${faviconTag}
 <meta name="twitter:title" content="${pageTitle}" />
 <meta name="twitter:description" content="${esc(project.description)}" />
 <meta name="twitter:image" content="${ogImage}" />
+<script type="application/ld+json">${breadcrumbSchema}</script>
 <script async src="https://plausible.io/js/pa-FEW5RDsDRliedckfbUUV2.js"></script>
 <script>window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init()</script>
 `;
