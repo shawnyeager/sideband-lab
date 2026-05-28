@@ -1,4 +1,6 @@
 ---
+import { homepageMeta } from '../lib/header';
+
 interface Props {
   title?: string;
   description?: string;
@@ -19,6 +21,7 @@ const pageTitle = title ? `${title} | ${siteTitle}` : siteTitle;
 const isProduction = import.meta.env.PROD && (import.meta.env.VERCEL_ENV === 'production' || !import.meta.env.VERCEL_ENV);
 const canonical = canonicalUrl || Astro.url.href;
 const absoluteOgImage = ogImage.startsWith('http') ? ogImage : `${siteUrl}${ogImage}`;
+const isHomepage = canonical === `${siteUrl}/` || canonical === siteUrl;
 ---
 
 <meta charset="utf-8" />
@@ -50,6 +53,8 @@ const absoluteOgImage = ogImage.startsWith('http') ? ogImage : `${siteUrl}${ogIm
 <meta name="twitter:title" content={pageTitle} />
 <meta name="twitter:description" content={description} />
 <meta name="twitter:image" content={absoluteOgImage} />
+
+{isHomepage && <Fragment set:html={homepageMeta()} />}
 
 <!-- Plausible Analytics -->
 <script async src="https://plausible.io/js/pa-FEW5RDsDRliedckfbUUV2.js"></script>

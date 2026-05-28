@@ -280,8 +280,24 @@ export const projectHeader = `
     }
   }
 
+  /* ── Shared: byline ── */
+  .project-byline {
+    max-width: 728px;
+    margin: -8px auto var(--sp-3, 20px);
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-size: 13px;
+    color: var(--site-text-sub, #9a9793);
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    letter-spacing: 0.02em;
+  }
+  .project-byline__sep {
+    color: var(--site-hr, #d5d2cb);
+  }
+
   @media (max-width: 640px) {
-    .project-prose, .hr-subtle, .disclosure, .project-credit, .project-essay-cta { max-width: 100%; }
+    .project-prose, .hr-subtle, .disclosure, .project-credit, .project-essay-cta, .project-byline { max-width: 100%; }
   }
 </style>
 <div class="site-header-fixed">${projectHeaderMarkup}</div>
@@ -297,48 +313,132 @@ export function projectEssayCTA(project: { substackUrl?: string }) {
 `;
 }
 
+// ── Canonical entity records — single source of truth, referenced from all schema ──
+
+const SITE_URL = 'https://lab.sideband.pub';
+
+/** Person record for the author. Used in Article.author and as a standalone Person node. */
+export const AUTHOR_PERSON = {
+  '@type': 'Person',
+  '@id': 'https://shawnyeager.com/#person',
+  name: 'Shawn Yeager',
+  url: 'https://shawnyeager.com',
+  sameAs: [
+    'https://shawnyeager.com',
+    'https://www.sideband.pub',
+    'https://github.com/shawnyeager',
+    'https://x.com/shawnyeager',
+    'https://www.linkedin.com/in/shawnyeager/',
+  ],
+} as const;
+
+/** Organization record for the publisher. */
+export const PUBLISHER_ORG = {
+  '@type': 'Organization',
+  '@id': `${SITE_URL}/#organization`,
+  name: 'Sideband Lab',
+  url: SITE_URL,
+  logo: {
+    '@type': 'ImageObject',
+    url: `${SITE_URL}/img/sideband-icon.png`,
+    width: 512,
+    height: 512,
+  },
+  sameAs: ['https://www.sideband.pub'],
+  founder: { '@id': 'https://shawnyeager.com/#person' },
+} as const;
+
+/** Inline a JSON object as a JSON-LD <script>, with the </ escape that defends against script-tag injection. */
+function jsonLd(obj: unknown): string {
+  return `<script type="application/ld+json">${JSON.stringify(obj).replace(/</g, '\\u003c')}</script>`;
+}
+
 /** Generate meta + og tags for a project page */
 export function projectMeta(project: {
   slug: string;
   title: string;
   description: string;
+  date?: string;
+  dateModified?: string;
+  author?: string;
   ogImage?: string;
   favicon?: string;
 }) {
   const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-  const siteUrl = 'https://lab.sideband.pub';
   const pageTitle = esc(`${project.title} | Sideband Lab`);
-  const ogImage = `${siteUrl}${project.ogImage || '/img/og-default.png'}`;
-  const canonical = `${siteUrl}/${project.slug}/`;
+  const ogImage = `${SITE_URL}${project.ogImage || '/img/og-default.png'}`;
+  const canonical = `${SITE_URL}/${project.slug}/`;
   const faviconTag = project.favicon
     ? `<link rel="icon" href="${project.favicon}" />`
     : '<link rel="icon" type="image/png" href="/img/sideband-icon.png" />';
-  const breadcrumbSchema = JSON.stringify({
+
+  const datePublished = project.date || '2026-01-01';
+  const dateModified = project.dateModified || project.date || datePublished;
+
+  const breadcrumbSchema = jsonLd({
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
     itemListElement: [
-      { '@type': 'ListItem', position: 1, name: 'Sideband Lab', item: `${siteUrl}/` },
+      { '@type': 'ListItem', position: 1, name: 'Sideband Lab', item: `${SITE_URL}/` },
       { '@type': 'ListItem', position: 2, name: project.title, item: canonical },
     ],
-  }).replace(/</g, '\\u003c');
+  });
+
+  const articleSchema = jsonLd({
+    '@context': 'https://schema.org',
+    '@type': 'Article',
+    headline: project.title,
+    description: project.description,
+    image: ogImage,
+    datePublished,
+    dateModified,
+    author: AUTHOR_PERSON,
+    publisher: PUBLISHER_ORG,
+    mainEntityOfPage: { '@type': 'WebPage', '@id': canonical },
+    url: canonical,
+    inLanguage: 'en',
+  });
+
   return `
 <title>${pageTitle}</title>
 <meta name="description" content="${esc(project.description)}" />
 <link rel="canonical" href="${canonical}" />
 ${faviconTag}
-<meta property="og:type" content="website" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="${canonical}" />
 <meta property="og:title" content="${pageTitle}" />
 <meta property="og:description" content="${esc(project.description)}" />
 <meta property="og:image" content="${ogImage}" />
 <meta property="og:image:width" content="1200" />
 <meta property="og:image:height" content="630" />
 <meta property="og:site_name" content="Sideband Lab" />
+<meta property="article:published_time" content="${datePublished}" />
+<meta property="article:modified_time" content="${dateModified}" />
+<meta property="article:author" content="Shawn Yeager" />
 <meta name="twitter:card" content="summary_large_image" />
 <meta name="twitter:title" content="${pageTitle}" />
 <meta name="twitter:description" content="${esc(project.description)}" />
 <meta name="twitter:image" content="${ogImage}" />
-<script type="application/ld+json">${breadcrumbSchema}</script>
+${breadcrumbSchema}
+${articleSchema}
 <script async src="https://plausible.io/js/pa-FEW5RDsDRliedckfbUUV2.js"></script>
 <script>window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init()</script>
 `;
+}
+
+/** Generate WebSite + Organization JSON-LD for the homepage. */
+export function homepageMeta() {
+  const websiteSchema = jsonLd({
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    '@id': `${SITE_URL}/#website`,
+    name: 'Sideband Lab',
+    url: `${SITE_URL}/`,
+    description: 'Interactive visualizations that map the agent-era infrastructure shift. Companion to the Sideband newsletter.',
+    publisher: PUBLISHER_ORG,
+    inLanguage: 'en',
+  });
+  const orgSchema = jsonLd(PUBLISHER_ORG);
+  const personSchema = jsonLd(AUTHOR_PERSON);
+  return `${websiteSchema}\n${orgSchema}\n${personSchema}`;
 }

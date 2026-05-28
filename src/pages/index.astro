@@ -21,6 +21,7 @@ const years = [...byYear.keys()];
 <Base
   description="AI is reshaping everything. Sideband is the signal underneath—control, trust, money, and who wins. The lab is where those ideas become something you can see."
 >
+  <h1 class="visually-hidden">Sideband Lab — interactive visualizations of the agent-era infrastructure shift</h1>
   {featured ? (
     <div class="projects">
       <ProjectCard
@@ -60,6 +61,18 @@ const years = [...byYear.keys()];
 </Base>
 
 <style is:global>
+  .visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
   .projects {
     display: flex;
     flex-direction: column;

@@ -18,7 +18,36 @@ const project = projects.find(p => p.slug === slug);
 const meta = project ? projectMeta(project) : '';
 const essayCTA = project ? projectEssayCTA(project) : '';
 
+// Strip tags from the raw HTML head that projectMeta() already emits — keeps
+// us from rendering duplicate <title>, <meta charset>, or <meta name="viewport">
+// (HTML5 spec violation; can confuse crawlers).
+const cleanHead = headContent
+  .replace(/<title[^>]*>[\s\S]*?<\/title>/i, '')
+  .replace(/<meta\s+charset=[^>]*>/i, '')
+  .replace(/<meta\s+name=["']viewport["'][^>]*>/i, '');
+
+// Byline: visible author + machine-readable <time> for crawlers and AI engines.
+// Pulled from projects.json; defaults to Shawn Yeager.
+const formatLongDate = (iso: string): string => {
+  const d = new Date(iso + 'T00:00:00');
+  return d.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+};
+const escAttr = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+const byline = project
+  ? `<div class="project-byline"><span>By ${escAttr((project as { author?: string }).author || 'Shawn Yeager')}</span><span class="project-byline__sep">·</span><time datetime="${escAttr(project.date)}">${formatLongDate(project.date)}</time></div>`
+  : '';
+
 let finalBody = bodyContent;
+
+// Inject byline directly after .title-block (so the date sits under the H1).
+if (byline) {
+  if (finalBody.includes('</div>\n\n  <div class="chart-island"')) {
+    finalBody = finalBody.replace('</div>\n\n  <div class="chart-island"', `</div>\n  ${byline}\n\n  <div class="chart-island"`);
+  } else if (finalBody.includes('<div class="title-block">')) {
+    // Fallback: inject after the closing of title-block (find next </div>)
+    finalBody = finalBody.replace(/(<div class="title-block">[\s\S]*?<\/div>)/, `$1\n  ${byline}`);
+  }
+}
 
 // Inject companion-essay CTA in place of hr-subtle (between prose and disclosures)
 if (essayCTA) {
@@ -38,9 +67,11 @@ if (essayCTA) {
 
 <html lang="en">
 <head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <Fragment set:html={fontPreload} />
   <Fragment set:html={meta} />
-  <Fragment set:html={headContent} />
+  <Fragment set:html={cleanHead} />
 </head>
 <body style="margin:0; background:#eeebe4;">
   <Fragment set:html={projectHeader} />

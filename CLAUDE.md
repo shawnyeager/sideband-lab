@@ -151,6 +151,27 @@ Key rules:
 - For tall visualizations that don't fit 1200:630, collapse expandable content (accordions, detail blocks) before the OG capture
 - Verify both images look correct by reading them with the Read tool after generation. Check that no page title/subtitle text appears in the thumbnail.
 
+### OG image dimensions are non-negotiable
+
+**Target: 1880×988 device pixels (940×494 CSS px at 2× scale).** This is a 1.903 aspect ratio, matching the `og:image:width=1200` / `og:image:height=630` declared by `projectMeta()`. Social platforms (Twitter, Facebook, LinkedIn, Slack) crop to that declared ratio — if the actual image deviates, they letterbox or center-crop awkwardly.
+
+The canonical reference: `public/img/og/http-402.png` and `public/img/og/three-body-problem.png` are both **1880×988**. Match that exactly for every new project.
+
+**Picking the crop bottom edge:**
+- The script measures the chart-island and would naturally crop at 940×494 CSS px.
+- If that lands mid-element (a clipped bar, half a row), nudge the crop **up** to the nearest clean gap. Do NOT extend the crop down — the height must not exceed 494 CSS px.
+- If nudging up loses too much content, extend the chart-island background color with `magick ... -gravity north -background "#1d2733" -extent 1880x988` to pad the bottom rather than clipping.
+
+**Prohibited:**
+- Cropping to a "clean break" at a non-1.903 ratio (e.g., 1880×940). The OG meta will declare 1200×630, the file will be 1880×940 → social previews break.
+- Resizing the final image to 1200×630 (resampling loses fidelity). Capture at 2× and ship at 2× — let CDNs and social platforms resize down.
+
+**Verification step (required before commit):**
+```bash
+identify -format "%f: %wx%h (ratio %[fx:w/h])\n" public/img/og/[slug].png
+```
+Output must show `1880x988` (or any size where width/height ≈ 1.903 ± 0.005). Anything else gets fixed before push.
+
 ### 5. Flip to live
 
 Once images are generated and verified:
@@ -168,6 +189,7 @@ Once images are generated and verified:
 - [ ] `src/content/projects.json` entry has ALL required fields: `slug`, `title`, `description`, `date`, `thumbnail`, `ogImage`, `status`
 - [ ] Thumbnail exists at `src/assets/projects/[slug].png`
 - [ ] OG image exists at `public/img/og/[slug].png`
+- [ ] **OG image dimensions are 1880×988** (or any size matching 1.903 ratio ± 0.005). Verify with: `identify -format "%wx%h (%[fx:w/h])\n" public/img/og/[slug].png`. Anything else breaks social card previews because `projectMeta()` declares `og:image:width=1200, og:image:height=630`.
 - [ ] `npm run build` succeeds with zero errors
 
 ### For all pushes:

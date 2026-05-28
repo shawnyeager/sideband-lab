@@ -9,8 +9,10 @@ const meta = project ? projectMeta(project) : '';
 
 const htmlPath = path.resolve('src/projects/status.html');
 let html = fs.readFileSync(htmlPath, 'utf-8');
-// Inject only og meta — no header, no font preloads (gag page must look real)
+// Inject only og meta — no header, no font preloads (gag page must look real).
+// Strip the raw HTML's own <title> first so projectMeta()'s title isn't a duplicate.
 if (meta) {
+  html = html.replace(/<title[^>]*>[\s\S]*?<\/title>/i, '');
   html = html.replace(/<head([^>]*)>/, `<head$1>${meta}`);
 }
 
