@@ -48,7 +48,13 @@ The project HTML's `<head>` `<style>` block must follow these rules. The shared 
 
 | # | Rule | Why |
 |---|------|-----|
-| 3.1 | `.title-block { margin: 0 auto var(--sp-1); }` — bottom margin must be `--sp-1`, NOT `--sp-4` or `--sp-5` | The shared `.project-byline` is injected directly after; it owns the separation to the chart-island via its own `--sp-5` bottom margin. Mismatch here makes the byline gap differ across projects. |
+| 3.1 | The title-block must use **all three** of these values exactly. The four-line block below produces consistent h1 → subtitle (6px) → byline (6px) → chart-island (40px) rhythm across every project. | The shared `.project-byline` injection assumes this exact spacing. Drift on any one of the three values (title-block bottom margin, h1 bottom margin, subtitle line-height) makes the byline gap differ visibly between projects. |
+
+```css
+.title-block          { margin: 0 auto var(--sp-1); }                /* sp-1 — NOT sp-4 or sp-5 */
+.title-block h1       { margin-bottom: var(--sp-1); }                /* sp-1 — NOT sp-2 */
+.title-block .subtitle{ line-height: var(--lh-body); }               /* lh-body — NOT 1.4 or 1.45 */
+```
 | 3.2 | Do NOT redefine `.disclosure`, `summary`, `.chev`, `.disclosure-body`, `.hr-subtle`, or `.project-credit` | `projectHeader` provides these. Redefining causes silent drift from the shared design. |
 | 3.3 | Do NOT declare `@font-face` for `Roboto Slab`, `Lora`, or `Space Grotesk` | `projectHeader` declares these once. Duplicates conflict. |
 | 3.4 | Do NOT preload `Inter-Variable.woff2` or set `font-family: 'Inter'` on body | Body is forced to `Lora !important` by `projectHeader`. Inter declarations are dead weight; chart UI should use `font-family: 'Space Grotesk', system-ui, sans-serif` (the `--font-sans` token). |
