@@ -2,7 +2,7 @@
 
 > Interactive visualizations that map the agent-era infrastructure shift. Companion to the Sideband newsletter (https://sideband.pub).
 
-Each project is a small data-driven argument — a chart, a simulation, or an interactive layout — paired with sourced data and the underlying methodology.
+Each project is a small data-driven argument: a chart, a simulation, or an interactive layout, paired with sourced data and the underlying methodology.
 
 ## About
 - Author: Shawn Yeager (https://shawnyeager.com)
