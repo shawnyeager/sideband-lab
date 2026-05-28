@@ -281,13 +281,14 @@ export const projectHeader = `
   }
 
   /* ── Shared: byline ──
-     Pulls tight under the subtitle (offsets the title-block's sp-4 bottom
-     margin to ~6px effective gap), then a larger break to the chart below.
-     Groups H1 + subtitle + byline as one block with a clear separation
-     before the content. */
+     Assumes the preceding .title-block has margin-bottom: var(--sp-1),
+     so subtitle→byline is a tight 6px (title + subtitle + byline read as
+     one block). The sp-5 bottom margin gives a clean break before the
+     chart-island. If you create a new project, set
+     .title-block { margin: 0 auto var(--sp-1); } to match the standard. */
   .project-byline {
     max-width: 728px;
-    margin: calc(var(--sp-1, 6px) - var(--sp-4, 28px)) auto var(--sp-5, 40px);
+    margin: 0 auto var(--sp-5, 40px);
     font-family: 'Space Grotesk', system-ui, sans-serif;
     font-size: 13px;
     color: var(--site-text-sub, #9a9793);
