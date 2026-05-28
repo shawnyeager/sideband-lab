@@ -63,5 +63,16 @@
     "substackUrl": "",
     "substackTitle": "",
     "status": "live"
+  },
+  {
+    "slug": "agentic-overshoot",
+    "title": "The forecast and the floor",
+    "description": "Enterprise AI budgets grew nearly 6x. Gartner forecasts 40% of apps embedding agents by year-end. Actual production: 11%.",
+    "date": "2026-05-27",
+    "thumbnail": "agentic-overshoot",
+    "ogImage": "/img/og/agentic-overshoot.png",
+    "substackUrl": "",
+    "substackTitle": "",
+    "status": "draft"
   }
 ]

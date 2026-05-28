@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The forecast and the floor</title>
+<style>
+  :root {
+    --site-bg:          #eeebe4;
+    --site-text:        #393a3a;
+    --site-text-muted:  #6b6966;
+    --site-text-sub:    #9a9793;
+    --site-hr:          #d5d2cb;
+    --bg:               #1d2733;
+    --text-heading:     #e3dfd3;
+    --text-sub:         #a09d94;
+    --text-muted:       #7a7770;
+    --fs-h1:            34px;
+    --fs-sub:           20px;
+    --fs-detail-sum:    16px;
+    --fs-detail-body:   15px;
+    --fs-foot:          14px;
+    --lh-heading:       1.15;
+    --lh-body:          1.65;
+    --sp-1:             6px;
+    --sp-2:             12px;
+    --sp-3:             20px;
+    --sp-4:             28px;
+    --sp-5:             40px;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { overflow-x: hidden; overflow-y: scroll; max-width: 100%; }
+  body {
+    background: var(--site-bg);
+    color: var(--site-text);
+    display: flex;
+    justify-content: center;
+  }
+  .page {
+    width: 100%;
+    max-width: 1050px;
+    padding: 40px 55px 48px;
+    overflow-x: hidden;
+  }
+
+  .title-block {
+    max-width: 728px;
+    margin: 0 auto var(--sp-1);
+  }
+  .title-block h1 {
+    font-size: var(--fs-h1);
+    font-weight: 700;
+    line-height: var(--lh-heading);
+    color: var(--site-text);
+    margin-bottom: var(--sp-2);
+  }
+  .title-block .subtitle {
+    font-size: var(--fs-sub);
+    line-height: 1.4;
+    color: var(--site-text-muted);
+  }
+
+  /* ── Chart island ── */
+  .chart-island {
+    max-width: 940px;
+    background: var(--bg);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: var(--sp-4);
+    padding: 36px 48px 32px;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+  }
+
+  /* ── Bar rows ── */
+  .bar-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    margin-bottom: 28px;
+  }
+
+  .bar-row {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .bar-meta {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+
+  .bar-label {
+    font-size: 12px;
+    color: var(--text-sub);
+    letter-spacing: 0.02em;
+  }
+
+  .bar-value {
+    font-size: 24px;
+    font-weight: 700;
+    line-height: 1;
+    letter-spacing: -0.01em;
+  }
+  .bar-value.forecast { color: #f59e0b; }
+  .bar-value.reality  { color: #0ea5c9; }
+  .bar-value.pipeline { color: rgba(14,165,201,0.5); }
+
+  .bar-track {
+    height: 22px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 2px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .bar-fill {
+    height: 100%;
+    border-radius: 2px;
+  }
+  .bar-fill.forecast { background: #f59e0b; opacity: 0.85; }
+  .bar-fill.reality  { background: #0ea5c9; }
+  .bar-fill.pipeline { background: rgba(14,165,201,0.35); border-left: 1px solid rgba(14,165,201,0.5); }
+
+  /* divider between forecast and reality rows */
+  .bar-divider {
+    height: 1px;
+    background: rgba(255,255,255,0.06);
+    margin: 2px 0;
+  }
+
+  /* ── Gap callout ── */
+  .gap-callout {
+    padding: 14px 18px;
+    border-left: 3px solid rgba(239,68,68,0.4);
+    background: rgba(239,68,68,0.04);
+    border-radius: 0 2px 2px 0;
+    margin-bottom: 24px;
+  }
+  .gap-callout-text {
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.6;
+  }
+  .gap-callout-text strong {
+    color: rgba(255,255,255,0.38);
+    font-weight: 600;
+  }
+
+  /* ── Budget stats ── */
+  .budget-row {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    padding-top: 18px;
+    border-top: 1px solid rgba(255,255,255,0.05);
+  }
+  .stat-block { display: flex; flex-direction: column; gap: 3px; }
+  .stat-label {
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+  .stat-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--text-heading);
+  }
+  .stat-arrow {
+    font-size: 18px;
+    color: rgba(255,255,255,0.18);
+    flex-shrink: 0;
+  }
+
+  .chart-source {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-top: 16px;
+  }
+
+  /* Spacing between paragraphs inside the shared .disclosure-body */
+  .disclosure-body p + p { margin-top: var(--sp-1); }
+
+  @media (max-width: 768px) {
+    .page { padding: 20px 16px 32px; }
+    .chart-island {
+      width: calc(100% + 32px);
+      margin-left: -16px;
+      margin-right: -16px;
+      border-radius: 0;
+      padding: 28px 20px 24px;
+    }
+    .bar-value { font-size: 20px; }
+    .stat-value { font-size: 18px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="title-block">
+    <h1>The forecast and the floor</h1>
+    <p class="subtitle">Gartner called 40% by Q4 2026. Deloitte measured 11% in production today.</p>
+  </div>
+
+  <div class="chart-island">
+    <div class="bar-rows">
+
+      <div class="bar-row">
+        <div class="bar-meta">
+          <span class="bar-label">Gartner forecast&mdash;Q4 2026 target</span>
+          <span class="bar-value forecast">40%</span>
+        </div>
+        <div class="bar-track">
+          <div class="bar-fill forecast" style="width:40%"></div>
+        </div>
+      </div>
+
+      <div class="bar-divider"></div>
+
+      <div class="bar-row">
+        <div class="bar-meta">
+          <span class="bar-label">In production&mdash;Deloitte, Q1 2026</span>
+          <span class="bar-value reality">11%</span>
+        </div>
+        <div class="bar-track">
+          <div class="bar-fill reality" style="width:11%"></div>
+        </div>
+      </div>
+
+      <div class="bar-row">
+        <div class="bar-meta">
+          <span class="bar-label">Deployment-ready, not yet in production</span>
+          <span class="bar-value pipeline">+14%</span>
+        </div>
+        <div class="bar-track">
+          <div class="bar-fill pipeline" style="width:14%"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="gap-callout">
+      <div class="gap-callout-text">
+        <strong>29 points short of target with 6 months to the deadline.</strong> Enterprise AI budgets grew nearly 6&times; over the same period. More spend has not closed the gap.
+      </div>
+    </div>
+
+    <div class="budget-row">
+      <div class="stat-block">
+        <span class="stat-label">Enterprise AI budget&mdash;2024</span>
+        <span class="stat-value">$1.2M</span>
+      </div>
+      <div class="stat-arrow">&rarr;</div>
+      <div class="stat-block">
+        <span class="stat-label">Enterprise AI budget&mdash;2026</span>
+        <span class="stat-value">$7M</span>
+      </div>
+    </div>
+
+    <div class="chart-source">Gartner (Aug 2025) &middot; Deloitte State of Generative AI in the Enterprise (Q1 2026) &middot; Deloitte 2024 Gen AI Enterprise Survey</div>
+  </div>
+
+  <div class="hr-subtle"></div>
+
+  <details class="disclosure">
+    <summary>Sources <span class="chev" aria-hidden="true"></span></summary>
+    <div class="disclosure-body">
+      <p>Gartner, &ldquo;Predicts 40% of Enterprise Apps Will Feature Task-Specific AI Agents by 2026&rdquo; (August 2025). Gartner research note on agentic AI adoption trajectory.</p>
+      <p>Gartner, &ldquo;Predicts 40%+ of Agentic AI Projects Will Be Abandoned by End of 2027&rdquo; (2025). Gartner strategic planning assumption on enterprise failure rates.</p>
+      <p>Deloitte, &ldquo;State of Generative AI in the Enterprise Q1 2026.&rdquo; Survey of enterprise technology leaders. Reports 11% of enterprises with AI agents in active production; 25% including deployment-ready pipeline.</p>
+      <p>Deloitte 2024 Generative AI Enterprise Survey. Reports average enterprise AI spend of $1.2M in 2024, projected to $7M by 2026.</p>
+    </div>
+  </details>
+
+  <div class="project-credit">
+    <a href="https://www.sideband.pub">Sideband</a> &middot; Data: 2025&ndash;2026 &middot; <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>
+  </div>
+
+</div>
+</body>
+</html>
