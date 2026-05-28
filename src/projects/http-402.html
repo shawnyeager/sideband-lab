@@ -5,15 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
   /* ============================================================
-     DESIGN TOKENS
+     PROJECT-SPECIFIC TOKENS
+     Site-level tokens, reset, body, .page, and .title-block live in
+     src/styles/project-base.css. Only project-specific palette,
+     viz tokens, and font stacks below.
      ============================================================ */
   :root {
-    --site-bg:          #eeebe4;
-    --site-text:        #393a3a;
-    --site-text-muted:  #6b6966;
-    --site-text-sub:    #9a9793;
-    --site-hr:          #d5d2cb;
-
     /* Dark canvas — mirrors global.css */
     --viz-bg:           #1d2733;
     --viz-bg-light:     #253040;
@@ -48,50 +45,6 @@
     --viz-overlay:  rgba(0, 0, 0, 0.25);
     --viz-shadow:   0 4px 12px rgba(0, 0, 0, 0.3);
     --code-bg:      rgba(0, 0, 0, 0.05);
-
-    --fs-h1: 34px;  --fs-sub: 20px;  --fs-body: 20px;
-    --fs-detail-sum: 16px;  --fs-detail-body: 15px;  --fs-foot: 14px;
-    --lh-heading: 1.15;  --lh-body: 1.65;
-    --sp-1: 6px;  --sp-2: 12px;  --sp-3: 20px;  --sp-4: 28px;  --sp-5: 40px;
-    --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
-  }
-
-  /* ============================================================
-     BASE
-     ============================================================ */
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html { overflow-x: hidden; overflow-y: scroll; max-width: 100%; }
-  body {
-    background: var(--site-bg);
-    color: var(--site-text);
-    display: flex;
-    justify-content: center;
-  }
-  .page {
-    width: 100%;
-    max-width: 1050px;
-    padding: 40px 55px 48px;
-    overflow-x: hidden;
-  }
-
-  /* ============================================================
-     TYPOGRAPHY — SITE LEVEL
-     ============================================================ */
-  .title-block {
-    max-width: 728px;
-    margin: 0 auto var(--sp-2);
-  }
-  .title-block h1 {
-    font-size: var(--fs-h1);
-    line-height: var(--lh-heading);
-    color: var(--site-text);
-    margin-bottom: var(--sp-2);
-    letter-spacing: -0.01em;
-  }
-  .title-block .subtitle {
-    font-size: var(--fs-sub);
-    line-height: var(--lh-body);
-    color: var(--site-text-muted);
   }
 
   /* ============================================================
@@ -656,7 +609,6 @@
      MOBILE
      ============================================================ */
   @media (max-width: 768px) {
-    .page { padding: 20px 16px 32px; }
     .chart-island {
       width: calc(100% + 32px);
       margin-left: -16px;
@@ -665,7 +617,6 @@
       border-radius: 0;
       padding: var(--sp-3) var(--sp-2) var(--sp-2);
     }
-    .title-block h1 { font-size: 28px; }
     .project-prose { font-size: 18px; }
     .comparison-wrap { max-width: 100%; }
 

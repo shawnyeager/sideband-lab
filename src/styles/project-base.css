@@ -1,0 +1,94 @@
+/* ============================================
+   Sideband Lab — Project page base styles
+
+   Single source of truth for everything shared across project pages:
+   design tokens, reset, body, .page wrapper, .title-block typography
+   and rhythm. Imported once from src/layouts/Project.astro.
+
+   Project HTML files only need to declare their own .chart-island,
+   chart-specific selectors, and any project-specific palette tokens
+   (e.g. --x402, --viz-bg). Everything in this file is shared and
+   should NOT be redeclared in the project HTML.
+   ============================================ */
+
+:root {
+  /* ── Site canvas ── */
+  --site-bg:         #eeebe4;
+  --site-text:       #393a3a;
+  --site-text-muted: #6b6966;
+  --site-text-sub:   #9a9793;
+  --site-hr:         #d5d2cb;
+
+  /* ── Type scale (reading column) ── */
+  --fs-h1:           34px;
+  --fs-sub:          20px;
+  --fs-body:         20px;
+  --fs-detail-sum:   16px;
+  --fs-detail-body:  15px;
+  --fs-foot:         14px;
+
+  --lh-heading:      1.15;
+  --lh-body:         1.65;
+
+  /* ── Spacing scale ── */
+  --sp-1:            6px;
+  --sp-2:            12px;
+  --sp-3:            20px;
+  --sp-4:            28px;
+  --sp-5:            40px;
+
+  /* ── Motion ── */
+  --ease-out-quart:  cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* ── Reset ── */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { overflow-x: hidden; overflow-y: scroll; max-width: 100%; }
+
+/* ── Body and page wrapper ── */
+body {
+  background: var(--site-bg);
+  color: var(--site-text);
+  display: flex;
+  justify-content: center;
+}
+
+.page {
+  width: 100%;
+  max-width: 1050px;
+  padding: 40px 55px 48px;
+  overflow-x: hidden;
+}
+
+/* ── Title block ──
+   Title → description → byline rhythm: 12px / 12px / 40px (sp-2 / sp-2 / sp-5).
+   Equal gaps inside the title group, clear break before the chart-island below.
+   The .project-byline shared style (in src/lib/header.ts) provides the
+   bottom margin to the chart. */
+.title-block {
+  max-width: 728px;
+  margin: 0 auto var(--sp-2);
+}
+.title-block h1 {
+  font-size: var(--fs-h1);
+  font-weight: 700;
+  line-height: var(--lh-heading);
+  letter-spacing: -0.01em;
+  color: var(--site-text);
+  margin-bottom: var(--sp-2);
+}
+.title-block .subtitle {
+  font-size: var(--fs-sub);
+  line-height: var(--lh-body);
+  color: var(--site-text-muted);
+}
+
+/* ── Mobile ── */
+@media (max-width: 768px) {
+  .page {
+    padding: 20px 16px 32px;
+  }
+  .title-block h1 {
+    font-size: 28px;
+  }
+}
