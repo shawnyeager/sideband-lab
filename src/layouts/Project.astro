@@ -34,7 +34,7 @@ const formatLongDate = (iso: string): string => {
 };
 const escAttr = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
 const byline = project
-  ? `<div class="project-byline"><span>By ${escAttr((project as { author?: string }).author || 'Shawn Yeager')}</span><span class="project-byline__sep">·</span><time datetime="${escAttr(project.date)}">${formatLongDate(project.date)}</time></div>`
+  ? `<div class="project-byline"><span>${escAttr((project as { author?: string }).author || 'Shawn Yeager')}</span><span class="project-byline__sep" aria-hidden="true">•</span><time datetime="${escAttr(project.date)}">${formatLongDate(project.date)}</time></div>`
   : '';
 
 let finalBody = bodyContent;

@@ -281,24 +281,30 @@ export const projectHeader = `
   }
 
   /* ── Shared: byline ──
-     Assumes the preceding .title-block has margin-bottom: var(--sp-1),
-     so subtitle→byline is a tight 6px (title + subtitle + byline read as
-     one block). The sp-5 bottom margin gives a clean break before the
-     chart-island. If you create a new project, set
-     .title-block { margin: 0 auto var(--sp-1); } to match the standard. */
+     Editorial byline: substantial enough to read at a glance, not an
+     afterthought. Matches the rhythm of the title-block above (sp-2 gap
+     between subtitle and byline) and uses sp-5 bottom margin for a clean
+     break before the chart-island. See docs/new-project-checklist.md for
+     the .title-block standard. */
   .project-byline {
     max-width: 728px;
     margin: 0 auto var(--sp-5, 40px);
     font-family: 'Space Grotesk', system-ui, sans-serif;
-    font-size: 13px;
-    color: var(--site-text-sub, #9a9793);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--site-text-muted, #6b6966);
     display: flex;
     align-items: baseline;
-    gap: 8px;
-    letter-spacing: 0.02em;
+    gap: 12px;
+    letter-spacing: 0.01em;
   }
   .project-byline__sep {
-    color: var(--site-hr, #d5d2cb);
+    color: var(--site-text-sub, #9a9793);
+    font-size: 10px;
+    transform: translateY(-1px);
+  }
+  .project-byline time {
+    font-variant-numeric: tabular-nums;
   }
 
   @media (max-width: 640px) {
