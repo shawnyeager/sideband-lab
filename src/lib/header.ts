@@ -280,10 +280,14 @@ export const projectHeader = `
     }
   }
 
-  /* ── Shared: byline ── */
+  /* ── Shared: byline ──
+     Pulls tight under the subtitle (offsets the title-block's sp-4 bottom
+     margin to ~6px effective gap), then a larger break to the chart below.
+     Groups H1 + subtitle + byline as one block with a clear separation
+     before the content. */
   .project-byline {
     max-width: 728px;
-    margin: -8px auto var(--sp-3, 20px);
+    margin: calc(var(--sp-1, 6px) - var(--sp-4, 28px)) auto var(--sp-5, 40px);
     font-family: 'Space Grotesk', system-ui, sans-serif;
     font-size: 13px;
     color: var(--site-text-sub, #9a9793);
