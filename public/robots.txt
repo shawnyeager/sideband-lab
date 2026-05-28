@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://lab.sideband.pub/sitemap-index.xml
+Sitemap: https://lab.sideband.pub/sitemap.xml

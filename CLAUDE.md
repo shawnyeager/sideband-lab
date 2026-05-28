@@ -151,11 +151,18 @@ Key rules:
 - For tall visualizations that don't fit 1200:630, collapse expandable content (accordions, detail blocks) before the OG capture
 - Verify both images look correct by reading them with the Read tool after generation. Check that no page title/subtitle text appears in the thumbnail.
 
-### OG image dimensions are non-negotiable
+### Image dimensions are non-negotiable
 
-**Target: 1880×988 device pixels (940×494 CSS px at 2× scale).** This is a 1.903 aspect ratio, matching the `og:image:width=1200` / `og:image:height=630` declared by `projectMeta()`. Social platforms (Twitter, Facebook, LinkedIn, Slack) crop to that declared ratio — if the actual image deviates, they letterbox or center-crop awkwardly.
+**Two output sizes per project. Both come out of `scripts/capture-og.sh`.**
 
-The canonical reference: `public/img/og/http-402.png` and `public/img/og/three-body-problem.png` are both **1880×988**. Match that exactly for every new project.
+| File | Device px | CSS px | Ratio | Why |
+|---|---|---|---|---|
+| `src/assets/projects/[slug].png` | **1880×1176** | 940×588 | **16:10** | Homepage card uses `aspect-ratio: 16/10; object-fit: cover; object-position: top` (see `src/components/ProjectCard.astro`). Thumbnails that don't match get the bottom clipped at display time. |
+| `public/img/og/[slug].png` | **1880×988** | 940×494 | **1.903** | Matches `og:image:width=1200` / `og:image:height=630` declared by `projectMeta()`. Off-ratio images letterbox or center-crop awkwardly on social previews. |
+
+The canonical references — match these exactly:
+- Thumbnail: `src/assets/projects/http-402.png` (1880×1175)
+- OG image: `public/img/og/http-402.png` / `public/img/og/three-body-problem.png` (both 1880×988)
 
 **Picking the crop bottom edge:**
 - The script measures the chart-island and would naturally crop at 940×494 CSS px.
@@ -189,7 +196,10 @@ Once images are generated and verified:
 - [ ] `src/content/projects.json` entry has ALL required fields: `slug`, `title`, `description`, `date`, `thumbnail`, `ogImage`, `status`
 - [ ] Thumbnail exists at `src/assets/projects/[slug].png`
 - [ ] OG image exists at `public/img/og/[slug].png`
-- [ ] **OG image dimensions are 1880×988** (or any size matching 1.903 ratio ± 0.005). Verify with: `identify -format "%wx%h (%[fx:w/h])\n" public/img/og/[slug].png`. Anything else breaks social card previews because `projectMeta()` declares `og:image:width=1200, og:image:height=630`.
+- [ ] **Both images at canonical dimensions** (use `scripts/capture-og.sh [slug]` — it enforces both):
+  - Thumbnail: 1880×1176 (16:10 — matches homepage card aspect; bottom gets clipped on the card otherwise)
+  - OG: 1880×988 (1.903 — matches og:image meta; off-ratio breaks social previews)
+  - Verify with: `identify -format "%f: %wx%h\n" src/assets/projects/[slug].png public/img/og/[slug].png`
 - [ ] `npm run build` succeeds with zero errors
 
 ### For all pushes:
