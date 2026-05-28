@@ -53,5 +53,16 @@
     "substackUrl": "https://www.sideband.pub/p/agents-need-computers-not-compute",
     "substackTitle": "Agents need computers, not compute",
     "status": "live"
+  },
+  {
+    "slug": "safety-trap",
+    "title": "Task complete. Safety violated.",
+    "description": "BeSafe-Bench tested 13 production-grade agents. Not one cleared 40% safe task completion. The agents that performed best on tasks were the most dangerous in practice.",
+    "date": "2026-05-27",
+    "thumbnail": "safety-trap",
+    "ogImage": "/img/og/safety-trap.png",
+    "substackUrl": "",
+    "substackTitle": "",
+    "status": "live"
   }
 ]

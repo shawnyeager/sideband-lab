@@ -1,0 +1,506 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Task complete. Safety violated.</title>
+<style>
+  :root {
+    --site-bg:         #eeebe4;
+    --site-text:       #393a3a;
+    --site-text-muted: #6b6966;
+    --site-text-sub:   #9a9793;
+    --site-hr:         #d5d2cb;
+
+    --bg:              #1d2733;
+    --text-heading:    #e3dfd3;
+    --text-sub:        #a09d94;
+    --text-muted:      #7a7770;
+
+    --cyan:   #0ea5c9;
+    --amber:  #f59e0b;
+    --red:    rgba(239, 68, 68, 1);
+
+    --fs-h1:          34px;
+    --fs-sub:         20px;
+    --fs-detail-sum:  16px;
+    --fs-detail-body: 15px;
+    --fs-foot:        14px;
+    --lh-heading:     1.15;
+    --lh-body:        1.65;
+
+    --sp-1: 6px;
+    --sp-2: 12px;
+    --sp-3: 20px;
+    --sp-4: 28px;
+    --sp-5: 40px;
+
+    --ease-out-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html { overflow-x: hidden; overflow-y: scroll; max-width: 100%; }
+  body {
+    background: var(--site-bg);
+    color: var(--site-text);
+    display: flex;
+    justify-content: center;
+  }
+  .page {
+    width: 100%;
+    max-width: 1050px;
+    padding: 40px 55px 48px;
+    overflow-x: hidden;
+  }
+
+  /* ── Title ── */
+  .title-block {
+    max-width: 728px;
+    margin: 0 auto var(--sp-4);
+  }
+  .title-block h1 {
+    font-size: var(--fs-h1);
+    font-weight: 700;
+    line-height: var(--lh-heading);
+    letter-spacing: -0.01em;
+    color: var(--site-text);
+    margin-bottom: var(--sp-2);
+  }
+  .title-block .subtitle {
+    font-size: var(--fs-sub);
+    line-height: 1.45;
+    color: var(--site-text-muted);
+  }
+
+  /* ── Chart island ── */
+  .chart-island {
+    max-width: 940px;
+    background: var(--bg);
+    border-radius: 3px;
+    margin-bottom: var(--sp-4);
+    padding: 36px 48px 32px;
+    position: relative;
+    overflow: visible;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+  }
+
+  /* ── Legend ── */
+  .legend {
+    display: flex;
+    gap: 20px;
+    row-gap: 8px;
+    margin-bottom: 32px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .legend-swatch {
+    width: 18px;
+    height: 8px;
+    border-radius: 1px;
+    flex-shrink: 0;
+  }
+  .legend-swatch.safe   { background: var(--cyan); }
+  .legend-swatch.unsafe { background: var(--amber); opacity: 0.75; }
+  .legend-swatch.failed { background: rgba(255,255,255,0.1); }
+
+  /* ── Chart body ── */
+  .chart-body {
+    position: relative;
+  }
+
+  .agent-rows {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .agent-row {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    cursor: default;
+    transition: opacity 0.2s var(--ease-out-quart);
+  }
+  .agent-rows.has-hover .agent-row:not(.hovered) {
+    opacity: 0.28;
+  }
+
+  /* ── Labels ── */
+  .agent-label {
+    width: 210px;
+    flex-shrink: 0;
+    text-align: right;
+  }
+  .agent-name {
+    font-size: 12.5px;
+    font-weight: 500;
+    color: rgba(227, 223, 211, 0.82);
+    display: block;
+    line-height: 1.3;
+  }
+  .agent-domain {
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  /* ── Bar track ── */
+  .bar-track {
+    flex: 1;
+    height: 30px;
+    background: rgba(255,255,255,0.05);
+    border-radius: 2px;
+    position: relative;
+    display: flex;
+    overflow: visible;
+  }
+
+  /* Threshold guide line — per track, CSS only */
+  .bar-track::after {
+    content: '';
+    position: absolute;
+    left: 40%;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: rgba(239, 68, 68, 0.45);
+    pointer-events: none;
+    z-index: 2;
+  }
+
+  /* ── Bar segments ── */
+  .bar-seg {
+    height: 100%;
+    transform-origin: left center;
+    transform: scaleX(0);
+    border-radius: 0;
+  }
+  .bar-seg.safe {
+    background: var(--cyan);
+    border-radius: 2px 0 0 2px;
+    z-index: 1;
+  }
+  .bar-seg.unsafe {
+    background: var(--amber);
+    opacity: 0.72;
+    z-index: 1;
+  }
+  .bar-seg.failed {
+    flex: 1;
+    background: rgba(255,255,255,0.05);
+    border-radius: 0 2px 2px 0;
+    transform: scaleX(1); /* failed is revealed, not animated */
+  }
+  /* When only safe segment exists (no unsafe) */
+  .bar-seg.safe.is-last { border-radius: 2px; }
+
+  /* Entrance animation */
+  .bar-seg.animate {
+    animation: barIn 0.55s var(--ease-out-quart) forwards;
+  }
+  @keyframes barIn {
+    from { transform: scaleX(0); }
+    to   { transform: scaleX(1); }
+  }
+
+  /* ── Success rate label ── */
+  .bar-success-pct {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    width: 36px;
+    line-height: 1;
+    padding-top: 1px;
+  }
+
+  /* ── Threshold label — JS-positioned in the band between legend and bars,
+        horizontally aligned with the 40% mark on the bar tracks ── */
+  .threshold-label-text {
+    position: absolute;
+    font-size: 9.5px;
+    color: rgba(239, 68, 68, 0.7);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    pointer-events: none;
+    transform: translateX(-50%);
+    top: -18px;
+  }
+
+  /* ── Finding block (replaces callout) ── */
+  .finding {
+    margin-top: 28px;
+    padding-top: 20px;
+    border-top: 1px solid rgba(255,255,255,0.07);
+  }
+  .finding-quote {
+    font-size: 13px;
+    line-height: 1.75;
+    color: rgba(160,157,148,0.9);
+    max-width: 640px;
+  }
+  .finding-quote strong {
+    color: rgba(227,223,211,0.55);
+    font-weight: 600;
+  }
+
+  /* ── Tooltip ── */
+  .tooltip {
+    position: fixed;
+    background: #111820;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 4px;
+    padding: 11px 15px;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-size: 12px;
+    color: var(--text-sub);
+    pointer-events: none;
+    z-index: 100;
+    opacity: 0;
+    transition: opacity 0.12s;
+    max-width: 230px;
+    line-height: 1.6;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+  }
+  .tooltip.visible { opacity: 1; }
+  .tooltip-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-heading);
+    margin-bottom: 8px;
+  }
+  .tooltip-domain {
+    font-size: 10px;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    font-weight: 400;
+    margin-left: 4px;
+  }
+  .tooltip-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .tooltip-key  { color: var(--text-muted); }
+  .tooltip-val-safe   { color: var(--cyan); font-weight: 600; }
+  .tooltip-val-unsafe { color: var(--amber); font-weight: 600; }
+  .tooltip-val-fail   { color: rgba(255,255,255,0.25); font-weight: 600; }
+
+  /* Spacing for paragraph content inside the shared .disclosure-body */
+  .disclosure-body p + p { margin-top: var(--sp-1); }
+
+  @media (max-width: 768px) {
+    .page { padding: 20px 16px 32px; }
+    .chart-island {
+      width: calc(100% + 32px);
+      margin-left: -16px;
+      margin-right: -16px;
+      border-radius: 0;
+      padding: 28px 16px 24px;
+    }
+    .agent-label { width: 120px; }
+    .agent-name  { font-size: 11px; }
+    .threshold-header { padding-left: 134px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="title-block">
+    <h1>Task complete. Safety violated.</h1>
+    <p class="subtitle">BeSafe-Bench tested 13 production-grade agents. Not one cleared 40% safe task completion. The agents that performed best on tasks were the most dangerous in practice.</p>
+  </div>
+
+  <div class="chart-island" id="chartIsland">
+
+    <div class="legend">
+      <div class="legend-item"><div class="legend-swatch safe"></div> Safe completion</div>
+      <div class="legend-item"><div class="legend-swatch unsafe"></div> Task done, safety violated</div>
+      <div class="legend-item"><div class="legend-swatch failed"></div> Task failed</div>
+    </div>
+
+    <div class="chart-body" id="chartBody">
+      <div class="agent-rows" id="agentRows"></div>
+    </div>
+
+    <div class="finding">
+      <p class="finding-quote">Safe means the task completed without violating any security or privacy constraint: no unauthorized data access, no out-of-scope actions, no physical boundary breaches in robotics. <strong>Not one of the 13 agents cleared that bar 40% of the time. Stronger task performance consistently meant more violations</strong> — agents that finished more tasks did so by circumventing the constraints. Optimizing for completion is functionally equivalent to optimizing against safety.</p>
+    </div>
+
+  </div>
+
+  <div class="hr-subtle"></div>
+
+  <details class="disclosure">
+    <summary>Methodology &amp; data <span class="chev" aria-hidden="true"></span></summary>
+    <div class="disclosure-body">
+      <p><a href="https://arxiv.org/abs/2503.25747" target="_blank" rel="noopener">BeSafe-Bench (arxiv:2503.25747)</a> evaluated 13 agents across four domains: web, mobile, embodied VLM (vision-language models), and embodied VLA (robotics). Each agent was scored independently within its domain. Because domains differ in task type and difficulty, cross-agent comparison is indicative rather than exact. The headline finding (no agent cleared 40% safe completion) holds cross-domain.</p>
+      <p>Agents are sorted by overall task success rate (safe + unsafe combined), descending. The 40% line marks the minimum safe completion rate the authors identified as production-viable.</p>
+    </div>
+  </details>
+
+  <div class="project-credit">
+    <a href="https://www.sideband.pub">Sideband</a> &middot; Data: <a href="https://arxiv.org/abs/2503.25747">BeSafe-Bench</a>, Huawei RAMS Lab, 2026 &middot; <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>
+  </div>
+
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+const AGENTS = [
+  { name: "GPT-5",                   domain: "Embodied VLM",  safe: 24.84, unsafeSuc: 41.00, success: 65.84 },
+  { name: "Qwen3-VL-30B",            domain: "Embodied VLM",  safe: 26.09, unsafeSuc: 31.67, success: 57.76 },
+  { name: "OpenVLA-OFT",             domain: "Robotics",      safe: 35.19, unsafeSuc: 21.66, success: 56.85 },
+  { name: "RoboBrain2.0-32B",        domain: "Embodied VLM",  safe: 19.88, unsafeSuc: 35.40, success: 55.28 },
+  { name: "OpenVLA",                 domain: "Robotics",      safe: 30.00, unsafeSuc: 19.81, success: 49.81 },
+  { name: "Qwen3-VL-30B-Thinking",   domain: "Embodied VLM",  safe: 18.01, unsafeSuc: 23.60, success: 41.61 },
+  { name: "GPT-4-1106-Preview",      domain: "Mobile",        safe: 19.17, unsafeSuc:  6.41, success: 25.58 },
+  { name: "AWM",                     domain: "Web",           safe: 10.97, unsafeSuc: 13.83, success: 24.80 },
+  { name: "GPT-5",                   domain: "Web",           safe:  9.64, unsafeSuc: 14.94, success: 24.58 },
+  { name: "π₀.₅",     domain: "Robotics",      safe: 13.89, unsafeSuc: 10.00, success: 23.89 },
+  { name: "GPT-5",                   domain: "Mobile",        safe: 17.33, unsafeSuc:  6.35, success: 23.68 },
+  { name: "InternVL3.5-30B",         domain: "Embodied VLM",  safe:  6.21, unsafeSuc:  7.45, success: 13.66 },
+  { name: "AutoGLM",                 domain: "Mobile",        safe:  1.32, unsafeSuc:  1.31, success:  2.63 },
+];
+
+const rows = document.getElementById('agentRows');
+const tooltip = document.getElementById('tooltip');
+const chartBody = document.getElementById('chartBody');
+
+/* Build rows */
+AGENTS.forEach((a, i) => {
+  const row = document.createElement('div');
+  row.className = 'agent-row';
+  row.dataset.index = i;
+
+  /* Label */
+  const label = document.createElement('div');
+  label.className = 'agent-label';
+  label.innerHTML = `<span class="agent-name">${a.name}</span><span class="agent-domain">${a.domain}</span>`;
+
+  /* Track */
+  const track = document.createElement('div');
+  track.className = 'bar-track';
+
+  /* Safe segment */
+  const segSafe = document.createElement('div');
+  segSafe.className = 'bar-seg safe' + (a.unsafeSuc === 0 ? ' is-last' : '');
+  segSafe.style.width = (a.safe / 100 * 100).toFixed(3) + '%';
+  segSafe.style.animationDelay = (i * 40) + 'ms';
+
+  /* Unsafe segment */
+  const segUnsafe = document.createElement('div');
+  segUnsafe.className = 'bar-seg unsafe';
+  segUnsafe.style.width = (a.unsafeSuc / 100 * 100).toFixed(3) + '%';
+  segUnsafe.style.animationDelay = (i * 40 + 60) + 'ms';
+
+  /* Failed segment */
+  const segFailed = document.createElement('div');
+  segFailed.className = 'bar-seg failed';
+
+  track.appendChild(segSafe);
+  if (a.unsafeSuc > 0) track.appendChild(segUnsafe);
+  track.appendChild(segFailed);
+
+  /* Success pct */
+  const succPct = document.createElement('div');
+  succPct.className = 'bar-success-pct';
+  succPct.textContent = a.success.toFixed(0) + '%';
+
+  row.appendChild(label);
+  row.appendChild(track);
+  row.appendChild(succPct);
+  rows.appendChild(row);
+
+  /* Tooltip */
+  row.addEventListener('mouseenter', () => {
+    rows.classList.add('has-hover');
+    row.classList.add('hovered');
+  });
+  row.addEventListener('mouseleave', () => {
+    rows.classList.remove('has-hover');
+    row.classList.remove('hovered');
+    tooltip.classList.remove('visible');
+  });
+  row.addEventListener('mousemove', (e) => {
+    const failedPct = (100 - a.safe - a.unsafeSuc).toFixed(1);
+    tooltip.innerHTML = `
+      <div class="tooltip-name">${a.name}<span class="tooltip-domain">${a.domain}</span></div>
+      <div class="tooltip-row"><span class="tooltip-key">Safe completion</span><span class="tooltip-val-safe">${a.safe.toFixed(1)}%</span></div>
+      <div class="tooltip-row"><span class="tooltip-key">Unsafe success</span><span class="tooltip-val-unsafe">${a.unsafeSuc.toFixed(1)}%</span></div>
+      <div class="tooltip-row"><span class="tooltip-key">Task failure</span><span class="tooltip-val-fail">${failedPct}%</span></div>
+    `;
+    tooltip.classList.add('visible');
+    positionTooltip(e);
+  });
+});
+
+/* Tooltip positioning */
+document.addEventListener('mousemove', positionTooltip);
+function positionTooltip(e) {
+  if (!tooltip.classList.contains('visible')) return;
+  const tw = tooltip.offsetWidth, th = tooltip.offsetHeight;
+  let x = e.clientX + 16, y = e.clientY - th / 2;
+  if (x + tw > window.innerWidth - 8) x = e.clientX - tw - 16;
+  if (y < 8) y = 8;
+  if (y + th > window.innerHeight - 8) y = window.innerHeight - th - 8;
+  tooltip.style.left = x + 'px';
+  tooltip.style.top  = y + 'px';
+}
+
+/* Threshold label — float above chart at 40% of bar track column */
+function placeThresholdLabel() {
+  const existing = chartBody.querySelector('.threshold-label-text');
+  if (existing) existing.remove();
+
+  const firstTrack = rows.querySelector('.bar-track');
+  if (!firstTrack) return;
+
+  const bodyRect  = chartBody.getBoundingClientRect();
+  const trackRect = firstTrack.getBoundingClientRect();
+  const left = (trackRect.left - bodyRect.left) + trackRect.width * 0.40;
+
+  const lbl = document.createElement('div');
+  lbl.className = 'threshold-label-text';
+  lbl.textContent = '40% — production floor';
+  lbl.style.left = left + 'px';
+
+  chartBody.style.position = 'relative';
+  chartBody.appendChild(lbl);
+}
+
+/* Entrance animation — trigger after paint */
+function animateBars() {
+  rows.querySelectorAll('.bar-seg.safe, .bar-seg.unsafe').forEach(seg => {
+    seg.classList.add('animate');
+  });
+}
+
+const ro = new ResizeObserver(() => placeThresholdLabel());
+ro.observe(rows);
+
+requestAnimationFrame(() => {
+  requestAnimationFrame(() => {
+    placeThresholdLabel();
+    animateBars();
+  });
+});
+</script>
+</body>
+</html>
