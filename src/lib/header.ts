@@ -327,6 +327,7 @@ export function projectEssayCTA(project: { substackUrl?: string }) {
 // ── Canonical entity records — single source of truth, referenced from all schema ──
 
 const SITE_URL = 'https://lab.sideband.pub';
+const TWITTER_HANDLE = '@shawnyeager';
 
 /** Person record for the author. Used in Article.author and as a standalone Person node. */
 export const AUTHOR_PERSON = {
@@ -413,6 +414,7 @@ export function projectMeta(project: {
   return `
 <title>${pageTitle}</title>
 <meta name="description" content="${esc(project.description)}" />
+<meta name="robots" content="index, follow" />
 <link rel="canonical" href="${canonical}" />
 ${faviconTag}
 <meta property="og:type" content="article" />
@@ -427,6 +429,8 @@ ${faviconTag}
 <meta property="article:modified_time" content="${dateModified}" />
 <meta property="article:author" content="Shawn Yeager" />
 <meta name="twitter:card" content="summary_large_image" />
+<meta name="twitter:site" content="${TWITTER_HANDLE}" />
+<meta name="twitter:creator" content="${TWITTER_HANDLE}" />
 <meta name="twitter:title" content="${pageTitle}" />
 <meta name="twitter:description" content="${esc(project.description)}" />
 <meta name="twitter:image" content="${ogImage}" />
