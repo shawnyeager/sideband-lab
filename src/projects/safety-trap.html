@@ -246,9 +246,6 @@
   .tooltip-val-unsafe { color: var(--amber); font-weight: 600; }
   .tooltip-val-fail   { color: rgba(255,255,255,0.25); font-weight: 600; }
 
-  /* Spacing for paragraph content inside the shared .disclosure-body */
-  .disclosure-body p + p { margin-top: var(--sp-1); }
-
   @media (max-width: 768px) {
     .chart-island {
       width: calc(100% + 32px);
@@ -294,13 +291,13 @@
   <details class="disclosure">
     <summary>Methodology &amp; data <span class="chev" aria-hidden="true"></span></summary>
     <div class="disclosure-body">
-      <p><a href="https://arxiv.org/abs/2503.25747" target="_blank" rel="noopener">BeSafe-Bench (arxiv:2503.25747)</a> evaluated 13 agents across four domains: web, mobile, embodied VLM (vision-language models), and embodied VLA (robotics). Each agent was scored independently within its domain. Because domains differ in task type and difficulty, cross-agent comparison is indicative rather than exact. The headline finding (no agent cleared 40% safe completion) holds cross-domain.</p>
+      <p><a href="https://arxiv.org/abs/2603.25747" target="_blank" rel="noopener">BeSafe-Bench (arxiv:2603.25747)</a>, from Huawei's RAMS Lab, evaluated 13 agents across four domains: web, mobile, embodied VLM (vision-language models), and embodied VLA (robotics). Each agent was scored independently within its domain. Because domains differ in task type and difficulty, cross-agent comparison is indicative rather than exact. The headline finding (no agent cleared 40% safe completion) holds cross-domain.</p>
       <p>Agents are sorted by overall task success rate (safe + unsafe combined), descending. The 40% line marks the minimum safe completion rate the authors identified as production-viable.</p>
     </div>
   </details>
 
   <div class="project-credit">
-    <a href="https://www.sideband.pub">Sideband</a> &middot; Data: <a href="https://arxiv.org/abs/2503.25747">BeSafe-Bench</a>, Huawei RAMS Lab, 2026 &middot; <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>
+    <a href="https://www.sideband.pub">Sideband</a> &middot; Data: 2026 &middot; <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>
   </div>
 
 </div>
