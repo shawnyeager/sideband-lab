@@ -182,6 +182,9 @@ export const projectHeader = `
     color: var(--site-text-muted, #6b6966);
     overflow-wrap: break-word;
   }
+  .disclosure-body p + p {
+    margin-top: var(--sp-2, 14px);
+  }
   .disclosure-body strong {
     color: var(--site-text, #393a3a);
     font-weight: 600;
