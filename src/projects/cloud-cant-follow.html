@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The AI market hyperscalers can't reach</title>
+<style>
+  :root {
+    --bg:           #1d2733;
+    --text-heading: #e3dfd3;
+    --text-sub:     #a09d94;
+    --text-muted:   #7a7770;
+    --green:        #22c55e;
+    --amber:        #f59e0b;
+    --red:          #ef4444;
+  }
+
+  .chart-island {
+    max-width: 940px;
+    background: var(--bg);
+    border-radius: 3px;
+    margin-bottom: var(--sp-4);
+    padding: 36px 48px 32px;
+    position: relative;
+    overflow: visible;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+  }
+
+  .legend {
+    display: flex;
+    gap: 20px;
+    row-gap: 8px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    color: var(--text-muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .legend-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .chart-svg-wrap {
+    width: 100%;
+    overflow: visible;
+  }
+  .chart-svg-wrap svg {
+    width: 100%;
+    height: auto;
+    display: block;
+    overflow: visible;
+  }
+
+  .finding {
+    max-width: 728px;
+    margin: var(--sp-5) auto 0;
+  }
+  .finding-quote {
+    font-size: var(--fs-body);
+    line-height: var(--lh-body);
+    color: var(--site-text);
+    margin: 0;
+  }
+  .finding-quote strong {
+    color: var(--site-text);
+    font-weight: 700;
+  }
+
+  .tooltip {
+    position: fixed;
+    background: #111820;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 4px;
+    padding: 11px 15px;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-size: 12px;
+    color: var(--text-sub);
+    pointer-events: none;
+    z-index: 100;
+    opacity: 0;
+    transition: opacity 0.12s;
+    max-width: 240px;
+    line-height: 1.6;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+  }
+  .tooltip.visible { opacity: 1; }
+  .tooltip-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-heading);
+    margin-bottom: 4px;
+  }
+  .tooltip-tag {
+    font-size: 10px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+  }
+  .tooltip-why {
+    color: var(--text-sub);
+    font-size: 11.5px;
+    line-height: 1.5;
+  }
+
+  @media (max-width: 768px) {
+    .chart-island {
+      width: calc(100% + 32px);
+      margin-left: -16px;
+      border-radius: 0;
+      padding: 24px 20px 20px;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="title-block">
+    <h1>The AI market hyperscalers can't reach</h1>
+    <p class="subtitle">Armada raised $230M to deploy modular AI data centers to military bases, oil platforms, and air-gapped facilities. The raise is a map of how far AI's addressable market extends beyond the cloud.</p>
+  </div>
+
+  <div class="chart-island">
+
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#22c55e"></div> Cloud-viable</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div> Sovereign / private cloud required</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div> Edge / modular / air-gap required</div>
+    </div>
+
+    <!-- JS creates and populates the SVG here -->
+    <div id="chart" class="chart-svg-wrap"></div>
+
+  </div>
+
+  <div class="finding">
+    <p class="finding-quote">The cloud made AI tractable by making compute abundant and remote. <strong>For the sectors that most need transformation—manufacturing, energy, defense, healthcare, government—abundant and remote is the problem.</strong> These sectors need AI where it doesn't exist yet: on the factory floor, the offshore platform, the classified network. Armada's $230M raise is a bet that compute has to go to the data. So is the $20B Cohere-Aleph Alpha merger, which explicitly targets every sector that can't route sensitive workloads through a hyperscaler. The addressable market for cloud AI and the addressable market for AI aren't the same market.</p>
+  </div>
+
+  <div class="hr-subtle"></div>
+
+  <details class="disclosure">
+    <summary>Methodology &amp; sources <span class="chev" aria-hidden="true"></span></summary>
+    <div class="disclosure-body">
+      <p>Sector placement on the physical access axis reflects connectivity and latency requirements: factory floors and offshore platforms operate on isolated OT networks or have intermittent satellite links; enterprise SaaS assumes always-on connectivity. Placement on the sovereignty axis reflects regulatory frameworks: CMMC and ITAR for defense, HIPAA for healthcare, FedRAMP for U.S. civilian government, EU AI Act and GDPR data-residency rules for regulated industries. Bubble size is illustrative of relative AI addressable market scale, not precise market share.</p>
+      <p>Key sources: <a href="https://www.prnewswire.com/news-releases/armada-announces-agreement-with-johnson-controls-for-galleon-forge-one-raises-230m-in-oversubscribed-series-b-with-a-pre-money-valuation-of-2b-to-accelerate-deployment-of-the-us-ai-stack-and-support-explosive-customer-demand--302775720.html" target="_blank" rel="noopener">Armada Series B announcement (May 2026)</a>; <a href="https://techcrunch.com/2026/04/24/cohere-acquires-merges-with-german-based-startup-to-create-a-transatlantic-ai-powerhouse/" target="_blank" rel="noopener">Cohere-Aleph Alpha merger (TechCrunch, April 2026)</a>; CMMC 2.0, HIPAA, FedRAMP, EU AI Act regulatory frameworks.</p>
+    </div>
+  </details>
+
+  <div class="project-credit">
+    <a href="https://www.sideband.pub">Sideband</a> &middot; Sources: Armada, Cohere, CMMC, HIPAA, FedRAMP, EU AI Act &middot; <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>
+  </div>
+
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+var NS = 'http://www.w3.org/2000/svg';
+var container = document.getElementById('chart');
+var tt = document.getElementById('tooltip');
+
+// Create SVG element dynamically (same pattern as three-body-problem)
+var svg = document.createElementNS(NS, 'svg');
+svg.setAttribute('viewBox', '0 0 660 460');
+svg.setAttribute('overflow', 'visible');
+svg.style.width = '100%';
+svg.style.height = 'auto';
+svg.style.display = 'block';
+svg.style.overflow = 'visible';
+container.appendChild(svg);
+
+var PAD = { top: 20, right: 30, bottom: 68, left: 80 };
+var W = 660, H = 460;
+var PW = W - PAD.left - PAD.right;
+var PH = H - PAD.top - PAD.bottom;
+
+function xS(v) { return PAD.left + (v / 10) * PW; }
+function yS(v) { return PAD.top + (1 - v / 10) * PH; }
+
+function mk(tag, attrs) {
+  var e = document.createElementNS(NS, tag);
+  var keys = Object.keys(attrs);
+  for (var i = 0; i < keys.length; i++) {
+    e.setAttribute(keys[i], attrs[keys[i]]);
+  }
+  return e;
+}
+
+function addText(attrs, content) {
+  var e = mk('text', attrs);
+  e.textContent = content;
+  svg.appendChild(e);
+  return e;
+}
+
+function tagColor(c) {
+  if (c === '#22c55e') return 'rgba(34,197,94,0.7)';
+  if (c === '#f59e0b') return 'rgba(245,158,11,0.7)';
+  return 'rgba(239,68,68,0.7)';
+}
+
+// Zone shading
+svg.appendChild(mk('rect', {
+  x: xS(6), y: PAD.top,
+  width: xS(10) - xS(6), height: PH,
+  fill: 'rgba(239,68,68,0.04)'
+}));
+svg.appendChild(mk('rect', {
+  x: PAD.left, y: yS(9),
+  width: PW, height: yS(6) - yS(9),
+  fill: 'rgba(239,68,68,0.04)'
+}));
+
+// Grid lines
+var gridVals = [2, 4, 6, 8];
+for (var gi = 0; gi < gridVals.length; gi++) {
+  var gv = gridVals[gi];
+  svg.appendChild(mk('line', {
+    x1: xS(gv), y1: PAD.top, x2: xS(gv), y2: PAD.top + PH,
+    stroke: 'rgba(255,255,255,0.04)', 'stroke-width': '0.5'
+  }));
+  svg.appendChild(mk('line', {
+    x1: PAD.left, y1: yS(gv), x2: PAD.left + PW, y2: yS(gv),
+    stroke: 'rgba(255,255,255,0.04)', 'stroke-width': '0.5'
+  }));
+}
+
+// Axes
+svg.appendChild(mk('line', {
+  x1: PAD.left, y1: PAD.top + PH, x2: PAD.left + PW, y2: PAD.top + PH,
+  stroke: 'rgba(255,255,255,0.15)', 'stroke-width': '1'
+}));
+svg.appendChild(mk('line', {
+  x1: PAD.left, y1: PAD.top, x2: PAD.left, y2: PAD.top + PH,
+  stroke: 'rgba(255,255,255,0.15)', 'stroke-width': '1'
+}));
+
+// X-axis ticks
+var xTicks = [
+  { v: 0, label: 'Always connected', anchor: 'start' },
+  { v: 5, label: 'Intermittent', anchor: 'middle' },
+  { v: 10, label: 'Isolated / remote', anchor: 'end' }
+];
+for (var xi = 0; xi < xTicks.length; xi++) {
+  var xt = xTicks[xi];
+  var tx = xS(xt.v);
+  svg.appendChild(mk('line', {
+    x1: tx, y1: PAD.top + PH, x2: tx, y2: PAD.top + PH + 4,
+    stroke: 'rgba(255,255,255,0.2)', 'stroke-width': '1'
+  }));
+  addText({
+    x: tx, y: PAD.top + PH + 16,
+    fill: 'rgba(255,255,255,0.28)', 'font-size': '9.5',
+    'font-family': 'Space Grotesk,system-ui,sans-serif',
+    'text-anchor': xt.anchor
+  }, xt.label);
+}
+
+// Y-axis ticks
+var yTicks = [
+  { v: 0, label: 'No restrictions' },
+  { v: 5, label: 'Regulated' },
+  { v: 10, label: 'Air-gap / classified' }
+];
+for (var yi = 0; yi < yTicks.length; yi++) {
+  var yt = yTicks[yi];
+  var ty = yS(yt.v);
+  svg.appendChild(mk('line', {
+    x1: PAD.left - 4, y1: ty, x2: PAD.left, y2: ty,
+    stroke: 'rgba(255,255,255,0.2)', 'stroke-width': '1'
+  }));
+  addText({
+    x: PAD.left - 8, y: ty + 3.5,
+    fill: 'rgba(255,255,255,0.28)', 'font-size': '9.5',
+    'font-family': 'Space Grotesk,system-ui,sans-serif',
+    'text-anchor': 'end'
+  }, yt.label);
+}
+
+// Axis labels
+addText({
+  x: PAD.left + PW / 2, y: H - 10,
+  fill: 'rgba(255,255,255,0.32)', 'font-size': '9.5',
+  'font-family': 'Space Grotesk,system-ui,sans-serif',
+  'text-anchor': 'middle', 'letter-spacing': '0.07em'
+}, 'Connectivity →');
+
+var yLbl = mk('text', {
+  transform: 'rotate(-90)',
+  x: String(-(PAD.top + PH / 2)), y: '14',
+  fill: 'rgba(255,255,255,0.32)', 'font-size': '9.5',
+  'font-family': 'Space Grotesk,system-ui,sans-serif',
+  'text-anchor': 'middle', 'letter-spacing': '0.07em'
+});
+yLbl.textContent = '← Sovereignty';
+svg.appendChild(yLbl);
+
+var SECTORS = [
+  {
+    name: 'Consumer & SaaS',
+    px: 1.2, py: 0.8, r: 52, color: '#22c55e',
+    tag: 'Cloud-viable',
+    why: 'Minimal regulatory restriction. Always-on connectivity assumed. Standard cloud providers cover this fully.',
+    lx: 0, ly: -62, anchor: 'middle'
+  },
+  {
+    name: 'Enterprise software',
+    px: 2.2, py: 2.4, r: 46, color: '#22c55e',
+    tag: 'Cloud-viable',
+    why: 'Generally cloud-viable. Some data residency requirements emerging, but most workloads flow through hyperscalers.',
+    lx: 48, ly: 4, anchor: 'start'
+  },
+  {
+    name: 'Financial services',
+    px: 2, py: 6, r: 54, color: '#f59e0b',
+    tag: 'Sovereign / private cloud',
+    why: 'Heavily regulated. Many jurisdictions require local data processing. AI models handling trades or customer data face strict residency rules.',
+    lx: 56, ly: 4, anchor: 'start'
+  },
+  {
+    name: 'Healthcare',
+    px: 2.2, py: 8, r: 46, color: '#f59e0b',
+    tag: 'Sovereign / private cloud',
+    why: 'HIPAA and equivalent frameworks restrict where PHI is processed. Sovereign or on-prem clouds required for clinical AI.',
+    lx: 50, ly: 4, anchor: 'start'
+  },
+  {
+    name: 'Government (civilian)',
+    px: 3, py: 7.2, r: 40, color: '#f59e0b',
+    tag: 'Sovereign / private cloud',
+    why: 'FedRAMP in the U.S., EU data sovereignty rules, national AI strategies. Approved clouds only.',
+    lx: 0, ly: 6, anchor: 'middle'
+  },
+  {
+    name: 'Telecom',
+    px: 4.2, py: 4.2, r: 34, color: '#f59e0b',
+    tag: 'Sovereign / private cloud',
+    why: 'Network traffic data is nationally sensitive. Several governments require local AI processing for telecom infrastructure.',
+    lx: 40, ly: 4, anchor: 'start'
+  },
+  {
+    name: 'Manufacturing',
+    px: 6.2, py: 3.2, r: 40, color: '#ef4444',
+    tag: 'Edge / modular',
+    why: 'Factory-floor OT networks are often air-gapped from IT for security. Latency requirements for real-time control preclude cloud AI.',
+    lx: 44, ly: 4, anchor: 'start'
+  },
+  {
+    name: 'Energy & remote ops',
+    px: 7.8, py: 4.8, r: 36, color: '#ef4444',
+    tag: 'Edge / modular',
+    why: 'Offshore platforms, remote pipelines, and substations have intermittent or no cloud connectivity. Armada primary market.',
+    lx: 0, ly: -46, anchor: 'middle'
+  },
+  {
+    name: 'Defense & classified',
+    px: 3.8, py: 9.4, r: 56, color: '#ef4444',
+    tag: 'Edge / modular',
+    why: 'ITAR, CMMC Level 3, and classification requirements mandate air-gapped environments for most AI workloads. No commercial cloud.',
+    lx: 60, ly: 0, anchor: 'start'
+  }
+];
+
+// Pass 1: bubbles, largest first
+var sorted = SECTORS.slice().sort(function(a, b) { return b.r - a.r; });
+var bubbles = {};
+for (var bi = 0; bi < sorted.length; bi++) {
+  var s = sorted[bi];
+  var b = mk('circle', {
+    cx: xS(s.px), cy: yS(s.py), r: s.r,
+    fill: s.color, 'fill-opacity': '0.18',
+    stroke: s.color, 'stroke-width': '1.5', 'stroke-opacity': '0.6'
+  });
+  svg.appendChild(b);
+  bubbles[s.name] = b;
+}
+
+// Pass 2: labels
+for (var li = 0; li < SECTORS.length; li++) {
+  var s = SECTORS[li];
+  addText({
+    x: xS(s.px) + s.lx, y: yS(s.py) + s.ly,
+    fill: 'rgba(255,255,255,0.62)', 'font-size': '10.5',
+    'font-family': 'Space Grotesk,system-ui,sans-serif',
+    'text-anchor': s.anchor, 'dominant-baseline': 'middle'
+  }, s.name);
+}
+
+// Pass 3: hit areas + tooltips
+for (var hi = 0; hi < SECTORS.length; hi++) {
+  (function(s) {
+    var b = bubbles[s.name];
+    var hit = mk('circle', {
+      cx: xS(s.px), cy: yS(s.py), r: s.r + 8,
+      fill: 'transparent', style: 'cursor:pointer'
+    });
+    svg.appendChild(hit);
+
+    hit.addEventListener('mouseenter', function(e) {
+      if (b) {
+        b.setAttribute('fill-opacity', '0.3');
+        b.setAttribute('stroke-opacity', '0.9');
+      }
+      var nameEl = document.createElement('div');
+      nameEl.className = 'tooltip-name';
+      nameEl.textContent = s.name;
+
+      var tagEl = document.createElement('div');
+      tagEl.className = 'tooltip-tag';
+      tagEl.style.color = tagColor(s.color);
+      tagEl.textContent = s.tag;
+
+      var whyEl = document.createElement('div');
+      whyEl.className = 'tooltip-why';
+      whyEl.textContent = s.why;
+
+      tt.innerHTML = '';
+      tt.appendChild(nameEl);
+      tt.appendChild(tagEl);
+      tt.appendChild(whyEl);
+
+      tt.style.left = (e.clientX + 16) + 'px';
+      tt.style.top = (e.clientY - 24) + 'px';
+      tt.classList.add('visible');
+    });
+
+    hit.addEventListener('mousemove', function(e) {
+      tt.style.left = (e.clientX + 16) + 'px';
+      tt.style.top = (e.clientY - 24) + 'px';
+    });
+
+    hit.addEventListener('mouseleave', function() {
+      if (b) {
+        b.setAttribute('fill-opacity', '0.18');
+        b.setAttribute('stroke-opacity', '0.6');
+      }
+      tt.classList.remove('visible');
+    });
+  })(SECTORS[hi]);
+}
+
+// Armada callout
+var aX = xS(7.8), aY = yS(4.8);
+svg.appendChild(mk('line', {
+  x1: aX - 36, y1: aY - 18, x2: aX - 54, y2: aY - 32,
+  stroke: 'rgba(239,68,68,0.4)', 'stroke-width': '1'
+}));
+addText({
+  x: aX - 57, y: aY - 34,
+  fill: 'rgba(239,68,68,0.55)', 'font-size': '9',
+  'font-family': 'Space Grotesk,system-ui,sans-serif',
+  'text-anchor': 'end', 'letter-spacing': '0.06em'
+}, 'ARMADA $230M');
+</script>
+
+</body>
+</html>

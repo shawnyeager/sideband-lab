@@ -1,0 +1,13 @@
+---
+import fs from 'node:fs';
+import path from 'node:path';
+import Project from '../../layouts/Project.astro';
+
+const htmlPath = path.resolve('src/projects/cloud-cant-follow.html');
+const html = fs.readFileSync(htmlPath, 'utf-8');
+
+const headContent = html.match(/<head[^>]*>([\s\S]*?)<\/head>/i)?.[1] || '';
+const bodyContent = html.match(/<body[^>]*>([\s\S]*?)<\/body>/i)?.[1] || '';
+---
+
+<Project slug="cloud-cant-follow" headContent={headContent} bodyContent={bodyContent} />

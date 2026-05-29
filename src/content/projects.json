@@ -65,6 +65,28 @@
     "status": "live"
   },
   {
+    "slug": "payment-rails",
+    "title": "Payment rails for agents",
+    "description": "Circle launched nanopayments claiming the financial layer of the agentic economy. On cost, every major payment rail is converging. On who can freeze a payment, they're not.",
+    "date": "2026-05-28",
+    "thumbnail": "payment-rails",
+    "ogImage": "/img/og/payment-rails.png",
+    "substackUrl": "",
+    "substackTitle": "",
+    "status": "draft"
+  },
+  {
+    "slug": "cloud-cant-follow",
+    "title": "The AI market hyperscalers can't reach",
+    "description": "Armada raised $230M to deploy modular AI data centers to military bases, oil platforms, and air-gapped facilities. The raise is a map of how far AI's addressable market extends beyond the cloud.",
+    "date": "2026-05-29",
+    "thumbnail": "cloud-cant-follow",
+    "ogImage": "/img/og/cloud-cant-follow.png",
+    "substackUrl": "",
+    "substackTitle": "",
+    "status": "live"
+  },
+  {
     "slug": "agentic-overshoot",
     "title": "The forecast and the floor",
     "description": "Enterprise AI budgets grew nearly 6x. Gartner forecasts 40% of apps embedding agents by year-end. Actual production: 11%.",
