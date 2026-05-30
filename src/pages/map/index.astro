@@ -2,8 +2,12 @@
 import { projectMeta, projectHeader, fontPreload } from '../../lib/header';
 import projects from '../../content/projects.json';
 import AgentInfraMap from '../../components/map/AgentInfraMap';
+import mapData from '../../../data/map-data.json';
 
-const project = projects.find(p => p.slug === 'map');
+const baseProject = projects.find(p => p.slug === 'map');
+// Keep schema dateModified / article:modified_time in sync with the data export,
+// so the "Updated" date on the page and in structured data share one source.
+const project = baseProject ? { ...baseProject, dateModified: mapData.exported_at } : null;
 const meta = project ? projectMeta(project) : '';
 ---
 <html lang="en">
@@ -19,6 +23,15 @@ const meta = project ? projectMeta(project) : '';
       font-weight: 300 700;
       font-style: normal;
       font-display: swap;
+    }
+    /* Honor reduced-motion: neutralize the island's inline-style transitions. */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+      }
     }
   </style>
 </head>
