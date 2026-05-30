@@ -157,28 +157,6 @@
     height: 100%;
     display: block;
   }
-  .chart-title {
-    position: relative;
-    z-index: 10;
-    padding: 24px 40px 0;
-    margin-bottom: -60px;
-  }
-  .chart-title h1 {
-    font-family: var(--font-display);
-    font-weight: 700;
-    font-size: 24px;
-    color: var(--text-heading);
-    letter-spacing: -0.01em;
-    line-height: var(--lh-heading);
-    margin: 0 0 6px;
-  }
-  .chart-title p {
-    font-family: var(--font-sans);
-    font-size: 14px;
-    color: var(--text-sub);
-    line-height: 1.5;
-    margin: 0;
-  }
 
   /* ============================================================
      AXES (below chart)
@@ -307,17 +285,6 @@
       max-width: none;
       border-radius: 0;
     }
-    .chart-title {
-      padding: 16px 16px 12px;
-      margin-bottom: 0;
-    }
-    .chart-title h1 {
-      font-size: 18px;
-      margin-bottom: 4px;
-    }
-    .chart-title p {
-      font-size: 13px;
-    }
 
     /* Chart: full width within island */
     .chart-container {
@@ -365,11 +332,12 @@
 </head>
 <body>
 <div class="page">
+  <div class="title-block">
+    <h1>Agent payments have a three-body problem</h1>
+    <p class="subtitle">The financial system wasn&rsquo;t built for software that spends money.</p>
+  </div>
+
   <div class="chart-island">
-    <div class="chart-title">
-      <h1>Agent payments have a three-body problem</h1>
-      <p>The financial system wasn&rsquo;t built for software that spends money.</p>
-    </div>
     <div class="chart-container" id="chart">
     </div>
   </div>
