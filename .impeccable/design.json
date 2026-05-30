@@ -1,0 +1,121 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-05-30T00:00:00.000Z",
+  "title": "Design System: Sideband Lab",
+  "extensions": {
+    "colorMeta": {
+      "cream-paper": { "role": "neutral", "displayName": "Cream Paper", "canonical": "#EEEBE4", "tonalRamp": ["oklch(28% 0.008 80)", "oklch(38% 0.008 80)", "oklch(50% 0.008 80)", "oklch(62% 0.008 80)", "oklch(74% 0.008 80)", "oklch(85% 0.008 80)", "oklch(92% 0.008 80)", "oklch(96% 0.006 80)"] },
+      "ink": { "role": "neutral", "displayName": "Ink", "canonical": "#393A3A", "tonalRamp": ["oklch(22% 0.003 200)", "oklch(32% 0.003 200)", "oklch(42% 0.004 200)", "oklch(52% 0.004 200)", "oklch(62% 0.004 200)", "oklch(72% 0.004 200)", "oklch(84% 0.004 200)", "oklch(93% 0.004 200)"] },
+      "cyan": { "role": "primary", "displayName": "Signal Cyan", "canonical": "#0EA5C9", "tonalRamp": ["oklch(28% 0.06 220)", "oklch(38% 0.08 220)", "oklch(48% 0.10 220)", "oklch(58% 0.12 220)", "oklch(68% 0.13 220)", "oklch(78% 0.10 220)", "oklch(87% 0.06 220)", "oklch(94% 0.03 220)"] },
+      "cyan-light": { "role": "primary", "displayName": "Sky Cyan", "canonical": "#38BDF8" },
+      "amber": { "role": "secondary", "displayName": "Field Amber", "canonical": "#A97C40", "tonalRamp": ["oklch(28% 0.05 70)", "oklch(38% 0.07 70)", "oklch(48% 0.08 70)", "oklch(58% 0.09 70)", "oklch(66% 0.09 70)", "oklch(76% 0.07 70)", "oklch(86% 0.05 70)", "oklch(93% 0.03 70)"] },
+      "amber-light": { "role": "secondary", "displayName": "Pale Amber", "canonical": "#C9A050" },
+      "mid-green": { "role": "tertiary", "displayName": "Survey Green", "canonical": "#5B9B84" },
+      "signal-red": { "role": "tertiary", "displayName": "Signal Red", "canonical": "#D4716B" },
+      "navy-island": { "role": "neutral", "displayName": "Navy Island", "canonical": "#1D2733", "tonalRamp": ["oklch(22% 0.02 250)", "oklch(28% 0.025 250)", "oklch(36% 0.03 250)", "oklch(46% 0.03 250)", "oklch(58% 0.025 250)", "oklch(70% 0.02 250)", "oklch(82% 0.015 250)", "oklch(92% 0.01 250)"] },
+      "navy-light": { "role": "neutral", "displayName": "Navy Light", "canonical": "#243040" },
+      "viz-text": { "role": "neutral", "displayName": "Readout Text", "canonical": "#E3DFD3" },
+      "cta-ink": { "role": "primary", "displayName": "Deep Cyan Ink", "canonical": "#075570" },
+      "rule": { "role": "neutral", "displayName": "Hairline Rule", "canonical": "#D5D2CB" }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Project and page titles. Roboto Slab, structural and surveyed." },
+      "headline": { "displayName": "Headline", "purpose": "Section headings." },
+      "title": { "displayName": "Title", "purpose": "Sub-section and card titles." },
+      "body": { "displayName": "Body", "purpose": "Long-form Lora prose, capped near 65-75ch." },
+      "label": { "displayName": "Label", "purpose": "Filters, axis labels, kickers. Space Grotesk, track-spaced." },
+      "mono": { "displayName": "Mono", "purpose": "Code and dense numeric readouts inside islands." }
+    },
+    "shadows": [
+      { "name": "island-shadow", "value": "0 4px 12px rgba(0, 0, 0, 0.3)", "purpose": "Lifts tooltips and raised cards off the navy island canvas. Islands only." },
+      { "name": "cyan-glow", "value": "0 0 0 6px rgba(14, 165, 201, 0.4)", "purpose": "Soft halo on an active or hovered cyan data point." },
+      { "name": "amber-glow", "value": "0 0 0 6px rgba(184, 137, 63, 0.3)", "purpose": "Soft halo on an active or hovered amber data point." }
+    ],
+    "motion": [
+      { "name": "ease-out-quart", "value": "cubic-bezier(0.25, 1, 0.5, 1)", "purpose": "Default easing for state transitions and reveals. Decelerating, never bounce." },
+      { "name": "duration-quick", "value": "150ms", "purpose": "Button and chip state changes." }
+    ],
+    "breakpoints": [
+      { "name": "viz-mobile", "value": "500px" },
+      { "name": "reading", "value": "728px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "CTA Button",
+      "kind": "button",
+      "refersTo": "cta",
+      "description": "Primary action and link affordance: a translucent cyan tint with deep-cyan ink. Quiet and live at once.",
+      "html": "<button class=\"ds-cta\">View the map</button>",
+      "css": ".ds-cta { background: rgba(14,165,201,0.18); color: #075570; font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 14px; font-weight: 500; letter-spacing: 0.05em; padding: 5px 14px; border: none; border-radius: 4px; cursor: pointer; transition: background 150ms cubic-bezier(0.25,1,0.5,1); } .ds-cta:hover { background: rgba(14,165,201,0.30); } .ds-cta:active { background: rgba(14,165,201,0.36); } .ds-cta:focus-visible { outline: 2px solid #0EA5C9; outline-offset: 2px; }"
+    },
+    {
+      "name": "Filter Chip",
+      "kind": "chip",
+      "refersTo": "filter-chip",
+      "description": "Layer toggle above a visualization: transparent at rest with a layer-colored dot, faintly tinted when selected.",
+      "html": "<button class=\"ds-chip is-selected\"><span class=\"ds-chip__dot\"></span>Compute</button>",
+      "css": ".ds-chip { display: inline-flex; align-items: center; gap: 6px; background: transparent; color: #393A3A; font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 14px; font-weight: 500; padding: 5px 14px; border: 1px solid #D5D2CB; border-radius: 4px; cursor: pointer; opacity: 0.6; transition: opacity 150ms cubic-bezier(0.25,1,0.5,1), background 150ms; } .ds-chip:hover { opacity: 0.85; } .ds-chip.is-selected { opacity: 1; background: rgba(14,165,201,0.12); border-color: rgba(14,165,201,0.4); } .ds-chip__dot { width: 8px; height: 8px; border-radius: 50%; background: #0EA5C9; flex-shrink: 0; }"
+    },
+    {
+      "name": "Hairline Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Flat grouping container: no fill, a single hairline border, generous padding. Used only when grouping truly helps.",
+      "html": "<article class=\"ds-card\"><h3 class=\"ds-card__title\">Identity split, didn't fill</h3><p class=\"ds-card__body\">Enterprise IdPs anchor the closed corner; crypto-native keys anchor the open one.</p></article>",
+      "css": ".ds-card { background: transparent; border: 1px solid #D5D2CB; border-radius: 4px; padding: 1.5rem; max-width: 480px; } .ds-card__title { font-family: 'Roboto Slab', Georgia, serif; font-weight: 700; font-size: 1.125rem; color: #393A3A; margin: 0 0 0.5rem; } .ds-card__body { font-family: 'Lora', Georgia, serif; font-size: 1rem; line-height: 1.65; color: #6B6966; margin: 0; }"
+    },
+    {
+      "name": "Kicker Label",
+      "kind": "custom",
+      "refersTo": "label",
+      "description": "Short uppercase track-spaced label above a section or chart, e.g. WHAT THE MAP REVEALS.",
+      "html": "<span class=\"ds-kicker\">What the map reveals</span>",
+      "css": ".ds-kicker { font-family: 'Space Grotesk', system-ui, sans-serif; font-size: 14px; font-weight: 500; letter-spacing: 0.05em; text-transform: uppercase; color: #9A9793; }"
+    },
+    {
+      "name": "Island Tooltip",
+      "kind": "custom",
+      "refersTo": "card",
+      "description": "Readout that rides over the dark visualization island: navy-light surface, light text, soft drop shadow.",
+      "html": "<div class=\"ds-tooltip\"><strong class=\"ds-tooltip__name\">Coinbase x402</strong><span class=\"ds-tooltip__note\">Open spec, but settlement routes through Coinbase</span></div>",
+      "css": ".ds-tooltip { background: #243040; color: #E3DFD3; border-radius: 4px; padding: 10px 12px; max-width: 260px; box-shadow: 0 4px 12px rgba(0,0,0,0.3); } .ds-tooltip__name { display: block; font-family: 'Roboto Slab', Georgia, serif; font-weight: 700; font-size: 14px; margin-bottom: 2px; } .ds-tooltip__note { font-family: 'Lora', Georgia, serif; font-size: 13px; line-height: 1.5; color: #a09d94; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Cartographer's Table",
+    "overview": "Sideband Lab is a working surface, not a showroom. The shell is warm cream paper (#EEEBE4): quiet, matte, the color of a field map left on a table. The instruments are laid out with intent (serif prose, slab-serif labels, hairline rules), and the maps themselves are dark plotted charts (#1D2733 navy islands) set into the paper as deliberate cold contrast. The lab's job is to map territory: to find structure in fast-moving AI and agent infrastructure and make that structure legible at a glance.\n\nThe system runs in two registers held in tension. The shell is calm: cream background, dark ink, one hairline divider weight, almost no shadow. The visualization islands are dense: navy canvas, light readout text, layer-colored data points, a dashed diagonal. The contrast between warm paper and cold chart is the whole identity. Neither register decorates; the shell frames the argument, the island proves it.",
+    "keyCharacteristics": [
+      "Warm cream paper shell, cold navy data islands, nothing in between.",
+      "Slab-serif display (Roboto Slab), serif body (Lora), sans labels (Space Grotesk).",
+      "Flat by default: one hairline rule weight, depth only inside the dark islands.",
+      "Light mode only. The cream background is the brand.",
+      "Color is meaning: each accent maps to a layer or a signal, never to decoration."
+    ],
+    "rules": [
+      { "name": "The Earned Color Rule", "body": "On the cream shell, accents stay under ~10% of the surface (Restrained). Inside a dark island the rules invert: color becomes a full categorical palette where every hue is a layer or series. Color outside those two jobs is forbidden.", "section": "colors" },
+      { "name": "The Red-Means-Danger Rule", "body": "Signal Red (#D4716B) appears only for failure and warning. Never a fourth decorative accent.", "section": "colors" },
+      { "name": "The Three-Voice Rule", "body": "Slab serif titles, serif body, sans labels. Each font has one job.", "section": "typography" },
+      { "name": "The Caps-Are-Labels Rule", "body": "All-caps and 0.05em tracking are reserved for short labels and kickers. Body copy is never set in caps.", "section": "typography" },
+      { "name": "The Flat Shell Rule", "body": "Surfaces on the cream shell are flat. Separation comes from the hairline rule and whitespace, never a drop shadow. Shadows live only inside the dark islands.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do keep the shell flat: separate with the hairline rule (#D5D2CB) and whitespace, not shadows.",
+      "Do use design tokens from global.css; never inline a magic number.",
+      "Do let color carry meaning: an accent is a layer or a signal, never a flourish.",
+      "Do set the three voices to their jobs: Roboto Slab titles, Lora body, Space Grotesk labels.",
+      "Do reserve all-caps and 0.05em tracking for short labels and kickers.",
+      "Do write copy claim-first and specific; em dashes in project copy have no spaces.",
+      "Do honor prefers-reduced-motion and target WCAG AA contrast."
+    ],
+    "donts": [
+      "Don't reach for startup-marketing gloss: gradient blobs, floating hero illustrations, Schedule-a-demo energy.",
+      "Don't build dashboard-SaaS density: metric-tile grids, sidebar navs, the big-number hero.",
+      "Don't use the interchangeable AI-tool look: neon-on-black, decorative glassmorphism, gradient text.",
+      "Don't use a colored border-left or border-right greater than 1px as a stripe.",
+      "Don't add decoration; if an element does not make something clearer, delete it.",
+      "Don't add a dark mode. Light only; the cream background is the brand.",
+      "Don't spend Signal Red on anything but danger and failure."
+    ]
+  }
+}
