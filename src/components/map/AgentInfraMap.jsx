@@ -1,6 +1,14 @@
 import { useState, useEffect, useRef } from "react";
 import mapData from "../../../data/map-data.json";
 
+/* ── Last-updated date, derived from the data export (UTC, deterministic so
+   server render and client hydration agree) ─────────────────────────────── */
+const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const UPDATED = (() => {
+  const d = new Date(mapData.exported_at);
+  return `${MONTHS[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
+})();
+
 /* ── Dark palette (sampled from /public/img/sideband-icon.png) ─ */
 const C = {
   bg:      "#1d2733",   // page background, header background
@@ -370,6 +378,7 @@ export default function AgentInfraMap() {
         <div style={{ marginBottom: mobile ? 14 : 20 }}>
           <h1 style={{ fontFamily: F.display, fontSize: mobile ? T.heading.m : T.heading.d, fontWeight: 700, margin: 0, lineHeight: 1.2, color: C.text }}>Agent-Era Infrastructure Map</h1>
           <p style={{ fontFamily: F.body, fontSize: mobile ? T.body.m : T.body.d, opacity: 0.5, margin: "8px 0 0", lineHeight: 1.5, maxWidth: 640 }}>Companies and protocols <a href="#rubric" style={{ color: "inherit", textDecoration: "underline", textDecorationColor: `${C.text}70`, textUnderlineOffset: "3px" }}>scored</a> on how open and how distributed they are, across five layers of the emerging agent stack—each with a maturity verdict.</p>
+          <div style={{ fontFamily: F.ui, fontSize: mobile ? T.detail.m : T.detail.d, color: C.text, opacity: 0.4, margin: "10px 0 0", letterSpacing: "0.05em" }}>Updated {UPDATED}</div>
         </div>
         {mobile ? (
           <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
