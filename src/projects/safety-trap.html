@@ -76,10 +76,18 @@
     align-items: center;
     gap: 14px;
     cursor: default;
+    outline: none;
     transition: opacity 0.2s var(--ease-out-quart);
   }
   .agent-rows.has-hover .agent-row:not(.hovered) {
     opacity: 0.28;
+  }
+  .agent-row:focus-visible {
+    outline: 2px solid var(--cyan);
+    outline-offset: 3px;
+  }
+  @media (pointer: coarse) {
+    .agent-row { min-height: 44px; }
   }
 
   /* ── Labels ── */
@@ -94,17 +102,22 @@
     color: rgba(227, 223, 211, 0.82);
     display: block;
     line-height: 1.3;
+    overflow-wrap: break-word;
+    word-break: break-word;
   }
   .agent-domain {
     font-size: 10px;
     color: var(--text-muted);
     letter-spacing: 0.05em;
     text-transform: uppercase;
+    overflow-wrap: break-word;
+    word-break: break-word;
   }
 
   /* ── Bar track ── */
   .bar-track {
     flex: 1;
+    min-width: 0;
     height: 30px;
     background: rgba(255,255,255,0.05);
     border-radius: 2px;
@@ -246,6 +259,29 @@
   .tooltip-val-unsafe { color: var(--amber); font-weight: 600; }
   .tooltip-val-fail   { color: rgba(255,255,255,0.25); font-weight: 600; }
 
+  /* ── Empty state ── */
+  .chart-empty {
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-size: 13px;
+    color: var(--text-sub);
+    padding: var(--sp-3) 0;
+    text-align: center;
+  }
+
+  /* Reduced motion: bars settle instantly, transitions neutralized.
+     The entrance keyframes (barIn) still run but complete immediately. */
+  @media (prefers-reduced-motion: reduce) {
+    .agent-row {
+      transition: none;
+    }
+    .bar-seg.animate {
+      animation-duration: 0.01ms;
+    }
+    .tooltip {
+      transition: none;
+    }
+  }
+
   @media (max-width: 768px) {
     .chart-island {
       width: calc(100% + 32px);
@@ -256,7 +292,6 @@
     }
     .agent-label { width: 120px; }
     .agent-name  { font-size: 11px; }
-    .threshold-header { padding-left: 134px; }
   }
 </style>
 </head>
@@ -302,7 +337,7 @@
 
 </div>
 
-<div class="tooltip" id="tooltip"></div>
+<div class="tooltip" id="tooltip" aria-hidden="true"></div>
 
 <script>
 const AGENTS = [
@@ -325,78 +360,276 @@ const rows = document.getElementById('agentRows');
 const tooltip = document.getElementById('tooltip');
 const chartBody = document.getElementById('chartBody');
 
-/* Build rows */
-AGENTS.forEach((a, i) => {
-  const row = document.createElement('div');
-  row.className = 'agent-row';
-  row.dataset.index = i;
+/* Coerce a value to a finite number clamped to 0–100; fallback to 0. */
+function pct(v) {
+  const n = typeof v === 'number' ? v : parseFloat(v);
+  if (!Number.isFinite(n)) return 0;
+  return Math.min(100, Math.max(0, n));
+}
 
-  /* Label */
-  const label = document.createElement('div');
-  label.className = 'agent-label';
-  label.innerHTML = `<span class="agent-name">${a.name}</span><span class="agent-domain">${a.domain}</span>`;
+/* Build the tooltip body for an agent using safe DOM APIs (no innerHTML), so
+   agent names/domains with markup characters can't inject anything. */
+function buildTooltipContent(name, domain, safe, unsafe, failed) {
+  const frag = document.createDocumentFragment();
 
-  /* Track */
-  const track = document.createElement('div');
-  track.className = 'bar-track';
+  const nameEl = document.createElement('div');
+  nameEl.className = 'tooltip-name';
+  nameEl.textContent = name;
+  if (domain) {
+    const domEl = document.createElement('span');
+    domEl.className = 'tooltip-domain';
+    domEl.textContent = domain;
+    nameEl.appendChild(domEl);
+  }
+  frag.appendChild(nameEl);
 
-  /* Safe segment */
-  const segSafe = document.createElement('div');
-  segSafe.className = 'bar-seg safe' + (a.unsafeSuc === 0 ? ' is-last' : '');
-  segSafe.style.width = (a.safe / 100 * 100).toFixed(3) + '%';
-  segSafe.style.animationDelay = (i * 40) + 'ms';
+  const mkRow = (key, valClass, valText) => {
+    const rowEl = document.createElement('div');
+    rowEl.className = 'tooltip-row';
+    const keyEl = document.createElement('span');
+    keyEl.className = 'tooltip-key';
+    keyEl.textContent = key;
+    const valEl = document.createElement('span');
+    valEl.className = valClass;
+    valEl.textContent = valText;
+    rowEl.appendChild(keyEl);
+    rowEl.appendChild(valEl);
+    return rowEl;
+  };
 
-  /* Unsafe segment */
-  const segUnsafe = document.createElement('div');
-  segUnsafe.className = 'bar-seg unsafe';
-  segUnsafe.style.width = (a.unsafeSuc / 100 * 100).toFixed(3) + '%';
-  segUnsafe.style.animationDelay = (i * 40 + 60) + 'ms';
+  frag.appendChild(mkRow('Safe completion', 'tooltip-val-safe', safe.toFixed(1) + '%'));
+  frag.appendChild(mkRow('Unsafe success', 'tooltip-val-unsafe', unsafe.toFixed(1) + '%'));
+  frag.appendChild(mkRow('Task failure', 'tooltip-val-fail', failed.toFixed(1) + '%'));
+  return frag;
+}
 
-  /* Failed segment */
-  const segFailed = document.createElement('div');
-  segFailed.className = 'bar-seg failed';
+/* Show the tooltip for a row's data, replacing prior content safely. */
+function showTooltip(name, domain, safe, unsafe, failed) {
+  if (!tooltip) return;
+  tooltip.replaceChildren(buildTooltipContent(name, domain, safe, unsafe, failed));
+  tooltip.classList.add('visible');
+}
 
-  track.appendChild(segSafe);
-  if (a.unsafeSuc > 0) track.appendChild(segUnsafe);
-  track.appendChild(segFailed);
+/* Mirror mouseenter for keyboard focus: move the single highlight to a row. */
+function setActiveRow(row) {
+  if (!rows) return;
+  rows.classList.add('has-hover');
+  for (const r of rows.querySelectorAll('.agent-row.hovered')) r.classList.remove('hovered');
+  row.classList.add('hovered');
+}
 
-  /* Success pct */
-  const succPct = document.createElement('div');
-  succPct.className = 'bar-success-pct';
-  succPct.textContent = a.success.toFixed(0) + '%';
+/* Clear all hover/focus state and hide the tooltip. */
+function clearActive() {
+  if (!rows) return;
+  rows.classList.remove('has-hover');
+  for (const r of rows.querySelectorAll('.agent-row.hovered')) r.classList.remove('hovered');
+  if (tooltip) tooltip.classList.remove('visible');
+}
 
-  row.appendChild(label);
-  row.appendChild(track);
-  row.appendChild(succPct);
-  rows.appendChild(row);
+/* Anchor the tooltip beside an element (used for keyboard focus, which has no
+   cursor coordinates). Positions to the right of the row, clamped to viewport. */
+function positionTooltipToElement(el) {
+  if (!tooltip || !el) return;
+  const r = el.getBoundingClientRect();
+  const tw = tooltip.offsetWidth, th = tooltip.offsetHeight;
+  let x = r.right + 16;
+  let y = r.top + r.height / 2 - th / 2;
+  if (x + tw > window.innerWidth - 8) x = r.left - tw - 16;
+  if (x < 8) x = 8;
+  if (y < 8) y = 8;
+  if (y + th > window.innerHeight - 8) y = window.innerHeight - th - 8;
+  tooltip.style.left = x + 'px';
+  tooltip.style.top  = y + 'px';
+}
 
-  /* Tooltip */
-  row.addEventListener('mouseenter', () => {
-    rows.classList.add('has-hover');
-    row.classList.add('hovered');
+/* Render the empty state and bail out of all chart/animation paths. */
+function renderEmpty() {
+  if (!rows) return;
+  rows.replaceChildren();
+  rows.removeAttribute('role');
+  rows.removeAttribute('aria-label');
+  const msg = document.createElement('p');
+  msg.className = 'chart-empty';
+  msg.textContent = 'No benchmark data available.';
+  rows.appendChild(msg);
+}
+
+/* Guard: required nodes must exist. */
+if (!rows || !tooltip || !chartBody) {
+  // Nothing we can do without the mount points; fail quietly.
+} else if (!Array.isArray(AGENTS) || AGENTS.length === 0) {
+  renderEmpty();
+} else {
+  /* List semantics for the row container. */
+  rows.setAttribute('role', 'list');
+  rows.setAttribute('aria-label', 'Agent safety benchmark results, sorted by task success rate');
+
+  let built = 0;
+
+  AGENTS.forEach((a, i) => {
+    if (!a || typeof a !== 'object') return;
+
+    const name   = (typeof a.name === 'string' && a.name.trim()) ? a.name.trim() : 'Unknown agent';
+    const domain = (typeof a.domain === 'string' && a.domain.trim()) ? a.domain.trim() : '';
+    const safe   = pct(a.safe);
+    const unsafe = pct(a.unsafeSuc);
+    const failed = Math.min(100, Math.max(0, 100 - safe - unsafe));
+
+    const row = document.createElement('div');
+    row.className = 'agent-row';
+    row.dataset.index = i;
+    row.tabIndex = 0;
+    row.setAttribute('role', 'listitem');
+    row.setAttribute('aria-label',
+      `${name}${domain ? ', ' + domain : ''}: ${safe.toFixed(1)}% safe completion, ` +
+      `${unsafe.toFixed(1)}% task done but safety violated, ${failed.toFixed(1)}% task failed.`);
+
+    /* Label */
+    const label = document.createElement('div');
+    label.className = 'agent-label';
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'agent-name';
+    nameSpan.textContent = name;
+    label.appendChild(nameSpan);
+    if (domain) {
+      const domainSpan = document.createElement('span');
+      domainSpan.className = 'agent-domain';
+      domainSpan.textContent = domain;
+      label.appendChild(domainSpan);
+    }
+
+    /* Track */
+    const track = document.createElement('div');
+    track.className = 'bar-track';
+
+    /* Safe segment */
+    const segSafe = document.createElement('div');
+    segSafe.className = 'bar-seg safe' + (unsafe === 0 ? ' is-last' : '');
+    segSafe.style.width = safe.toFixed(3) + '%';
+    segSafe.style.animationDelay = (i * 40) + 'ms';
+
+    /* Unsafe segment */
+    const segUnsafe = document.createElement('div');
+    segUnsafe.className = 'bar-seg unsafe';
+    segUnsafe.style.width = unsafe.toFixed(3) + '%';
+    segUnsafe.style.animationDelay = (i * 40 + 60) + 'ms';
+
+    /* Failed segment */
+    const segFailed = document.createElement('div');
+    segFailed.className = 'bar-seg failed';
+
+    track.appendChild(segSafe);
+    if (unsafe > 0) track.appendChild(segUnsafe);
+    track.appendChild(segFailed);
+
+    /* Success pct */
+    const succPct = document.createElement('div');
+    succPct.className = 'bar-success-pct';
+    const successVal = Number.isFinite(a.success) ? pct(a.success) : (safe + unsafe);
+    succPct.textContent = successVal.toFixed(0) + '%';
+
+    row.appendChild(label);
+    row.appendChild(track);
+    row.appendChild(succPct);
+    rows.appendChild(row);
+    built++;
+
+    /* Hover (pointer). Highlight model is intentionally cleared only on the
+       container mouseleave below, not per-row, to avoid the gap-crossing flicker. */
+    row.addEventListener('mouseenter', () => {
+      setActiveRow(row);
+    });
+    row.addEventListener('mousemove', (e) => {
+      showTooltip(name, domain, safe, unsafe, failed);
+      positionTooltip(e);
+    });
+
+    /* Keyboard focus mirrors mouseenter, plus anchors the tooltip beside the row
+       (focus has no cursor coordinates). Clearing happens on the container-level
+       focusout below — never per-row blur — to preserve the no-flicker model. */
+    row.addEventListener('focus', () => {
+      setActiveRow(row);
+      showTooltip(name, domain, safe, unsafe, failed);
+      positionTooltipToElement(row);
+    });
   });
-  row.addEventListener('mouseleave', () => {
-    rows.classList.remove('has-hover');
-    row.classList.remove('hovered');
-    tooltip.classList.remove('visible');
-  });
-  row.addEventListener('mousemove', (e) => {
-    const failedPct = (100 - a.safe - a.unsafeSuc).toFixed(1);
-    tooltip.innerHTML = `
-      <div class="tooltip-name">${a.name}<span class="tooltip-domain">${a.domain}</span></div>
-      <div class="tooltip-row"><span class="tooltip-key">Safe completion</span><span class="tooltip-val-safe">${a.safe.toFixed(1)}%</span></div>
-      <div class="tooltip-row"><span class="tooltip-key">Unsafe success</span><span class="tooltip-val-unsafe">${a.unsafeSuc.toFixed(1)}%</span></div>
-      <div class="tooltip-row"><span class="tooltip-key">Task failure</span><span class="tooltip-val-fail">${failedPct}%</span></div>
-    `;
-    tooltip.classList.add('visible');
-    positionTooltip(e);
-  });
-});
 
-/* Tooltip positioning */
-document.addEventListener('mousemove', positionTooltip);
+  if (built === 0) {
+    renderEmpty();
+  } else {
+    /* Clear the hover state only when the pointer leaves the whole chart, not when
+       it crosses the gap between rows. The gap is inside .agent-rows, so this fires
+       only on a true exit -- gap traversal no longer drops has-hover (the flicker). */
+    rows.addEventListener('mouseleave', () => {
+      clearActive();
+    });
+
+    /* Keyboard analogue of the container mouseleave: clear only when focus truly
+       leaves the container (not when moving between rows inside it). */
+    rows.addEventListener('focusout', (e) => {
+      if (!rows.contains(e.relatedTarget)) clearActive();
+    });
+
+    /* Tooltip positioning (pointer) */
+    document.addEventListener('mousemove', positionTooltip);
+
+    /* Reposition the keyboard-anchored tooltip on scroll/resize while focused. */
+    function repositionFocused() {
+      if (!tooltip.classList.contains('visible')) return;
+      const focused = rows.querySelector('.agent-row.hovered');
+      if (focused && document.activeElement === focused) positionTooltipToElement(focused);
+    }
+
+    /* Threshold label — float above chart at 40% of bar track column */
+    function placeThresholdLabel() {
+      const existing = chartBody.querySelector('.threshold-label-text');
+      if (existing) existing.remove();
+
+      const firstTrack = rows.querySelector('.bar-track');
+      if (!firstTrack) return;
+
+      const bodyRect  = chartBody.getBoundingClientRect();
+      const trackRect = firstTrack.getBoundingClientRect();
+      const left = (trackRect.left - bodyRect.left) + trackRect.width * 0.40;
+
+      const lbl = document.createElement('div');
+      lbl.className = 'threshold-label-text';
+      lbl.textContent = '40% — production floor';
+      lbl.style.left = left + 'px';
+
+      chartBody.style.position = 'relative';
+      chartBody.appendChild(lbl);
+    }
+
+    /* Entrance animation — trigger after paint */
+    function animateBars() {
+      rows.querySelectorAll('.bar-seg.safe, .bar-seg.unsafe').forEach(seg => {
+        seg.classList.add('animate');
+      });
+    }
+
+    /* Keep the threshold label aligned on resize; feature-detect ResizeObserver. */
+    if (typeof ResizeObserver === 'function') {
+      const ro = new ResizeObserver(() => { placeThresholdLabel(); repositionFocused(); });
+      ro.observe(rows);
+    } else {
+      window.addEventListener('resize', () => { placeThresholdLabel(); repositionFocused(); });
+    }
+    window.addEventListener('scroll', repositionFocused, { passive: true });
+
+    requestAnimationFrame(() => {
+      requestAnimationFrame(() => {
+        placeThresholdLabel();
+        animateBars();
+      });
+    });
+  }
+}
+
+/* Tooltip positioning (pointer-driven) — defined at top level so the document
+   mousemove listener and per-row mousemove can share it. */
 function positionTooltip(e) {
-  if (!tooltip.classList.contains('visible')) return;
+  if (!tooltip || !tooltip.classList.contains('visible')) return;
   const tw = tooltip.offsetWidth, th = tooltip.offsetHeight;
   let x = e.clientX + 16, y = e.clientY - th / 2;
   if (x + tw > window.innerWidth - 8) x = e.clientX - tw - 16;
@@ -405,44 +638,6 @@ function positionTooltip(e) {
   tooltip.style.left = x + 'px';
   tooltip.style.top  = y + 'px';
 }
-
-/* Threshold label — float above chart at 40% of bar track column */
-function placeThresholdLabel() {
-  const existing = chartBody.querySelector('.threshold-label-text');
-  if (existing) existing.remove();
-
-  const firstTrack = rows.querySelector('.bar-track');
-  if (!firstTrack) return;
-
-  const bodyRect  = chartBody.getBoundingClientRect();
-  const trackRect = firstTrack.getBoundingClientRect();
-  const left = (trackRect.left - bodyRect.left) + trackRect.width * 0.40;
-
-  const lbl = document.createElement('div');
-  lbl.className = 'threshold-label-text';
-  lbl.textContent = '40% — production floor';
-  lbl.style.left = left + 'px';
-
-  chartBody.style.position = 'relative';
-  chartBody.appendChild(lbl);
-}
-
-/* Entrance animation — trigger after paint */
-function animateBars() {
-  rows.querySelectorAll('.bar-seg.safe, .bar-seg.unsafe').forEach(seg => {
-    seg.classList.add('animate');
-  });
-}
-
-const ro = new ResizeObserver(() => placeThresholdLabel());
-ro.observe(rows);
-
-requestAnimationFrame(() => {
-  requestAnimationFrame(() => {
-    placeThresholdLabel();
-    animateBars();
-  });
-});
 </script>
 </body>
 </html>
