@@ -1,5 +1,5 @@
 {
-  "exported_at": "2026-04-03T12:31:52.431Z",
+  "exported_at": "2026-05-30T00:17:13.128Z",
   "layers": [
     {
       "key": "compute",
@@ -694,6 +694,171 @@
       "reviewed": true,
       "created_at": "2026-03-03T15:04:05.741084+00:00",
       "updated_at": "2026-03-04T01:10:08.141+00:00"
+    },
+    {
+      "id": "a4b09df3-d35b-4f71-abb8-a2e85ce142c2",
+      "layer": "compute",
+      "short_name": "Akash/io.net",
+      "full_name": "Decentralized GPU (Akash / io.net)",
+      "note": "Permissionless GPU markets—anyone supplies or rents, no hyperscaler gatekeeper",
+      "current_x": null,
+      "current_y": null,
+      "source_urls": [
+        "https://github.com/akash-network/node",
+        "https://akash.network/docs/",
+        "https://docs.io.net/"
+      ],
+      "reviewed": false,
+      "created_at": "2026-05-30T00:17:12.868Z",
+      "updated_at": "2026-05-30T00:17:12.868Z"
+    },
+    {
+      "id": "17c1cf33-ae29-434e-b5a7-0c12a11c6ca3",
+      "layer": "compute",
+      "short_name": "Bittensor",
+      "full_name": "Bittensor",
+      "note": "Token-incentivized model network—open subnets compete, TAO emissions decide who wins",
+      "current_x": null,
+      "current_y": null,
+      "source_urls": [
+        "https://github.com/opentensor/bittensor",
+        "https://docs.learnbittensor.org/",
+        "https://bittensor.com/"
+      ],
+      "reviewed": false,
+      "created_at": "2026-05-30T00:17:12.898Z",
+      "updated_at": "2026-05-30T00:17:12.898Z"
+    },
+    {
+      "id": "12fda67d-7934-4e74-999e-987da70f9c25",
+      "layer": "protocols",
+      "short_name": "Coral",
+      "full_name": "Coral Protocol",
+      "note": "Open coordination layer for agents—decentralized, unlike A2A's foundation governance",
+      "current_x": null,
+      "current_y": null,
+      "source_urls": [
+        "https://github.com/Coral-Protocol/coral-server",
+        "https://arxiv.org/abs/2505.00749",
+        "https://www.coralprotocol.org/"
+      ],
+      "reviewed": false,
+      "created_at": "2026-05-30T00:17:12.925Z",
+      "updated_at": "2026-05-30T00:17:12.925Z"
+    },
+    {
+      "id": "7eb0274a-c558-4eaa-bfd3-c2c1072c67f1",
+      "layer": "protocols",
+      "short_name": "AG-UI",
+      "full_name": "AG-UI (Agent-User Interaction)",
+      "note": "Open agent-to-frontend protocol on HTTP and WebSockets—no platform owns the channel",
+      "current_x": null,
+      "current_y": null,
+      "source_urls": [
+        "https://github.com/ag-ui-protocol/ag-ui",
+        "https://docs.ag-ui.com/"
+      ],
+      "reviewed": false,
+      "created_at": "2026-05-30T00:17:12.955Z",
+      "updated_at": "2026-05-30T00:17:12.955Z"
+    },
+    {
+      "id": "6f1c4b4d-ff31-4b16-906c-16e1cc992bb6",
+      "layer": "discovery",
+      "short_name": "Claude dir",
+      "full_name": "Claude connectors directory",
+      "note": "75+ connectors in Claude, each reviewed and listed by Anthropic",
+      "current_x": null,
+      "current_y": null,
+      "source_urls": [
+        "https://www.anthropic.com/news/connectors",
+        "https://blog.modelcontextprotocol.io/posts/2026-01-26-mcp-apps/"
+      ],
+      "reviewed": false,
+      "created_at": "2026-05-30T00:17:12.984Z",
+      "updated_at": "2026-05-30T00:17:12.984Z"
+    },
+    {
+      "id": "74266f9d-a58c-4357-9536-8df9710b9be8",
+      "layer": "discovery",
+      "short_name": "CF MCP",
+      "full_name": "Cloudflare MCP catalog",
+      "note": "Deploy and discover remote MCP servers—open to publish, Cloudflare operates the runtime",
+      "current_x": null,
+      "current_y": null,
+      "source_urls": [
+        "https://developers.cloudflare.com/agents/model-context-protocol/",
+        "https://developers.cloudflare.com/agents/model-context-protocol/mcp-servers-for-cloudflare/"
+      ],
+      "reviewed": false,
+      "created_at": "2026-05-30T00:17:13.013Z",
+      "updated_at": "2026-05-30T00:17:13.013Z"
+    },
+    {
+      "id": "3019f676-22bc-4325-a0f3-ae4a4c427b25",
+      "layer": "identity",
+      "short_name": "Okta XAA",
+      "full_name": "Okta Cross App Access",
+      "note": "OAuth extension for agent-to-app access—open spec, but the enterprise IdP mediates",
+      "current_x": null,
+      "current_y": null,
+      "source_urls": [
+        "https://www.okta.com/solutions/cross-app-access/",
+        "https://www.okta.com/newsroom/press-releases/okta-introduces-cross-app-access-to-help-secure-ai-agents-in-the/"
+      ],
+      "reviewed": false,
+      "created_at": "2026-05-30T00:17:13.043Z",
+      "updated_at": "2026-05-30T00:17:13.043Z"
+    },
+    {
+      "id": "05817e36-e683-41b4-876d-2fa9f31bd5d7",
+      "layer": "payments",
+      "short_name": "ACP",
+      "full_name": "Agentic Commerce Protocol",
+      "note": "Open checkout standard for any merchant and agent—but Stripe mints the payment token",
+      "current_x": null,
+      "current_y": null,
+      "source_urls": [
+        "https://github.com/agentic-commerce-protocol/agentic-commerce-protocol",
+        "https://www.agenticcommerce.dev/",
+        "https://docs.stripe.com/agentic-commerce/acp"
+      ],
+      "reviewed": false,
+      "created_at": "2026-05-30T00:17:13.073Z",
+      "updated_at": "2026-05-30T00:17:13.073Z"
+    },
+    {
+      "id": "c6639ba4-aaf0-46b5-992b-eae2f45c4bba",
+      "layer": "payments",
+      "short_name": "Catena",
+      "full_name": "Catena Labs (Agent Commerce Kit)",
+      "note": "A regulated bank for agents—open ACK protocols on stablecoin rails, licensed custody",
+      "current_x": null,
+      "current_y": null,
+      "source_urls": [
+        "https://www.agentcommercekit.com/",
+        "https://github.com/catena-labs/agentcommercekit",
+        "https://catenalabs.com/"
+      ],
+      "reviewed": false,
+      "created_at": "2026-05-30T00:17:13.100Z",
+      "updated_at": "2026-05-30T00:17:13.100Z"
+    },
+    {
+      "id": "195e7b9c-2411-4468-a134-938d2c252468",
+      "layer": "payments",
+      "short_name": "Skyfire",
+      "full_name": "Skyfire",
+      "note": "Agent-native payments with Know-Your-Agent identity—multi-rail, Skyfire is issuer of record",
+      "current_x": null,
+      "current_y": null,
+      "source_urls": [
+        "https://docs.skyfire.xyz/",
+        "https://skyfire.xyz/"
+      ],
+      "reviewed": false,
+      "created_at": "2026-05-30T00:17:13.128Z",
+      "updated_at": "2026-05-30T00:17:13.128Z"
     }
   ],
   "insights": [
