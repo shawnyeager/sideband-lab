@@ -894,11 +894,19 @@
   ],
   "insights": [
     {
+      "id": "a9b1d54f-3b97-4fbd-af97-55b47fbcf010",
+      "title": "The newcomers picked sides",
+      "body": "Ten new players this refresh, almost none in the middle. Each reinforced a pole: platform-mediated or permissionless, enterprise or crypto-native. The stack is choosing sides, not converging.",
+      "color": "#EEEBE4",
+      "sort_order": 0,
+      "active": true
+    },
+    {
       "id": "7a9f6837-8575-4308-9caa-825d7e06475d",
       "title": "Payments is forking, not bridging",
-      "body": "The new agent-payment rails—ACP, Catena, Skyfire—all land platform-mediated, beside the card networks. x402, Lightning, and Cashu sit across an empty middle.",
+      "body": "The new agent-payment rails—ACP, Catena, Skyfire—all land platform-mediated, beside the card networks. x402, Lightning, and Cashu hold the permissionless side alone.",
       "color": "#A97C40",
-      "sort_order": 0,
+      "sort_order": 1,
       "active": true
     },
     {
@@ -906,7 +914,7 @@
       "title": "Identity split, didn't fill",
       "body": "Enterprise IdPs (Entra, Okta, Descope) anchor the closed corner; crypto-native keys (Nostr, UCAN, DIDs) anchor the open one. Production tooling arrived on both sides, but no standard bridges them.",
       "color": "#C9A050",
-      "sort_order": 1,
+      "sort_order": 2,
       "active": true
     },
     {
@@ -914,14 +922,6 @@
       "title": "Compute grew a permissionless corner",
       "body": "Akash, io.net, and Bittensor put GPU supply outside the hyperscalers, open and distributed. The closed clouds still own the centralized corner.",
       "color": "#0EA5C9",
-      "sort_order": 2,
-      "active": true
-    },
-    {
-      "id": "a9b1d54f-3b97-4fbd-af97-55b47fbcf010",
-      "title": "Protocols settled first",
-      "body": "MCP and A2A consolidated under Linux Foundation governance in about 18 months. New entrants like AG-UI extend the open stack rather than fork it.",
-      "color": "#38BDF8",
       "sort_order": 3,
       "active": true
     }
