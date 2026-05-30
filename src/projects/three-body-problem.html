@@ -4,18 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Agent payments have a three-body problem</title>
-<link rel="preload" href="/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
 <style>
-  @font-face {
-    font-family: 'Inter';
-    font-style: normal;
-    font-weight: 400 700;
-    font-display: swap;
-    src: url('/fonts/Inter-Variable.woff2') format('woff2');
-  }
-
   /* ============================================================
-     DESIGN TOKENS
+     PROJECT-SPECIFIC TOKENS
+     Site-level tokens, reset, body, .page, .title-block and the shared
+     component classes (.project-prose, .disclosure, .hr-subtle,
+     .project-credit) live in src/styles/project-base.css and
+     src/lib/header.ts. Only chart-specific palette and scale below.
+     Brand fonts (Roboto Slab / Lora / Space Grotesk) come from the shell.
      ============================================================ */
   :root {
     /* ── Site palette (light cream page) ── */
@@ -24,6 +20,11 @@
     --site-text-muted:  #6b6966;
     --site-text-sub:    #9a9793;
     --site-hr:          #d5d2cb;
+
+    /* ── Font stacks — mirrors global.css (not loaded on project pages) ── */
+    --font-display:     'Roboto Slab', Georgia, 'Times New Roman', serif;
+    --font-body:        'Lora', Georgia, 'Times New Roman', serif;
+    --font-sans:        'Space Grotesk', system-ui, -apple-system, sans-serif;
 
     /* ── Chart palette (dark canvas) ── */
     --bg:               #1d2733;
@@ -83,7 +84,6 @@
   body {
     background: var(--site-bg);
     color: var(--site-text);
-    font-family: 'Inter', system-ui, sans-serif;
     display: flex;
     justify-content: center;
   }
@@ -103,7 +103,8 @@
     padding-top: 10px;
     border-top: 1px solid rgba(122,119,112,0.15);
     font-size: 10px;
-    color: #7a7770;
+    color: var(--text-muted);
+    font-family: var(--font-sans);
     letter-spacing: 0.02em;
   }
   .cap-dot {
@@ -115,10 +116,10 @@
     position: relative;
     top: -1px;
   }
-  .cap-dot.filled.cyan { background: #0ea5c9; }
+  .cap-dot.filled.cyan { background: var(--cyan); }
   .cap-dot.hollow {
     background: transparent;
-    box-shadow: inset 0 0 0 1.5px #7a7770;
+    box-shadow: inset 0 0 0 1.5px var(--text-muted);
   }
 
   /* Rotating dash animation for orbit rings and arcs */
@@ -129,13 +130,21 @@
     animation: dash-flow 12s linear infinite;
   }
 
+  /* Honor reduced-motion: freeze the orbit dashes and let the JS
+     entrance settle instantly (see matchMedia guard in the script). */
+  @media (prefers-reduced-motion: reduce) {
+    .orbit-dash {
+      animation: none;
+    }
+  }
+
   /* ============================================================
      CHART BLOCK (title overlays SVG + zone-bar = one navy unit)
      ============================================================ */
   .chart-island {
     max-width: 940px;
     background: var(--bg);
-    border-radius: 3px 3px 0 0;
+    border-radius: 4px 4px 0 0;
     overflow: visible;
   }
   .chart-container {
@@ -155,17 +164,18 @@
     margin-bottom: -60px;
   }
   .chart-title h1 {
-    font-family: 'Roboto Slab', Georgia, serif;
+    font-family: var(--font-display);
     font-weight: 700;
     font-size: 24px;
-    color: #e3dfd3;
+    color: var(--text-heading);
     letter-spacing: -0.01em;
-    line-height: 1.15;
+    line-height: var(--lh-heading);
     margin: 0 0 6px;
   }
   .chart-title p {
+    font-family: var(--font-sans);
     font-size: 14px;
-    color: #a09d94;
+    color: var(--text-sub);
     line-height: 1.5;
     margin: 0;
   }
@@ -184,6 +194,7 @@
   .ax { text-align: center; }
 
   .ax-t {
+    font-family: var(--font-sans);
     text-transform: uppercase;
     letter-spacing: 0.18em;
     font-weight: 600;
@@ -195,6 +206,7 @@
   .ax-t.autonomy { color: var(--gold); }
 
   .ax-d {
+    font-family: var(--font-sans);
     font-size: 12px;
     line-height: var(--lh-body);
   }
@@ -205,6 +217,7 @@
   .cz { text-align: center; }
 
   .cz-t {
+    font-family: var(--font-sans);
     text-transform: uppercase;
     letter-spacing: 0.15em;
     font-weight: 600;
@@ -214,6 +227,7 @@
   }
 
   .cz-d {
+    font-family: var(--font-sans);
     font-size: 12px;
     line-height: var(--lh-body);
     color: var(--sage-muted);
@@ -234,7 +248,7 @@
     width: 100%;
     max-width: 940px;
     background: var(--bg);
-    border-radius: 0 0 3px 3px;
+    border-radius: 0 0 4px 4px;
     display: flex;
     flex-wrap: wrap;
     justify-content: space-between;
@@ -247,6 +261,7 @@
   .zb-col { flex: 1; text-align: center; }
 
   .zb-title {
+    font-family: var(--font-sans);
     text-transform: uppercase;
     letter-spacing: 0.18em;
     font-weight: 600;
@@ -266,9 +281,9 @@
     opacity: 0.65;
   }
 
-  .zb-body.control-text  { color: #0A7A98; }
-  .zb-body.contested-text { color: #5A7A60; }
-  .zb-body.autonomy-text  { color: #7A6828; }
+  .zb-body.control-text  { color: var(--cyan-muted); }
+  .zb-body.contested-text { color: var(--sage-muted); }
+  .zb-body.autonomy-text  { color: var(--gold-muted); }
 
   /* ============================================================
      MOBILE
@@ -410,6 +425,13 @@
 </div>
 
 <script>
+(function () {
+// Bail cleanly if the D3 dependency failed to load or the mount point is
+// missing — the prose, zone bar, and sources still render without the chart.
+if (typeof d3 === 'undefined' || !document.getElementById('chart')) {
+  return;
+}
+
 // --- CONFIG ---
 const W = 940, H = 540;
 
@@ -695,6 +717,8 @@ const arcs = [
 const svg = d3.select('#chart')
   .append('svg')
   .attr('viewBox', `0 0 ${W} ${H}`)
+  .attr('role', 'img')
+  .attr('aria-label', 'Force-directed chart of payment rails orbiting three gravitational bodies: the State and Incumbent Capital form a binary control system on the left, Insurgent Capital sits on the right, and contested-zone protocols (stablecoins, agent payment standards) sit between them. Dot size encodes annual capital volume. Full data and sources are listed below the chart.')
   .style('overflow', 'hidden');
 
 // Defs
@@ -848,7 +872,7 @@ const arcLayer = svg.append('g').attr('class', 'arcs');
     .attr('stroke-dasharray', '5 3');
 
   arcLayer.append('text')
-    .attr('font-family', 'Inter, sans-serif').attr('font-size', 10).attr('font-weight', 500)
+    .attr('font-family', "'Space Grotesk', system-ui, sans-serif").attr('font-size', 10).attr('font-weight', 500)
     .attr('fill', '#0ea5c9').attr('opacity', 0.6)
     .append('textPath').attr('href', '#arc-upper').attr('startOffset', '50%').attr('text-anchor', 'middle')
     .text('Regulation → Moats');
@@ -877,7 +901,7 @@ const arcLayer = svg.append('g').attr('class', 'arcs');
     .attr('stroke-dasharray', '5 3');
 
   arcLayer.append('text')
-    .attr('font-family', 'Inter, sans-serif').attr('font-size', 10).attr('font-weight', 500)
+    .attr('font-family', "'Space Grotesk', system-ui, sans-serif").attr('font-size', 10).attr('font-weight', 500)
     .attr('fill', '#0ea5c9').attr('opacity', 0.6)
     .append('textPath').attr('href', '#arc-lower').attr('startOffset', '50%').attr('text-anchor', 'middle')
     .text('Lobbying → Regulation');
@@ -946,6 +970,10 @@ const nodes = points.map((p, i) => {
   }
 
   const body = bodies.find(b => b.id === p.attract);
+  if (!body) {
+    // Point references an unknown attractor — drop it at center rather than throw.
+    return { ...p, x: W / 2, y: H / 2 };
+  }
   const siblings = points.filter(pp => pp.attract === p.attract && !pp.contested);
   const idx = siblings.indexOf(p);
   // Seed positions: avoid the arc path between State and Incumbent.
@@ -1089,7 +1117,7 @@ nodes.forEach((n, i) => {
     .attr('fill', n.labelColor)
     .attr('font-size', n.fontSize)
     .attr('font-weight', 500)
-    .attr('font-family', 'Inter, sans-serif');
+    .attr('font-family', "'Space Grotesk', system-ui, sans-serif");
 
   label.append('tspan').text(n.name);
 
@@ -1108,7 +1136,7 @@ arcLayer.raise();
 
 // Render footnotes into the DOM
 const fnContainer = document.getElementById('footnotes');
-footnotes.forEach((fn, i) => {
+if (fnContainer) footnotes.forEach((fn, i) => {
   if (!fn) return;
   const p = document.createElement('p');
   p.style.cssText = 'margin-bottom:4px';
@@ -1142,7 +1170,8 @@ const startPositions = nodeGroups.map(ng => {
     return { x: (binaryCenter.x + insurgentBody.x) / 2, y: (binaryCenter.y + insurgentBody.y) / 2 };
   }
   const body = bodies.find(b => b.id === d.attract);
-  return { x: body.x, y: body.y };
+  // Fall back to the node's own position if its attractor is unknown.
+  return body ? { x: body.x, y: body.y } : { x: d.x, y: d.y };
 });
 
 // Phase 2: collision resolution (synchronous)
@@ -1155,25 +1184,37 @@ for (let i = 0; i < 400; i++) {
 // Save final settled positions
 const endPositions = nodeGroups.map(ng => ({ x: ng.node.x, y: ng.node.y }));
 
-// Place nodes at start positions, invisible
-nodeGroups.forEach((ng, i) => {
-  ng.g.attr('transform', `translate(${startPositions[i].x}, ${startPositions[i].y})`);
-});
+const prefersReducedMotion = window.matchMedia
+  && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-// Animate: fade in and glide to final positions
-nodeGroups.forEach((ng, i) => {
-  const delay = i * 40;
-  ng.g.transition('fade')
-    .delay(delay)
-    .duration(300)
-    .attr('opacity', ng.node.opacity || 1);
-  ng.g.transition('move')
-    .delay(delay + 100)
-    .duration(2200)
-    .ease(d3.easeCubicOut)
-    .attr('transform', `translate(${endPositions[i].x}, ${endPositions[i].y})`);
-});
+if (prefersReducedMotion) {
+  // Reduced motion: skip the entrance glide; render the settled chart directly.
+  nodeGroups.forEach((ng, i) => {
+    ng.g
+      .attr('transform', `translate(${endPositions[i].x}, ${endPositions[i].y})`)
+      .attr('opacity', ng.node.opacity || 1);
+  });
+} else {
+  // Place nodes at start positions, invisible
+  nodeGroups.forEach((ng, i) => {
+    ng.g.attr('transform', `translate(${startPositions[i].x}, ${startPositions[i].y})`);
+  });
 
+  // Animate: fade in and glide to final positions
+  nodeGroups.forEach((ng, i) => {
+    const delay = i * 40;
+    ng.g.transition('fade')
+      .delay(delay)
+      .duration(300)
+      .attr('opacity', ng.node.opacity || 1);
+    ng.g.transition('move')
+      .delay(delay + 100)
+      .duration(2200)
+      .ease(d3.easeCubicOut)
+      .attr('transform', `translate(${endPositions[i].x}, ${endPositions[i].y})`);
+  });
+}
+})();
 </script>
 </div>
 </body>

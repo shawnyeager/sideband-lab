@@ -35,6 +35,11 @@
     --text: #333;
     --text-light: #6b7280;
     --border: #e5e7eb;
+    /* AA-contrast text variants of the status hues (kept in the same
+       hue family so the status-page color language is preserved). */
+    --green-text: #15803d;
+    --orange-text: #b35400;
+    --red-text: #b02a37;
   }
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -45,6 +50,7 @@
     color: var(--text);
     line-height: 1.5;
     -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
   }
 
   .page {
@@ -137,7 +143,7 @@
 
   .status-banner.degraded {
     background: #fff3e0;
-    color: #c45a00;
+    color: #a34700;
   }
 
   .status-banner .dot {
@@ -189,24 +195,29 @@
   .comp-head {
     display: flex;
     justify-content: space-between;
-    align-items: center;
+    align-items: baseline;
+    gap: 12px;
     margin-bottom: 8px;
   }
 
   .comp-name {
     font-size: 0.88rem;
     font-weight: 600;
+    min-width: 0;
+    overflow-wrap: break-word;
   }
 
   .comp-status {
     font-size: 0.78rem;
     font-weight: 500;
+    flex-shrink: 0;
+    text-align: right;
   }
 
-  .cs-op { color: var(--green-dark); }
-  .cs-dg { color: var(--orange); }
-  .cs-po { color: var(--orange); }
-  .cs-mo { color: var(--red); }
+  .cs-op { color: var(--green-text); }
+  .cs-dg { color: var(--orange-text); }
+  .cs-po { color: var(--orange-text); }
+  .cs-mo { color: var(--red-text); }
 
   /* Uptime bars */
   .bars {
@@ -218,9 +229,11 @@
 
   .bar {
     flex: 1;
+    min-width: 2px;
     border-radius: 2px;
     position: relative;
     cursor: default;
+    transition: opacity 0.15s ease;
   }
 
   .bar:hover { opacity: 0.75; }
@@ -275,9 +288,15 @@
     position: absolute;
     left: 50%;
     transform: translateX(-50%);
+    white-space: nowrap;
   }
 
-  .meta-wrap { position: relative; width: 100%; display: flex; justify-content: space-between; }
+  .meta-row > span:first-child,
+  .meta-row > span:last-child {
+    flex-shrink: 0;
+  }
+
+  .meta-wrap { position: relative; width: 100%; display: flex; justify-content: space-between; gap: 8px; }
 
   /* Legend */
   .legend {
@@ -332,6 +351,7 @@
     font-weight: 600;
     color: var(--text);
     margin-bottom: 4px;
+    overflow-wrap: break-word;
   }
 
   .incident-title .tag {
@@ -357,7 +377,7 @@
 
   .incident-time {
     font-size: 0.72rem;
-    color: #9ca3af;
+    color: var(--text-light);
     margin-top: 2px;
   }
 
@@ -389,23 +409,43 @@
     .footer { display: flex; flex-direction: column; align-items: center; gap: 4px; }
     .footer__sep { display: none; }
   }
+
+  /* Keyboard focus — visible ring on every interactive element.
+     No interactive element removes its outline without this replacement. */
+  a:focus-visible {
+    outline: 2px solid var(--blue);
+    outline-offset: 2px;
+    border-radius: 2px;
+  }
+
+  /* Honor reduced-motion: neutralize hover transitions/animations. */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
 </style>
 </head>
 <body>
 <h1 style="position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;">U.S. GDP Status—a status page for the economy when AI providers are the components</h1>
 <div class="page">
 
-  <div class="top-bar">
+  <header class="top-bar">
     <a class="logo-text" href="#">U.S. GDP Status</a>
     <a class="subscribe-link plausible-event-name=Subscribe+Click" href="https://www.sideband.pub/subscribe">Subscribe to Updates</a>
-  </div>
+  </header>
 
-  <div class="premise-wrap">
+  <div class="premise-wrap" aria-hidden="true">
     <div class="premise"><span class="premise-text">What if LLM uptime was a macroeconomic indicator?</span></div>
   </div>
 
-  <div class="status-banner degraded">
-    <div class="dot"></div>
+  <main>
+
+  <div class="status-banner degraded" role="status">
+    <div class="dot" aria-hidden="true"></div>
     GDP is experiencing degraded performance
   </div>
 
@@ -414,19 +454,21 @@
   <div id="components"></div>
 
   <div class="legend">
-    <div class="leg-item"><div class="leg-sw" style="background:var(--green)"></div>Operational</div>
-    <div class="leg-item"><div class="leg-sw" style="background:var(--yellow)"></div>Degraded Performance</div>
-    <div class="leg-item"><div class="leg-sw" style="background:var(--orange)"></div>Partial Outage</div>
-    <div class="leg-item"><div class="leg-sw" style="background:var(--red)"></div>Major Outage</div>
-    <div class="leg-item"><div class="leg-sw" style="background:var(--blue)"></div>Maintenance</div>
+    <div class="leg-item"><div class="leg-sw" style="background:var(--green)" aria-hidden="true"></div>Operational</div>
+    <div class="leg-item"><div class="leg-sw" style="background:var(--yellow)" aria-hidden="true"></div>Degraded Performance</div>
+    <div class="leg-item"><div class="leg-sw" style="background:var(--orange)" aria-hidden="true"></div>Partial Outage</div>
+    <div class="leg-item"><div class="leg-sw" style="background:var(--red)" aria-hidden="true"></div>Major Outage</div>
+    <div class="leg-item"><div class="leg-sw" style="background:var(--blue)" aria-hidden="true"></div>Maintenance</div>
   </div>
 
-  <div class="incidents-heading">Past Incidents</div>
+  <h2 class="incidents-heading">Past Incidents</h2>
   <div id="incidents"></div>
 
-  <div class="footer">
-    <span class="footer__item"><a href="#"><span style="font-size:1em;vertical-align:1px;margin-right:2px;text-decoration:none;display:inline-block">←</span>Incident History</a></span><span class="footer__sep">&nbsp;&nbsp;·&nbsp;&nbsp;</span><span class="footer__item">Powered by the <a href="https://lab.sideband.pub">Bureau of Economic Uptime</a></span>
-  </div>
+  </main>
+
+  <footer class="footer">
+    <span class="footer__item"><a href="#"><span aria-hidden="true" style="font-size:1em;vertical-align:1px;margin-right:2px;text-decoration:none;display:inline-block">←</span>Incident History</a></span><span class="footer__sep">&nbsp;&nbsp;·&nbsp;&nbsp;</span><span class="footer__item">Powered by the <a href="https://lab.sideband.pub">Bureau of Economic Uptime</a></span>
+  </footer>
 
 </div>
 
@@ -494,33 +536,51 @@ const tipLabels = {
   x: 'No data exists for this day.'
 };
 
+// Escape text destined for an innerHTML string so labels with <, >, & or
+// quotes can never break markup or inject nodes.
+function esc(value) {
+  return String(value == null ? '' : value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;');
+}
+
 const compEl = document.getElementById('components');
 
-C.forEach(svc => {
-  const numDays = svc.b.length;
-  const barsHtml = [...svc.b].map((c, i) => {
-    const d = daysAgo(numDays - 1 - i);
-    const dateStr = fmtDate(d);
-    const tip = `${dateStr}<br>${tipLabels[c]}`;
-    return `<div class="bar ${cm[c]}"><div class="tip">${tip}</div></div>`;
-  }).join('');
+if (compEl && Array.isArray(C)) {
+  C.forEach(svc => {
+    if (!svc) return;
+    const barString = typeof svc.b === 'string' ? svc.b : '';
+    const numDays = barString.length;
+    const barsHtml = [...barString].map((c, i) => {
+      const d = daysAgo(numDays - 1 - i);
+      const dateStr = fmtDate(d);
+      // Fall back gracefully if a bar code isn't in the known set.
+      const barClass = cm[c] || 'bx';
+      const label = tipLabels[c] || 'No data exists for this day.';
+      const tip = `${esc(dateStr)}<br>${esc(label)}`;
+      return `<div class="bar ${barClass}" aria-hidden="true"><div class="tip">${tip}</div></div>`;
+    }).join('');
 
-  const d = document.createElement('div');
-  d.className = 'component';
-  d.innerHTML = `
-    <div class="comp-head">
-      <div class="comp-name">${svc.n}</div>
-      <div class="comp-status ${svc.sc}">${svc.s}</div>
-    </div>
-    <div class="bars">${barsHtml}</div>
-    <div class="meta-wrap meta-row">
-      <span>90 days ago</span>
-      <span class="pct">${svc.m}</span>
-      <span>Today</span>
-    </div>
-  `;
-  compEl.appendChild(d);
-});
+    const statusClass = typeof svc.sc === 'string' ? svc.sc : '';
+    const d = document.createElement('div');
+    d.className = 'component';
+    d.innerHTML = `
+      <div class="comp-head">
+        <div class="comp-name">${esc(svc.n)}</div>
+        <div class="comp-status ${esc(statusClass)}">${esc(svc.s)}</div>
+      </div>
+      <div class="bars" aria-hidden="true">${barsHtml}</div>
+      <div class="meta-wrap meta-row">
+        <span>90 days ago</span>
+        <span class="pct">${esc(svc.m)}</span>
+        <span>Today</span>
+      </div>
+    `;
+    compEl.appendChild(d);
+  });
+}
 
 // Dynamic incidents — defined as days-ago offsets
 const incidents = [
@@ -572,35 +632,39 @@ const incidents = [
 const incEl = document.getElementById('incidents');
 let lastDateStr = '';
 
-incidents.forEach(inc => {
-  const d = daysAgo(inc.daysAgo);
-  const dateStr = fmtDate(d);
+if (incEl && Array.isArray(incidents)) {
+  incidents.forEach(inc => {
+    if (!inc) return;
+    const d = daysAgo(inc.daysAgo);
+    const dateStr = fmtDate(d);
 
-  if (dateStr !== lastDateStr) {
-    const heading = document.createElement('div');
-    heading.className = 'incident-date';
-    heading.textContent = dateStr;
-    incEl.appendChild(heading);
-    lastDateStr = dateStr;
-  }
+    if (dateStr !== lastDateStr) {
+      const heading = document.createElement('div');
+      heading.className = 'incident-date';
+      heading.textContent = dateStr;
+      incEl.appendChild(heading);
+      lastDateStr = dateStr;
+    }
 
-  if (inc.noIncidents) {
-    const ni = document.createElement('div');
-    ni.className = 'no-incidents';
-    ni.textContent = 'No GDP-affecting incidents reported.';
-    incEl.appendChild(ni);
-    return;
-  }
+    if (inc.noIncidents) {
+      const ni = document.createElement('div');
+      ni.className = 'no-incidents';
+      ni.textContent = 'No GDP-affecting incidents reported.';
+      incEl.appendChild(ni);
+      return;
+    }
 
-  const div = document.createElement('div');
-  div.className = 'incident';
-  div.innerHTML = `
-    <div class="incident-title"><span class="tag tag-${inc.tag}">${inc.tagLabel}</span> ${inc.title}</div>
-    <div class="incident-update">${inc.update}</div>
-    <div class="incident-time">${fmtTime(d, inc.h, inc.m)}</div>
-  `;
-  incEl.appendChild(div);
-});
+    const tagClass = typeof inc.tag === 'string' ? inc.tag : 'none';
+    const div = document.createElement('div');
+    div.className = 'incident';
+    div.innerHTML = `
+      <div class="incident-title"><span class="tag tag-${esc(tagClass)}">${esc(inc.tagLabel)}</span> ${esc(inc.title)}</div>
+      <div class="incident-update">${esc(inc.update)}</div>
+      <div class="incident-time">${esc(fmtTime(d, inc.h, inc.m))}</div>
+    `;
+    incEl.appendChild(div);
+  });
+}
 </script>
 </body>
 </html>

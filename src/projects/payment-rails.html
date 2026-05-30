@@ -10,12 +10,18 @@
      project-base.css and src/lib/header.ts */
 
   :root {
+    /* Island surface + text — mirrors global.css (this raw HTML page
+       cannot import those tokens). */
     --bg:           #1d2733;
     --text-heading: #e3dfd3;
     --text-sub:     #a09d94;
     --text-muted:   #7a7770;
-    --green:        #22c55e;
-    --amber:        #f59e0b;
+
+    /* Island categorical palette (mirrors global.css tokens). Each color
+       maps to a payment-rail class, never to decoration:
+       open=survey green, controlled=field amber, traditional=slate. */
+    --open:         #5b9b84;
+    --controlled:   #a97c40;
     --slate:        #64748b;
     --slate-dk:     #475569;
   }
@@ -56,8 +62,8 @@
     border-radius: 50%;
     flex-shrink: 0;
   }
-  .legend-dot.open       { background: var(--green); }
-  .legend-dot.controlled { background: var(--amber); }
+  .legend-dot.open       { background: var(--open); }
+  .legend-dot.controlled { background: var(--controlled); }
   .legend-dot.trad       { background: var(--slate); }
 
   /* ── Chart SVG wrapper ── */
@@ -66,6 +72,15 @@
     height: auto;
     display: block;
     overflow: visible;
+  }
+  /* Keyboard focus ring for data points (SVG outline support is uneven,
+     so cue with a stroke on the hit target instead). */
+  .chart-svg-wrap svg .rail-hit:focus { outline: none; }
+  .chart-svg-wrap svg .rail-hit:focus-visible {
+    outline: none;
+    stroke: var(--text-heading);
+    stroke-width: 1.5;
+    stroke-dasharray: 3 3;
   }
 
   /* ── Finding block ── */
@@ -87,9 +102,9 @@
   /* ── Tooltip ── */
   .tooltip {
     position: fixed;
-    background: #111820;
+    background: #243040; /* navy-light — raised surface, mirrors --viz-bg-light */
     border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 4px;
+    border-radius: var(--card-radius, 4px);
     padding: 11px 15px;
     font-family: 'Space Grotesk', system-ui, sans-serif;
     font-size: 12px;
@@ -97,10 +112,10 @@
     pointer-events: none;
     z-index: 100;
     opacity: 0;
-    transition: opacity 0.12s;
+    transition: opacity 0.12s var(--ease-out-quart);
     max-width: 220px;
     line-height: 1.6;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3); /* mirrors --viz-shadow */
   }
   .tooltip.visible { opacity: 1; }
   .tooltip-name {
@@ -126,6 +141,11 @@
       padding: 24px 20px 20px;
     }
   }
+
+  /* ── Reduced motion ── */
+  @media (prefers-reduced-motion: reduce) {
+    .tooltip { transition: none; }
+  }
 </style>
 </head>
 <body>
@@ -145,7 +165,11 @@
     </div>
 
     <div class="chart-svg-wrap">
-      <svg id="scatter" viewBox="0 0 620 420" xmlns="http://www.w3.org/2000/svg"></svg>
+      <svg id="scatter" viewBox="0 0 620 420" xmlns="http://www.w3.org/2000/svg"
+           role="img" aria-labelledby="scatter-title scatter-desc">
+        <title id="scatter-title">Minimum transaction size versus number of parties who can freeze a payment, by rail</title>
+        <desc id="scatter-desc">A scatter plot. Each point is a payment rail plotted by its minimum transaction (vertical, log scale from $0.000001 to $10) and the number of parties that can freeze or block a payment (horizontal, 0 to 4). Lightning sits at zero freeze parties; Circle Nanopayments at two; Visa Direct and ACH at three; card rails at four.</desc>
+      </svg>
     </div>
 
   </div>
@@ -178,6 +202,10 @@
   const svg = document.getElementById('scatter');
   const tt  = document.getElementById('tooltip');
 
+  // Defensive: the chart cannot render without its SVG canvas. The tooltip is
+  // an enhancement — if it's missing, points still plot, they just don't pin.
+  if (!svg) return;
+
   const W = 620, H = 420;
   const PAD = { top: 30, right: 60, bottom: 68, left: 94 };
   const PW = W - PAD.left - PAD.right;  // 466
@@ -204,12 +232,12 @@
   const zY1 = yS(0.01), zY2 = PAD.top + PH;
   svg.appendChild(mk('rect', {
     x: zX1, y: zY1, width: zX2 - zX1, height: zY2 - zY1,
-    fill: 'rgba(34,197,94,0.05)', stroke: 'rgba(34,197,94,0.14)',
+    fill: 'rgba(91,155,132,0.07)', stroke: 'rgba(91,155,132,0.18)',
     'stroke-width': 1, 'stroke-dasharray': '4 3'
   }));
   const zLabel = mk('text', {
     x: zX1 + 6, y: zY2 - 8,
-    fill: 'rgba(34,197,94,0.32)', 'font-size': 8.5,
+    fill: 'rgba(91,155,132,0.42)', 'font-size': 8.5,
     'font-family': 'Space Grotesk,system-ui,sans-serif',
     'letter-spacing': '0.08em'
   });
@@ -301,13 +329,13 @@
     {
       name: 'Lightning (L402)', protocol: 'Open · Bitcoin',
       min: 0.001, minLabel: '~$0.001', parties: 0, settlement: '~2 seconds',
-      color: '#22c55e', px: 0,
+      color: '#5b9b84', px: 0,
       lines: ['Lightning', '(L402)'], anchor: 'start', dx: 17, dy: 4
     },
     {
       name: 'Circle Nanopayments', protocol: 'x402 · USDC',
       min: 0.000001, minLabel: '$0.000001', parties: 2, settlement: '~10 seconds',
-      color: '#f59e0b', px: 2,
+      color: '#a97c40', px: 2,
       lines: ['Circle', 'Nanopayments'], anchor: 'start', dx: 17, dy: -4
     },
     {
@@ -336,8 +364,15 @@
     const cx = xS(r.px);
     const cy = yS(r.min);
 
-    // Hit area
-    const hit = mk('circle', { cx, cy, r: R + 8, fill: 'transparent', style: 'cursor:pointer' });
+    // Hit area — focusable so the chart is operable by keyboard. role=button
+    // + aria-label expose the same readout the tooltip shows on hover.
+    const hit = mk('circle', {
+      cx, cy, r: R + 8, fill: 'transparent', style: 'cursor:pointer',
+      class: 'rail-hit', tabindex: '0', role: 'button',
+      'aria-label': `${r.name}. Minimum payment ${r.minLabel}. `
+        + `Can be blocked by ${r.parties} ${r.parties === 1 ? 'party' : 'parties'}. `
+        + `Settlement ${r.settlement}. Protocol ${r.protocol}.`
+    });
 
     // Visible dot
     const dot = mk('circle', {
@@ -362,9 +397,13 @@
     svg.appendChild(dot);
     svg.appendChild(hit);
 
-    function showTt(e) {
+    function highlight() {
       dot.setAttribute('fill-opacity', '1');
       dot.setAttribute('r', R + 1.5);
+    }
+    function showTt(e) {
+      highlight();
+      if (!tt) return;
       tt.innerHTML = `
         <div class="tooltip-name">${r.name}</div>
         <div class="tooltip-row"><span class="tooltip-key">Min. payment</span><span class="tooltip-val">${r.minLabel}</span></div>
@@ -375,20 +414,48 @@
       tt.classList.add('visible');
       moveTt(e);
     }
+    // Position from a pointer coordinate, clamped so the tooltip never spills
+    // off the viewport edges (e.g. points near the right or bottom).
+    function placeTt(px, py) {
+      if (!tt) return;
+      const m = 8;
+      const w = tt.offsetWidth, h = tt.offsetHeight;
+      let left = px + 16, top = py - 24;
+      if (left + w + m > window.innerWidth)  left = px - w - 16;
+      if (left < m) left = m;
+      if (top + h + m > window.innerHeight)  top = window.innerHeight - h - m;
+      if (top < m) top = m;
+      tt.style.left = left + 'px';
+      tt.style.top  = top + 'px';
+    }
     function moveTt(e) {
-      tt.style.left = (e.clientX + 16) + 'px';
-      tt.style.top  = (e.clientY - 24) + 'px';
+      if (e && typeof e.clientX === 'number') placeTt(e.clientX, e.clientY);
+    }
+    // Keyboard focus has no pointer coordinate — anchor the tooltip to the
+    // dot's on-screen position via its bounding box.
+    function showTtAtDot() {
+      highlight();
+      if (!tt) return;
+      showTt(null);
+      const box = hit.getBoundingClientRect();
+      placeTt(box.left + box.width / 2, box.top);
     }
     function hideTt() {
       dot.setAttribute('fill-opacity', '0.82');
       dot.setAttribute('r', R);
-      tt.classList.remove('visible');
+      if (tt) tt.classList.remove('visible');
     }
 
     [hit, dot].forEach(el => {
       el.addEventListener('mouseenter', showTt);
       el.addEventListener('mousemove',  moveTt);
       el.addEventListener('mouseleave', hideTt);
+    });
+    hit.addEventListener('focus', showTtAtDot);
+    hit.addEventListener('blur',  hideTt);
+    // Dismiss the pinned tooltip on Escape without losing focus.
+    hit.addEventListener('keydown', ev => {
+      if (ev.key === 'Escape') hideTt();
     });
   });
 })();

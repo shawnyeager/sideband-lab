@@ -11,14 +11,21 @@
     --bg:               #1d2733;
     --text-heading:     #e3dfd3;
     --text-sub:         #a09d94;
-    --text-muted:       #7a7770;
+
+    /* Island categorical palette (mirrors global.css tokens; this raw
+       HTML page cannot import them). Amber = forecast/projection series,
+       cyan = in-production reality, signal-red = the gap/danger signal. */
+    --island-amber:     #c9a050;
+    --island-cyan:      #0ea5c9;
+    --island-cyan-dim:  rgba(14, 165, 201, 0.5);
+    --island-red:       #d4716b;
   }
 
   /* ── Chart island ── */
   .chart-island {
     max-width: 940px;
     background: var(--bg);
-    border-radius: 3px;
+    border-radius: 4px;
     overflow: hidden;
     margin-bottom: var(--sp-4);
     padding: 36px 48px 32px;
@@ -43,12 +50,15 @@
     display: flex;
     justify-content: space-between;
     align-items: baseline;
+    gap: 12px;
   }
 
   .bar-label {
     font-size: 12px;
     color: var(--text-sub);
     letter-spacing: 0.02em;
+    min-width: 0;
+    overflow-wrap: break-word;
   }
 
   .bar-value {
@@ -56,10 +66,11 @@
     font-weight: 700;
     line-height: 1;
     letter-spacing: -0.01em;
+    flex-shrink: 0;
   }
-  .bar-value.forecast { color: #f59e0b; }
-  .bar-value.reality  { color: #0ea5c9; }
-  .bar-value.pipeline { color: rgba(14,165,201,0.5); }
+  .bar-value.forecast { color: var(--island-amber); }
+  .bar-value.reality  { color: var(--island-cyan); }
+  .bar-value.pipeline { color: var(--island-cyan-dim); }
 
   .bar-track {
     height: 22px;
@@ -73,9 +84,9 @@
     height: 100%;
     border-radius: 2px;
   }
-  .bar-fill.forecast { background: #f59e0b; opacity: 0.85; }
-  .bar-fill.reality  { background: #0ea5c9; }
-  .bar-fill.pipeline { background: rgba(14,165,201,0.35); border-left: 1px solid rgba(14,165,201,0.5); }
+  .bar-fill.forecast { background: var(--island-amber); opacity: 0.85; }
+  .bar-fill.reality  { background: var(--island-cyan); }
+  .bar-fill.pipeline { background: rgba(14,165,201,0.35); border-left: 1px solid var(--island-cyan-dim); }
 
   /* divider between forecast and reality rows */
   .bar-divider {
@@ -87,18 +98,19 @@
   /* ── Gap callout ── */
   .gap-callout {
     padding: 14px 18px;
-    border-left: 3px solid rgba(239,68,68,0.4);
-    background: rgba(239,68,68,0.04);
-    border-radius: 0 2px 2px 0;
+    border: 1px solid rgba(212,113,107,0.35);
+    background: rgba(212,113,107,0.06);
+    border-radius: 2px;
     margin-bottom: 24px;
   }
   .gap-callout-text {
     font-size: 13px;
-    color: var(--text-muted);
+    color: var(--text-sub);
     line-height: 1.6;
+    overflow-wrap: break-word;
   }
   .gap-callout-text strong {
-    color: rgba(255,255,255,0.38);
+    color: var(--island-red);
     font-weight: 600;
   }
 
@@ -109,18 +121,21 @@
     gap: 24px;
     padding-top: 18px;
     border-top: 1px solid rgba(255,255,255,0.05);
+    flex-wrap: wrap;
   }
-  .stat-block { display: flex; flex-direction: column; gap: 3px; }
+  .stat-block { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
   .stat-label {
     font-size: 11px;
-    color: var(--text-muted);
+    color: var(--text-sub);
     letter-spacing: 0.04em;
     text-transform: uppercase;
+    overflow-wrap: break-word;
   }
   .stat-value {
     font-size: 22px;
     font-weight: 700;
     color: var(--text-heading);
+    overflow-wrap: break-word;
   }
   .stat-arrow {
     font-size: 18px;
@@ -130,8 +145,9 @@
 
   .chart-source {
     font-size: 11px;
-    color: var(--text-muted);
+    color: var(--text-sub);
     margin-top: 16px;
+    overflow-wrap: break-word;
   }
 
   @media (max-width: 768px) {

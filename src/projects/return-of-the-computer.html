@@ -3,29 +3,38 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="preload" href="/fonts/Inter-Variable.woff2" as="font" type="font/woff2" crossorigin>
 <style>
-  @font-face {
-    font-family: 'Inter';
-    font-style: normal;
-    font-weight: 300 600;
-    font-display: swap;
-    src: url('/fonts/Inter-Variable.woff2') format('woff2');
-  }
-
   /* Project-specific tokens — site/type/spacing tokens, reset, body,
-     .page, and .title-block live in src/styles/project-base.css */
+     .page, and .title-block live in src/styles/project-base.css.
+     Fonts (Space Grotesk, Roboto Slab, Lora) are loaded globally via
+     header.ts / global.css. The viz uses Space Grotesk for labels. */
   :root {
-    --bg:               #1d2733;
+    /* Dark canvas — mirrors global.css island neutrals */
+    --viz-bg:           #1d2733;
+    --viz-text:         #e3dfd3;
+    --viz-num:          #a8b8c8;
+    --viz-text-dim:     #6a7a8a;   /* axis minor labels on navy */
+    --viz-text-faint:   #5a6a7a;   /* fine print / source lines */
+    --viz-grid:         #2a3644;   /* gridlines + axes */
+
+    /* Era categorical palette — each hue is a layer, never decoration.
+       Endpoints (Terminal, Agents) carry the live cyan; the descent into
+       smaller primitives is amber; the session-era eras are survey green. */
+    --era-endpoint:     #0ea5c9;   /* Signal Cyan */
+    --era-session:      #5b9b84;   /* Survey Green */
+    --era-primitive:    #c9a050;   /* Pale Amber — readable on navy */
+
+    /* Font stack — mirrors global.css */
+    --font-sans:        'Space Grotesk', system-ui, -apple-system, sans-serif;
   }
 
   /* ============================================================
      CHART ISLAND
      ============================================================ */
   .chart-island {
-    background: var(--bg);
+    background: var(--viz-bg);
     border-radius: 3px;
-    padding: 40px 24px 28px;
+    padding: var(--sp-5) var(--sp-3) var(--sp-4);
     margin-left: -27px;
     margin-right: -27px;
     margin-bottom: var(--sp-4);
@@ -48,14 +57,15 @@
     position: absolute;
     top: 12px;
     right: 12px;
-    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-family: var(--font-sans);
     font-size: 11px;
-    color: #5a6a7a;
+    letter-spacing: 0.04em;
+    color: var(--viz-text-faint);
     display: flex;
     align-items: center;
     gap: 5px;
     opacity: 0.5;
-    transition: opacity 0.2s;
+    transition: opacity 0.2s var(--ease-out-quart);
     pointer-events: none;
   }
   .chart-island:hover .expand-hint { opacity: 1; }
@@ -97,19 +107,47 @@
     top: 16px;
     right: 20px;
     background: rgba(29, 39, 51, 0.85);
-    border: 1px solid #3a4a5a;
+    border: 1px solid var(--viz-grid);
     border-radius: 4px;
-    color: #8a9aaa;
-    font-family: 'Space Grotesk', system-ui, sans-serif;
+    color: var(--viz-num);
+    font-family: var(--font-sans);
     font-size: 13px;
+    letter-spacing: 0.02em;
     padding: 8px 16px;
+    min-height: 44px;
     cursor: pointer;
     z-index: 1;
-    transition: color 0.15s, border-color 0.15s;
+    transition: color 0.15s var(--ease-out-quart), border-color 0.15s var(--ease-out-quart);
     -webkit-tap-highlight-color: transparent;
   }
-  .fs-close:hover { color: #e3dfd3; border-color: #5a6a7a; }
-  .chart-island.fullscreen .fs-close { display: block; }
+  .fs-close:hover { color: var(--viz-text); border-color: var(--viz-text-faint); }
+  .fs-close:focus-visible {
+    outline: 2px solid var(--viz-text);
+    outline-offset: 2px;
+    color: var(--viz-text);
+  }
+  .fs-close:active { color: var(--viz-num); }
+  .chart-island.fullscreen .fs-close {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  /* Keyboard focus for the click-to-expand island */
+  .chart-island:focus-visible {
+    outline: 2px solid var(--era-endpoint);
+    outline-offset: 3px;
+  }
+
+  /* ============================================================
+     REDUCED MOTION
+     ============================================================ */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      transition-duration: 0.01ms !important;
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+    }
+  }
 
   /* ============================================================
      MOBILE
@@ -135,28 +173,43 @@
     <p class="subtitle">Each computing era optimized its infrastructure around a smaller unit of work. Agents reversed the trend.</p>
   </div>
 
-  <div class="chart-island" id="chart-island">
-    <span class="expand-hint"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M1 6V1h5M15 6V1h-5M1 10v5h5M15 10v5h-5"/></svg>Expand</span>
+  <div class="chart-island" id="chart-island" role="button" tabindex="0"
+       aria-label="Infrastructure primitive duration by computing era. Activate to expand to fullscreen.">
+    <span class="expand-hint"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M1 6V1h5M15 6V1h-5M1 10v5h5M15 10v5h-5"/></svg>Expand</span>
     <button class="fs-close" aria-label="Close fullscreen">&times; Close</button>
     <div class="chart-container">
-      <svg viewBox="0 0 1000 685" xmlns="http://www.w3.org/2000/svg">
+      <svg viewBox="0 0 1000 685" xmlns="http://www.w3.org/2000/svg" role="img"
+           aria-label="Line chart of infrastructure primitive duration across eight computing eras on a logarithmic scale. From Terminal (~1990, 30 minutes) the unit of work shrinks era by era to a low of 10 milliseconds for Microservices (~2015), then climbs back up through Serverless, Copilots, and Agents (~2025, about 1 hour). The curve forms a U: each era optimized around a smaller unit of work until agents reversed the trend.">
         <defs>
           <style>
-            text { font-family: 'Inter', sans-serif; }
-            .title { font-size: 12px; font-weight: 600; letter-spacing: 3.5px; text-transform: uppercase; fill: #e3dfd3; }
-            .y-axis-label { font-size: 9px; font-weight: 400; letter-spacing: 1.5px; text-transform: uppercase; fill: #5a6a7a; }
-            .grid-label { font-size: 10px; font-weight: 400; fill: #5a6a7a; }
-            .x-label-name { font-size: 11px; font-weight: 500; fill: #e3dfd3; }
-            .x-label-year { font-size: 9.5px; font-weight: 400; fill: #6a7a8a; }
-            .x-label-accent { font-size: 11px; font-weight: 600; fill: #0ea5c9; }
-            .x-year-accent { font-size: 9.5px; font-weight: 400; fill: #0ea5c9; opacity: 0.7; }
+            text { font-family: 'Space Grotesk', system-ui, sans-serif; }
+            .title { font-size: 12px; font-weight: 600; letter-spacing: 3.5px; text-transform: uppercase; fill: var(--viz-text); }
+            .y-axis-label { font-size: 9px; font-weight: 400; letter-spacing: 1.5px; text-transform: uppercase; fill: var(--viz-text-faint); }
+            .grid-label { font-size: 10px; font-weight: 400; fill: var(--viz-text-faint); }
+            .x-label-name { font-size: 11px; font-weight: 500; fill: var(--viz-text); }
+            .x-label-year { font-size: 9.5px; font-weight: 400; fill: var(--viz-text-dim); }
+            .x-label-accent { font-size: 11px; font-weight: 600; fill: var(--era-endpoint); }
+            .x-year-accent { font-size: 9.5px; font-weight: 400; fill: var(--era-endpoint); opacity: 0.7; }
+            .x-label-caption { font-size: 8.5px; fill: var(--viz-text-dim); }
+            .x-label-caption.accent { fill: var(--era-endpoint); opacity: 0.7; }
+            .pt-label { font-weight: 500; }
+            .pt-label.endpoint { fill: var(--era-endpoint); }
+            .pt-label.session { fill: var(--era-session); }
+            .pt-label.primitive { fill: var(--era-primitive); }
+            .pt.endpoint { fill: var(--era-endpoint); }
+            .pt.session { fill: var(--era-session); }
+            .pt.primitive { fill: var(--era-primitive); }
+            .gridline { stroke: var(--viz-grid); stroke-width: 0.7; }
+            .axis { stroke: var(--viz-grid); stroke-width: 1; }
+            .note { font-size: 12px; fill: var(--viz-text-dim); font-style: italic; }
+            .source { font-size: 11px; fill: var(--viz-text-faint); }
           </style>
           <linearGradient id="lineGradient" x1="0" y1="0" x2="1" y2="0">
             <stop offset="0%" stop-color="#0ea5c9"/>
-            <stop offset="18%" stop-color="#a78bfa"/>
-            <stop offset="40%" stop-color="#f59e0b"/>
-            <stop offset="60%" stop-color="#f59e0b"/>
-            <stop offset="80%" stop-color="#a78bfa"/>
+            <stop offset="18%" stop-color="#5b9b84"/>
+            <stop offset="40%" stop-color="#c9a050"/>
+            <stop offset="60%" stop-color="#c9a050"/>
+            <stop offset="80%" stop-color="#5b9b84"/>
             <stop offset="100%" stop-color="#0ea5c9"/>
           </linearGradient>
           <filter id="endpointGlow" x="-50%" y="-50%" width="200%" height="200%">
@@ -180,25 +233,25 @@
         -->
 
         <!-- Gridlines -->
-        <line x1="95" y1="455.7" x2="955" y2="455.7" stroke="#2a3644" stroke-width="0.7"/>
+        <line x1="95" y1="455.7" x2="955" y2="455.7" class="gridline"/>
         <text x="90" y="459" text-anchor="end" class="grid-label">100ms</text>
 
-        <line x1="95" y1="391.4" x2="955" y2="391.4" stroke="#2a3644" stroke-width="0.7"/>
+        <line x1="95" y1="391.4" x2="955" y2="391.4" class="gridline"/>
         <text x="90" y="395" text-anchor="end" class="grid-label">1s</text>
 
-        <line x1="95" y1="327.1" x2="955" y2="327.1" stroke="#2a3644" stroke-width="0.7"/>
+        <line x1="95" y1="327.1" x2="955" y2="327.1" class="gridline"/>
         <text x="90" y="331" text-anchor="end" class="grid-label">10s</text>
 
-        <line x1="95" y1="277.1" x2="955" y2="277.1" stroke="#2a3644" stroke-width="0.7"/>
+        <line x1="95" y1="277.1" x2="955" y2="277.1" class="gridline"/>
         <text x="90" y="281" text-anchor="end" class="grid-label">1 min</text>
 
-        <line x1="95" y1="212.9" x2="955" y2="212.9" stroke="#2a3644" stroke-width="0.7"/>
+        <line x1="95" y1="212.9" x2="955" y2="212.9" class="gridline"/>
         <text x="90" y="216.5" text-anchor="end" class="grid-label">10 min</text>
 
-        <line x1="95" y1="162.9" x2="955" y2="162.9" stroke="#2a3644" stroke-width="0.7"/>
+        <line x1="95" y1="162.9" x2="955" y2="162.9" class="gridline"/>
         <text x="90" y="166.5" text-anchor="end" class="grid-label">1 hr</text>
 
-        <line x1="95" y1="98.6" x2="955" y2="98.6" stroke="#2a3644" stroke-width="0.7"/>
+        <line x1="95" y1="98.6" x2="955" y2="98.6" class="gridline"/>
         <text x="90" y="102.2" text-anchor="end" class="grid-label">10 hr</text>
 
         <!-- Data line -->
@@ -210,74 +263,74 @@
           stroke-linejoin="round"
           stroke-linecap="round"/>
 
-        <!-- Data points -->
-        <circle cx="100" cy="182.2" r="8" fill="#0ea5c9" filter="url(#endpointGlow)"/>
-        <text x="100" y="170" text-anchor="middle" class="grid-label" style="fill:#0ea5c9; font-weight:500">30 min</text>
+        <!-- Data points (color = era group: endpoint / session / primitive) -->
+        <circle cx="100" cy="182.2" r="8" class="pt endpoint" filter="url(#endpointGlow)"/>
+        <text x="100" y="170" text-anchor="middle" class="grid-label pt-label endpoint">30 min</text>
 
-        <circle cx="222" cy="187.3" r="4" fill="#a78bfa"/>
-        <text x="222" y="175" text-anchor="middle" class="grid-label" style="fill:#a78bfa">25 min</text>
+        <circle cx="222" cy="187.3" r="4" class="pt session"/>
+        <text x="222" y="175" text-anchor="middle" class="grid-label pt-label session">25 min</text>
 
-        <circle cx="343" cy="246.4" r="4" fill="#a78bfa"/>
-        <text x="343" y="234" text-anchor="middle" class="grid-label" style="fill:#a78bfa">3 min</text>
+        <circle cx="343" cy="246.4" r="4" class="pt session"/>
+        <text x="343" y="234" text-anchor="middle" class="grid-label pt-label session">3 min</text>
 
-        <circle cx="464" cy="436.4" r="4" fill="#f59e0b"/>
-        <text x="464" y="425" text-anchor="middle" class="grid-label" style="fill:#f59e0b">200 ms</text>
+        <circle cx="464" cy="436.4" r="4" class="pt primitive"/>
+        <text x="464" y="425" text-anchor="middle" class="grid-label pt-label primitive">200 ms</text>
 
-        <circle cx="586" cy="520.0" r="4" fill="#f59e0b"/>
-        <text x="586" y="509" text-anchor="middle" class="grid-label" style="fill:#f59e0b">10 ms</text>
+        <circle cx="586" cy="520.0" r="4" class="pt primitive"/>
+        <text x="586" y="509" text-anchor="middle" class="grid-label pt-label primitive">10 ms</text>
 
-        <circle cx="707" cy="397.7" r="4" fill="#f59e0b"/>
-        <text x="707" y="386" text-anchor="middle" class="grid-label" style="fill:#f59e0b">800 ms</text>
+        <circle cx="707" cy="397.7" r="4" class="pt primitive"/>
+        <text x="707" y="386" text-anchor="middle" class="grid-label pt-label primitive">800 ms</text>
 
-        <circle cx="829" cy="222.8" r="4" fill="#a78bfa"/>
-        <text x="829" y="211" text-anchor="middle" class="grid-label" style="fill:#a78bfa">7 min</text>
+        <circle cx="829" cy="222.8" r="4" class="pt session"/>
+        <text x="829" y="211" text-anchor="middle" class="grid-label pt-label session">7 min</text>
 
-        <circle cx="950" cy="162.9" r="8" fill="#0ea5c9" filter="url(#endpointGlow)"/>
-        <text x="950" y="151" text-anchor="middle" class="grid-label" style="fill:#0ea5c9; font-weight:500">1 hr</text>
+        <circle cx="950" cy="162.9" r="8" class="pt endpoint" filter="url(#endpointGlow)"/>
+        <text x="950" y="151" text-anchor="middle" class="grid-label pt-label endpoint">1 hr</text>
 
         <!-- X-axis labels -->
         <text x="100" y="545" text-anchor="middle" class="x-label-accent">Terminal</text>
         <text x="100" y="559" text-anchor="middle" class="x-year-accent">~1990</text>
-        <text x="100" y="572" text-anchor="middle" style="font-size:8.5px; fill:#0ea5c9; opacity:0.7; font-family:'Inter',sans-serif">the login session</text>
+        <text x="100" y="572" text-anchor="middle" class="x-label-caption accent">the login session</text>
 
         <text x="222" y="545" text-anchor="middle" class="x-label-name">Web browsing</text>
         <text x="222" y="559" text-anchor="middle" class="x-label-year">~2000</text>
-        <text x="222" y="572" text-anchor="middle" style="font-size:8.5px; fill:#6a7a8a; font-family:'Inter',sans-serif">the page request</text>
+        <text x="222" y="572" text-anchor="middle" class="x-label-caption">the page request</text>
 
         <text x="343" y="545" text-anchor="middle" class="x-label-name">Web apps</text>
         <text x="343" y="559" text-anchor="middle" class="x-label-year">~2005</text>
-        <text x="343" y="572" text-anchor="middle" style="font-size:8.5px; fill:#6a7a8a; font-family:'Inter',sans-serif">the HTTP cycle</text>
+        <text x="343" y="572" text-anchor="middle" class="x-label-caption">the HTTP cycle</text>
 
         <text x="464" y="545" text-anchor="middle" class="x-label-name">Mobile APIs</text>
         <text x="464" y="559" text-anchor="middle" class="x-label-year">~2012</text>
-        <text x="464" y="572" text-anchor="middle" style="font-size:8.5px; fill:#6a7a8a; font-family:'Inter',sans-serif">the API call</text>
+        <text x="464" y="572" text-anchor="middle" class="x-label-caption">the API call</text>
 
         <text x="586" y="545" text-anchor="middle" class="x-label-name">Microservices</text>
         <text x="586" y="559" text-anchor="middle" class="x-label-year">~2015</text>
-        <text x="586" y="572" text-anchor="middle" style="font-size:8.5px; fill:#6a7a8a; font-family:'Inter',sans-serif">the service hop</text>
+        <text x="586" y="572" text-anchor="middle" class="x-label-caption">the service hop</text>
 
         <text x="707" y="545" text-anchor="middle" class="x-label-name">Serverless</text>
         <text x="707" y="559" text-anchor="middle" class="x-label-year">~2018</text>
-        <text x="707" y="572" text-anchor="middle" style="font-size:8.5px; fill:#6a7a8a; font-family:'Inter',sans-serif">the invocation</text>
+        <text x="707" y="572" text-anchor="middle" class="x-label-caption">the invocation</text>
 
         <text x="829" y="545" text-anchor="middle" class="x-label-name">Copilots</text>
         <text x="829" y="559" text-anchor="middle" class="x-label-year">~2023</text>
-        <text x="829" y="572" text-anchor="middle" style="font-size:8.5px; fill:#6a7a8a; font-family:'Inter',sans-serif">the inference turn</text>
+        <text x="829" y="572" text-anchor="middle" class="x-label-caption">the inference turn</text>
 
         <text x="950" y="545" text-anchor="middle" class="x-label-accent">Agents</text>
         <text x="950" y="559" text-anchor="middle" class="x-year-accent">~2025</text>
-        <text x="950" y="572" text-anchor="middle" style="font-size:8.5px; fill:#0ea5c9; opacity:0.7; font-family:'Inter',sans-serif">the task</text>
+        <text x="950" y="572" text-anchor="middle" class="x-label-caption accent">the task</text>
 
         <!-- Axes -->
-        <line x1="95" y1="525" x2="955" y2="525" stroke="#2a3644" stroke-width="1"/>
-        <line x1="95" y1="70" x2="95" y2="525" stroke="#2a3644" stroke-width="1"/>
+        <line x1="95" y1="525" x2="955" y2="525" class="axis"/>
+        <line x1="95" y1="70" x2="95" y2="525" class="axis"/>
 
         <!-- Interpretive note -->
-        <text x="500" y="611" text-anchor="middle" style="font-size:12px; fill:#6a7a8a; font-family:'Inter',sans-serif; font-weight:400; font-style:italic">Each era optimized its infrastructure around a smaller unit of work. Agents reversed the trend.</text>
+        <text x="500" y="611" text-anchor="middle" class="note">Each era optimized its infrastructure around a smaller unit of work. Agents reversed the trend.</text>
 
         <!-- Sources -->
-        <text x="500" y="637" text-anchor="middle" style="font-size:11px; fill:#3a4a5a; font-family:'Inter',sans-serif; font-weight:300">Sources: DTSS study (terminal) · Mozilla Metrics 2010 (browsing) · Google Analytics benchmarks (web apps) · Datadog State of Serverless 2020 (Lambda median 800ms)</text>
-        <text x="500" y="654" text-anchor="middle" style="font-size:11px; fill:#3a4a5a; font-family:'Inter',sans-serif; font-weight:300">SimilarWeb/Elfsight 2025 (ChatGPT sessions) · METR Time Horizons benchmark, Feb 2026 (agent 80% reliability threshold: 1 hr; 50% threshold: 14.5 hrs, doubling every 7 months)</text>
+        <text x="500" y="637" text-anchor="middle" class="source">Sources: DTSS study (terminal) · Mozilla Metrics 2010 (browsing) · Google Analytics benchmarks (web apps) · Datadog State of Serverless 2020 (Lambda median 800ms)</text>
+        <text x="500" y="654" text-anchor="middle" class="source">SimilarWeb/Elfsight 2025 (ChatGPT sessions) · METR Time Horizons benchmark, Feb 2026 (agent 80% reliability threshold: 1 hr; 50% threshold: 14.5 hrs, doubling every 7 months)</text>
       </svg>
     </div>
   </div>
@@ -311,40 +364,73 @@
 </div>
 
 <script>
-const island = document.getElementById('chart-island');
-const close = island.querySelector('.fs-close');
+(function () {
+  'use strict';
 
-function enterFullscreen() {
-  island.classList.add('fullscreen');
-  document.body.style.overflow = 'hidden';
-}
+  const island = document.getElementById('chart-island');
+  // Bail out cleanly if the island markup is missing; the static SVG
+  // above still renders, so the chart is never lost to a script error.
+  if (!island) return;
 
-function exitFullscreen() {
-  island.classList.remove('fullscreen');
-  document.body.style.overflow = '';
-}
+  const close = island.querySelector('.fs-close');
 
-island.addEventListener('click', (e) => {
-  if (island.classList.contains('fullscreen')) {
-    // Tapping the background (not the SVG) exits fullscreen
-    if (e.target === island || e.target.classList.contains('chart-container')) {
+  function enterFullscreen() {
+    if (island.classList.contains('fullscreen')) return;
+    island.classList.add('fullscreen');
+    island.setAttribute('aria-expanded', 'true');
+    document.body.style.overflow = 'hidden';
+    // Move focus into the dialog so Escape and Tab behave predictably.
+    if (close) close.focus();
+  }
+
+  function exitFullscreen() {
+    if (!island.classList.contains('fullscreen')) return;
+    island.classList.remove('fullscreen');
+    island.setAttribute('aria-expanded', 'false');
+    document.body.style.overflow = '';
+    // Return focus to the trigger.
+    island.focus();
+  }
+
+  island.setAttribute('aria-expanded', 'false');
+
+  island.addEventListener('click', (e) => {
+    if (island.classList.contains('fullscreen')) {
+      // Tapping the backdrop (not the SVG) exits fullscreen.
+      const target = e.target;
+      if (target === island ||
+          (target instanceof Element && target.classList.contains('chart-container'))) {
+        exitFullscreen();
+      }
+      return;
+    }
+    enterFullscreen();
+  });
+
+  if (close) {
+    close.addEventListener('click', (e) => {
+      e.stopPropagation();
+      exitFullscreen();
+    });
+  }
+
+  // Keyboard: Enter/Space toggles fullscreen for the focused island.
+  island.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' || e.key === ' ' || e.key === 'Spacebar') {
+      // Ignore activation that bubbled up from the close button.
+      if (e.target === close) return;
+      e.preventDefault();
+      if (island.classList.contains('fullscreen')) exitFullscreen();
+      else enterFullscreen();
+    }
+  });
+
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && island.classList.contains('fullscreen')) {
       exitFullscreen();
     }
-    return;
-  }
-  enterFullscreen();
-});
-
-close.addEventListener('click', (e) => {
-  e.stopPropagation();
-  exitFullscreen();
-});
-
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && island.classList.contains('fullscreen')) {
-    exitFullscreen();
-  }
-});
+  });
+})();
 </script>
 </body>
 </html>

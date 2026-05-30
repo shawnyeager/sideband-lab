@@ -57,7 +57,7 @@
     color: var(--gated);
   }
   .step-row[data-third-party].active {
-    border-left-color: var(--gated) !important;
+    box-shadow: inset 2px 0 0 var(--gated) !important;
   }
   .step-row[data-third-party].completed .step-label {
     color: var(--gated) !important;
@@ -204,11 +204,11 @@
   .step-row {
     display: flex;
     align-items: center;
-    padding: 6px 0;
+    padding: 6px 0 6px 6px;
     position: relative;
     cursor: pointer;
-    border-left: 3px solid transparent;
-    transition: border-color 0.2s ease, opacity 0.3s ease;
+    box-shadow: inset 2px 0 0 transparent;
+    transition: box-shadow 0.2s ease, opacity 0.3s ease;
     min-height: 44px;
   }
   .step-row:focus-visible {
@@ -242,8 +242,8 @@
 
   /* Step row active/dimmed states */
   .step-row.active { opacity: 1; }
-  .step-row.active.x402 { border-left-color: var(--x402); }
-  .step-row.active.l402 { border-left-color: var(--l402); }
+  .step-row.active.x402 { box-shadow: inset 2px 0 0 var(--x402); }
+  .step-row.active.l402 { box-shadow: inset 2px 0 0 var(--l402); }
   .step-row.dimmed { opacity: 0.35; }
   .step-row.completed .step-label { color: var(--viz-text); }
   .step-row.completed.x402 .step-label { color: var(--x402); }
@@ -1041,6 +1041,19 @@
       return rRect.top + rRect.height / 2 - sRect.top;
     }
 
+    // Abort cleanly if the core scaffold is missing — return a no-op
+    // controller so callers (play/reset/showFinalState/etc.) never throw.
+    if (!panel || !svgEl || !lifelineSvg || !actorsContainer || !stepsContainer ||
+        !progressEl || !doneEl || !rows.length) {
+      const noop = () => {};
+      return {
+        get state() { return 'idle'; },
+        get step() { return -1; },
+        play: noop, pause: noop, resume: noop, stepForward: noop,
+        reset: noop, showFinalState: noop, redrawLifelines: noop
+      };
+    }
+
     const ns = 'http://www.w3.org/2000/svg';
     const markerId = `arrowhead-${protocol}`;
 
@@ -1087,6 +1100,7 @@
     }
 
     function updateControls() {
+      if (!transportEl || !pauseBtn || !stepBtn) return;
       if (state === 'idle') {
         transportEl.classList.remove('visible');
         return;
@@ -1108,22 +1122,6 @@
         pauseBtn.disabled = false;
         stepBtn.disabled = true;
       }
-    }
-
-    function drawStaticArrow(fromActor, toActor, stepIdx) {
-      const x1 = getActorX(fromActor);
-      const x2 = getActorX(toActor);
-      const y = getStepY(stepIdx);
-      if (Math.abs(x2 - x1) < 1) return;
-      const line = document.createElementNS(ns, 'line');
-      line.setAttribute('x1', x1);
-      line.setAttribute('y1', y);
-      line.setAttribute('x2', x2);
-      line.setAttribute('y2', y);
-      line.setAttribute('marker-start', `url(#${markerId}-start)`);
-      line.setAttribute('marker-end', `url(#${markerId})`);
-      line.classList.add('arrow-line', protocol, 'completed');
-      svgEl.appendChild(line);
     }
 
     async function animateArrow(stepIdx, fromActor, toActor, duration) {
@@ -1175,7 +1173,7 @@
     }
 
     function announce(text) {
-      liveEl.textContent = text;
+      if (liveEl) liveEl.textContent = text;
     }
 
     function updateProgress() {
@@ -1188,14 +1186,18 @@
       if (!card) return Promise.resolve();
       const statusEl = $(`#${protocol}-sign-status`);
       card.classList.add('visible');
-      statusEl.textContent = 'Verifying...';
-      statusEl.className = 'sign-status pending';
+      if (statusEl) {
+        statusEl.textContent = 'Verifying...';
+        statusEl.className = 'sign-status pending';
+      }
 
       return new Promise(resolve => {
         setTimeout(() => {
           if (myGen !== gen) { resolve(); return; }
-          statusEl.textContent = '\u2713 Verified';
-          statusEl.className = 'sign-status confirmed';
+          if (statusEl) {
+            statusEl.textContent = '\u2713 Verified';
+            statusEl.className = 'sign-status confirmed';
+          }
           setTimeout(() => {
             if (myGen === gen) card.classList.remove('visible');
             resolve();
@@ -1240,7 +1242,8 @@
       });
 
       const d = stepsData[i];
-      const label = rows[i] ? rows[i].querySelector('.step-label').textContent : '';
+      const labelEl = rows[i] ? rows[i].querySelector('.step-label') : null;
+      const label = labelEl ? labelEl.textContent : '';
       announce(`Step ${i + 1} of ${totalSteps}: ${label}`);
 
       // Show detail if any
@@ -1387,9 +1390,13 @@
   const x402 = createTimeline('x402', x402Data);
   const l402 = createTimeline('l402', l402Data);
 
+  const replayBtn = $('#replay-btn');
+  function showReplay() {
+    if (replayBtn) replayBtn.classList.add('visible');
+  }
   function checkBothDone() {
     if (x402.state === 'complete' && l402.state === 'complete') {
-      $('#replay-btn').classList.add('visible');
+      showReplay();
     }
   }
   /* ── Start trigger ── */
@@ -1397,19 +1404,34 @@
     if (prefersReduced.matches) {
       x402.showFinalState();
       l402.showFinalState();
-      $('#replay-btn').classList.add('visible');
+      showReplay();
       return;
     }
     x402.play();
     l402.play();
   }
 
-  document.fonts.ready.then(() => {
+  function whenReady(cb) {
+    if (document.fonts && document.fonts.ready &&
+        typeof document.fonts.ready.then === 'function') {
+      document.fonts.ready.then(cb, cb);
+    } else {
+      cb();
+    }
+  }
+
+  whenReady(() => {
     const island = $('.chart-island');
     if (!island) return;
 
+    // No IntersectionObserver (old browser): just start immediately.
+    if (typeof IntersectionObserver !== 'function') {
+      startAnimation();
+      return;
+    }
+
     const observer = new IntersectionObserver((entries) => {
-      if (entries[0].isIntersecting) {
+      if (entries.some(entry => entry.isIntersecting)) {
         observer.disconnect();
         startAnimation();
       }
@@ -1419,33 +1441,41 @@
 
   /* ── Replay ── */
   let replayLock = false;
-  $('#replay-btn').addEventListener('click', () => {
-    if (replayLock) return;
-    replayLock = true;
-    $('#replay-btn').classList.remove('visible');
-    x402.reset();
-    l402.reset();
-    requestAnimationFrame(() => {
+  if (replayBtn) {
+    replayBtn.addEventListener('click', () => {
+      if (replayLock) return;
+      replayLock = true;
+      replayBtn.classList.remove('visible');
+      x402.reset();
+      l402.reset();
       requestAnimationFrame(() => {
-        startAnimation();
-        replayLock = false;
+        requestAnimationFrame(() => {
+          startAnimation();
+          replayLock = false;
+        });
       });
     });
-  });
+  }
 
   /* ── Transport controls ── */
   function setupTransport(protocol, timeline) {
     const pauseBtn = $(`#${protocol}-pause`);
     const stepBtn = $(`#${protocol}-step`);
-    pauseBtn.addEventListener('click', () => {
-      if (timeline.state === 'paused') timeline.play();
-      else timeline.pause();
-    });
-    stepBtn.addEventListener('click', () => {
-      timeline.stepForward();
-    });
+    if (pauseBtn) {
+      pauseBtn.addEventListener('click', () => {
+        if (timeline.state === 'paused') timeline.play();
+        else timeline.pause();
+      });
+    }
+    if (stepBtn) {
+      stepBtn.addEventListener('click', () => {
+        timeline.stepForward();
+      });
+    }
+    const panel = $(`#panel-${protocol}`);
+    if (!panel) return;
     // Keyboard toggle on step rows
-    $$('.step-row', $(`#panel-${protocol}`)).forEach(row => {
+    $$('.step-row', panel).forEach(row => {
       row.addEventListener('keydown', (e) => {
         if (e.key === 'Enter' || e.key === ' ') {
           e.preventDefault();
@@ -1485,21 +1515,42 @@
       const text = el.dataset.tooltip;
       if (!text) return;
 
+      const island = $('.chart-island');
+      if (!island) return;
+
       const pop = document.createElement('div');
       pop.className = 'popover visible';
       pop.textContent = text;
       pop.setAttribute('role', 'tooltip');
 
       const rect = el.getBoundingClientRect();
-      const island = $('.chart-island');
       const islandRect = island.getBoundingClientRect();
 
-      pop.style.top = (rect.bottom - islandRect.top + 8) + 'px';
-      pop.style.left = (rect.left - islandRect.left + rect.width / 2 - 130) + 'px';
-      pop.style.width = '260px';
+      // Clamp width so the popover never overflows a narrow island,
+      // and keep its left edge inside the island bounds on small viewports.
+      const pad = 8;
+      const width = Math.min(260, Math.max(0, islandRect.width - pad * 2));
+      const anchorCenter = rect.left - islandRect.left + rect.width / 2;
+      let left = anchorCenter - width / 2;
+      const maxLeft = islandRect.width - width - pad;
+      if (left > maxLeft) left = maxLeft;
+      if (left < pad) left = pad;
+
+      pop.style.top = (rect.bottom - islandRect.top + pad) + 'px';
+      pop.style.left = left + 'px';
+      pop.style.width = width + 'px';
 
       island.appendChild(pop);
       activePopover = pop;
+    });
+
+    // Keyboard activation — actor-name is role="button" but a <span>,
+    // so it does not fire click on Enter/Space natively.
+    el.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        el.click();
+      }
     });
   });
 
@@ -1516,10 +1567,13 @@
       const other = target === 'x402' ? 'l402' : 'x402';
 
       tab.setAttribute('aria-selected', 'true');
-      $(`#tab-${other}`).setAttribute('aria-selected', 'false');
+      const otherTabEl = $(`#tab-${other}`);
+      if (otherTabEl) otherTabEl.setAttribute('aria-selected', 'false');
 
-      $(`#panel-${target}`).classList.add('active-tab');
-      $(`#panel-${other}`).classList.remove('active-tab');
+      const targetPanel = $(`#panel-${target}`);
+      const otherPanel = $(`#panel-${other}`);
+      if (targetPanel) targetPanel.classList.add('active-tab');
+      if (otherPanel) otherPanel.classList.remove('active-tab');
 
       // Redraw lifelines for the newly visible panel (positions are 0 while hidden)
       const engine = target === 'x402' ? x402 : l402;
@@ -1539,15 +1593,20 @@
   });
 
   /* ── Reduced motion listener ── */
-  prefersReduced.addEventListener('change', (e) => {
+  function onReducedMotionChange(e) {
     if (e.matches) {
       x402.reset();
       l402.reset();
       x402.showFinalState();
       l402.showFinalState();
-      $('#replay-btn').classList.add('visible');
+      showReplay();
     }
-  });
+  }
+  if (typeof prefersReduced.addEventListener === 'function') {
+    prefersReduced.addEventListener('change', onReducedMotionChange);
+  } else if (typeof prefersReduced.addListener === 'function') {
+    prefersReduced.addListener(onReducedMotionChange); // older Safari
+  }
 
   /* ── Resize: redraw lifelines ── */
   let resizeTimer;
@@ -1568,7 +1627,7 @@
       l402.reset();
       x402.showFinalState();
       l402.showFinalState();
-      $('#replay-btn').classList.add('visible');
+      showReplay();
     }
   });
 

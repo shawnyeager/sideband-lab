@@ -6,24 +6,26 @@
 <title>The AI market hyperscalers can't reach</title>
 <style>
   :root {
-    --bg:           #1d2733;
-    --text-heading: #e3dfd3;
-    --text-sub:     #a09d94;
-    --text-muted:   #7a7770;
-    --green:        #22c55e;
-    --amber:        #f59e0b;
-    --red:          #ef4444;
+    /* Visualization island palette — categorical, each hue is a layer.
+       Maps to the design-system island colors (see DESIGN.md §2). */
+    --viz-bg:       #1d2733;
+    --viz-heading:  #e3dfd3;
+    --viz-sub:      #a09d94;
+    --viz-muted:    #7a7770;
+    --layer-cloud:  #5B9B84; /* Survey Green — cloud-viable / discovery */
+    --layer-sov:    #C9A050; /* Pale Amber — sovereign / private cloud */
+    --layer-edge:   #D4716B; /* Signal Red — edge / air-gap (the unreachable) */
   }
 
   .chart-island {
     max-width: 940px;
-    background: var(--bg);
-    border-radius: 3px;
+    background: var(--viz-bg);
+    border-radius: var(--card-radius);
     margin-bottom: var(--sp-4);
     padding: 36px 48px 32px;
     position: relative;
     overflow: visible;
-    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-family: var(--font-sans);
   }
 
   .legend {
@@ -39,7 +41,7 @@
     align-items: center;
     gap: 7px;
     font-size: 11px;
-    color: var(--text-muted);
+    color: var(--viz-muted);
     letter-spacing: 0.05em;
     text-transform: uppercase;
   }
@@ -82,22 +84,34 @@
     border: 1px solid rgba(255,255,255,0.1);
     border-radius: 4px;
     padding: 11px 15px;
-    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-family: var(--font-sans);
     font-size: 12px;
-    color: var(--text-sub);
+    color: var(--viz-sub);
     pointer-events: none;
     z-index: 100;
     opacity: 0;
-    transition: opacity 0.12s;
+    transition: opacity 0.12s ease;
     max-width: 240px;
     line-height: 1.6;
     box-shadow: 0 8px 24px rgba(0,0,0,0.45);
   }
   .tooltip.visible { opacity: 1; }
+
+  /* Visible focus ring for keyboard users on the otherwise-transparent
+     sector hit circles. Cyan is the lab's interactive accent. */
+  .chart-svg-wrap svg circle:focus-visible {
+    outline: none;
+    stroke: var(--cyan, #0EA5C9);
+    stroke-width: 1.5;
+    stroke-opacity: 0.9;
+  }
+  .chart-svg-wrap svg circle:focus {
+    outline: none;
+  }
   .tooltip-name {
     font-size: 13px;
     font-weight: 600;
-    color: var(--text-heading);
+    color: var(--viz-heading);
     margin-bottom: 4px;
   }
   .tooltip-tag {
@@ -107,9 +121,15 @@
     margin-bottom: 8px;
   }
   .tooltip-why {
-    color: var(--text-sub);
+    color: var(--viz-sub);
     font-size: 11.5px;
     line-height: 1.5;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .tooltip {
+      transition-duration: 0.01ms !important;
+    }
   }
 
   @media (max-width: 768px) {
@@ -133,9 +153,9 @@
   <div class="chart-island">
 
     <div class="legend">
-      <div class="legend-item"><div class="legend-dot" style="background:#22c55e"></div> Cloud-viable</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#f59e0b"></div> Sovereign / private cloud required</div>
-      <div class="legend-item"><div class="legend-dot" style="background:#ef4444"></div> Edge / modular / air-gap required</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--layer-cloud)"></div> Cloud-viable</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--layer-sov)"></div> Sovereign / private cloud required</div>
+      <div class="legend-item"><div class="legend-dot" style="background:var(--layer-edge)"></div> Edge / modular / air-gap required</div>
     </div>
 
     <!-- JS creates and populates the SVG here -->
@@ -170,10 +190,30 @@ var NS = 'http://www.w3.org/2000/svg';
 var container = document.getElementById('chart');
 var tt = document.getElementById('tooltip');
 
+// Bail cleanly if the mount point is missing — never throw on a half-loaded DOM.
+if (container) {
+
+// Layer palette — single source mirrors the --layer-* CSS tokens above
+// (DESIGN.md island categorical palette: green/amber/red as layers).
+var LAYER = {
+  cloud: '#5B9B84',
+  sov:   '#C9A050',
+  edge:  '#D4716B'
+};
+
 // Create SVG element dynamically (same pattern as three-body-problem)
 var svg = document.createElementNS(NS, 'svg');
 svg.setAttribute('viewBox', '0 0 660 460');
 svg.setAttribute('overflow', 'visible');
+// role="group" (not "img") so the focusable per-sector buttons stay exposed
+// to assistive tech rather than being collapsed into one image node.
+svg.setAttribute('role', 'group');
+svg.setAttribute('aria-roledescription', 'scatter plot');
+svg.setAttribute('aria-label',
+  'Industry sectors plotted by connectivity (horizontal: always connected to isolated and remote) ' +
+  'and data sovereignty (vertical: no restrictions to air-gapped and classified), grouped into three layers: ' +
+  'cloud-viable, sovereign or private cloud required, and edge or air-gap required. ' +
+  'Each sector is keyboard focusable for its details.');
 svg.style.width = '100%';
 svg.style.height = 'auto';
 svg.style.display = 'block';
@@ -205,21 +245,72 @@ function addText(attrs, content) {
 }
 
 function tagColor(c) {
-  if (c === '#22c55e') return 'rgba(34,197,94,0.7)';
-  if (c === '#f59e0b') return 'rgba(245,158,11,0.7)';
-  return 'rgba(239,68,68,0.7)';
+  if (c === LAYER.cloud) return 'rgba(91,155,132,0.85)';
+  if (c === LAYER.sov)   return 'rgba(201,160,80,0.85)';
+  return 'rgba(212,113,107,0.85)';
+}
+
+// Build the tooltip body for a sector. Guards against a missing tooltip node.
+function fillTooltip(s) {
+  if (!tt) return;
+  var nameEl = document.createElement('div');
+  nameEl.className = 'tooltip-name';
+  nameEl.textContent = s.name;
+
+  var tagEl = document.createElement('div');
+  tagEl.className = 'tooltip-tag';
+  tagEl.style.color = tagColor(s.color);
+  tagEl.textContent = s.tag;
+
+  var whyEl = document.createElement('div');
+  whyEl.className = 'tooltip-why';
+  whyEl.textContent = s.why;
+
+  tt.innerHTML = '';
+  tt.appendChild(nameEl);
+  tt.appendChild(tagEl);
+  tt.appendChild(whyEl);
+}
+
+// Position the tooltip near a point, clamped to the viewport so it never
+// overflows on small screens or near an edge.
+function positionTooltip(clientX, clientY) {
+  if (!tt) return;
+  tt.classList.add('visible');
+  var margin = 8;
+  var rect = tt.getBoundingClientRect();
+  var vw = document.documentElement.clientWidth || window.innerWidth;
+  var vh = document.documentElement.clientHeight || window.innerHeight;
+  var left = clientX + 16;
+  var top = clientY - 24;
+  if (left + rect.width + margin > vw) left = clientX - rect.width - 16;
+  if (left < margin) left = margin;
+  if (top + rect.height + margin > vh) top = vh - rect.height - margin;
+  if (top < margin) top = margin;
+  tt.style.left = left + 'px';
+  tt.style.top = top + 'px';
+}
+
+function hideTooltip() {
+  if (tt) tt.classList.remove('visible');
+}
+
+function highlight(b, on) {
+  if (!b) return;
+  b.setAttribute('fill-opacity', on ? '0.3' : '0.18');
+  b.setAttribute('stroke-opacity', on ? '0.9' : '0.6');
 }
 
 // Zone shading
 svg.appendChild(mk('rect', {
   x: xS(6), y: PAD.top,
   width: xS(10) - xS(6), height: PH,
-  fill: 'rgba(239,68,68,0.04)'
+  fill: 'rgba(212,113,107,0.05)'
 }));
 svg.appendChild(mk('rect', {
   x: PAD.left, y: yS(9),
   width: PW, height: yS(6) - yS(9),
-  fill: 'rgba(239,68,68,0.04)'
+  fill: 'rgba(212,113,107,0.05)'
 }));
 
 // Grid lines
@@ -309,63 +400,63 @@ svg.appendChild(yLbl);
 var SECTORS = [
   {
     name: 'Consumer & SaaS',
-    px: 1.2, py: 0.8, r: 52, color: '#22c55e',
+    px: 1.2, py: 0.8, r: 52, color: LAYER.cloud,
     tag: 'Cloud-viable',
     why: 'Minimal regulatory restriction. Always-on connectivity assumed. Standard cloud providers cover this fully.',
     lx: 0, ly: -62, anchor: 'middle'
   },
   {
     name: 'Enterprise software',
-    px: 2.2, py: 2.4, r: 46, color: '#22c55e',
+    px: 2.2, py: 2.4, r: 46, color: LAYER.cloud,
     tag: 'Cloud-viable',
     why: 'Generally cloud-viable. Some data residency requirements emerging, but most workloads flow through hyperscalers.',
     lx: 48, ly: 4, anchor: 'start'
   },
   {
     name: 'Financial services',
-    px: 2, py: 6, r: 54, color: '#f59e0b',
+    px: 2, py: 6, r: 54, color: LAYER.sov,
     tag: 'Sovereign / private cloud',
     why: 'Heavily regulated. Many jurisdictions require local data processing. AI models handling trades or customer data face strict residency rules.',
     lx: 56, ly: 4, anchor: 'start'
   },
   {
     name: 'Healthcare',
-    px: 2.2, py: 8, r: 46, color: '#f59e0b',
+    px: 2.2, py: 8, r: 46, color: LAYER.sov,
     tag: 'Sovereign / private cloud',
     why: 'HIPAA and equivalent frameworks restrict where PHI is processed. Sovereign or on-prem clouds required for clinical AI.',
     lx: 50, ly: 4, anchor: 'start'
   },
   {
     name: 'Government (civilian)',
-    px: 3, py: 7.2, r: 40, color: '#f59e0b',
+    px: 3, py: 7.2, r: 40, color: LAYER.sov,
     tag: 'Sovereign / private cloud',
     why: 'FedRAMP in the U.S., EU data sovereignty rules, national AI strategies. Approved clouds only.',
     lx: 0, ly: 6, anchor: 'middle'
   },
   {
     name: 'Telecom',
-    px: 4.2, py: 4.2, r: 34, color: '#f59e0b',
+    px: 4.2, py: 4.2, r: 34, color: LAYER.sov,
     tag: 'Sovereign / private cloud',
     why: 'Network traffic data is nationally sensitive. Several governments require local AI processing for telecom infrastructure.',
     lx: 40, ly: 4, anchor: 'start'
   },
   {
     name: 'Manufacturing',
-    px: 6.2, py: 3.2, r: 40, color: '#ef4444',
+    px: 6.2, py: 3.2, r: 40, color: LAYER.edge,
     tag: 'Edge / modular',
     why: 'Factory-floor OT networks are often air-gapped from IT for security. Latency requirements for real-time control preclude cloud AI.',
     lx: 44, ly: 4, anchor: 'start'
   },
   {
     name: 'Energy & remote ops',
-    px: 7.8, py: 4.8, r: 36, color: '#ef4444',
+    px: 7.8, py: 4.8, r: 36, color: LAYER.edge,
     tag: 'Edge / modular',
     why: 'Offshore platforms, remote pipelines, and substations have intermittent or no cloud connectivity. Armada primary market.',
     lx: 0, ly: -46, anchor: 'middle'
   },
   {
     name: 'Defense & classified',
-    px: 3.8, py: 9.4, r: 56, color: '#ef4444',
+    px: 3.8, py: 9.4, r: 56, color: LAYER.edge,
     tag: 'Edge / modular',
     why: 'ITAR, CMMC Level 3, and classification requirements mandate air-gapped environments for most AI workloads. No commercial cloud.',
     lx: 60, ly: 0, anchor: 'start'
@@ -397,55 +488,48 @@ for (var li = 0; li < SECTORS.length; li++) {
   }, s.name);
 }
 
-// Pass 3: hit areas + tooltips
+// Pass 3: hit areas + tooltips (mouse, touch, and keyboard)
 for (var hi = 0; hi < SECTORS.length; hi++) {
   (function(s) {
     var b = bubbles[s.name];
     var hit = mk('circle', {
       cx: xS(s.px), cy: yS(s.py), r: s.r + 8,
-      fill: 'transparent', style: 'cursor:pointer'
+      fill: 'transparent', style: 'cursor:pointer',
+      tabindex: '0', role: 'button',
+      'aria-label': s.name + '. ' + s.tag + '. ' + s.why
     });
     svg.appendChild(hit);
 
     hit.addEventListener('mouseenter', function(e) {
-      if (b) {
-        b.setAttribute('fill-opacity', '0.3');
-        b.setAttribute('stroke-opacity', '0.9');
-      }
-      var nameEl = document.createElement('div');
-      nameEl.className = 'tooltip-name';
-      nameEl.textContent = s.name;
-
-      var tagEl = document.createElement('div');
-      tagEl.className = 'tooltip-tag';
-      tagEl.style.color = tagColor(s.color);
-      tagEl.textContent = s.tag;
-
-      var whyEl = document.createElement('div');
-      whyEl.className = 'tooltip-why';
-      whyEl.textContent = s.why;
-
-      tt.innerHTML = '';
-      tt.appendChild(nameEl);
-      tt.appendChild(tagEl);
-      tt.appendChild(whyEl);
-
-      tt.style.left = (e.clientX + 16) + 'px';
-      tt.style.top = (e.clientY - 24) + 'px';
-      tt.classList.add('visible');
+      highlight(b, true);
+      fillTooltip(s);
+      positionTooltip(e.clientX, e.clientY);
     });
 
     hit.addEventListener('mousemove', function(e) {
-      tt.style.left = (e.clientX + 16) + 'px';
-      tt.style.top = (e.clientY - 24) + 'px';
+      positionTooltip(e.clientX, e.clientY);
     });
 
     hit.addEventListener('mouseleave', function() {
-      if (b) {
-        b.setAttribute('fill-opacity', '0.18');
-        b.setAttribute('stroke-opacity', '0.6');
-      }
-      tt.classList.remove('visible');
+      highlight(b, false);
+      hideTooltip();
+    });
+
+    // Keyboard: focusing a sector reveals its details near the bubble.
+    hit.addEventListener('focus', function() {
+      highlight(b, true);
+      fillTooltip(s);
+      var r = (b || hit).getBoundingClientRect();
+      positionTooltip(r.left + r.width / 2, r.top + r.height / 2);
+    });
+
+    hit.addEventListener('blur', function() {
+      highlight(b, false);
+      hideTooltip();
+    });
+
+    hit.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') { hit.blur(); }
     });
   })(SECTORS[hi]);
 }
@@ -454,14 +538,16 @@ for (var hi = 0; hi < SECTORS.length; hi++) {
 var aX = xS(7.8), aY = yS(4.8);
 svg.appendChild(mk('line', {
   x1: aX - 36, y1: aY - 18, x2: aX - 54, y2: aY - 32,
-  stroke: 'rgba(239,68,68,0.4)', 'stroke-width': '1'
+  stroke: 'rgba(212,113,107,0.5)', 'stroke-width': '1'
 }));
 addText({
   x: aX - 57, y: aY - 34,
-  fill: 'rgba(239,68,68,0.55)', 'font-size': '9',
+  fill: 'rgba(212,113,107,0.7)', 'font-size': '9',
   'font-family': 'Space Grotesk,system-ui,sans-serif',
   'text-anchor': 'end', 'letter-spacing': '0.06em'
 }, 'ARMADA $230M');
+
+} // end if (container)
 </script>
 
 </body>
