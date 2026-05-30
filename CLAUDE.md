@@ -49,6 +49,8 @@ Use Astro's `<Image>` component (`astro:assets`) for images in `.astro` files â€
 
 ## Design Context
 
+> Formalized for design tooling in [PRODUCT.md](PRODUCT.md) (register, users, principles, anti-references) and [DESIGN.md](DESIGN.md) (color/type/component tokens, North Star: "The Cartographer's Table"). The sections below remain the human-readable source.
+
 ### Users
 Founders, builders, and investors following AI infrastructure shifts. They know what an API is, what Lightning is, what a stablecoin is. They arrive from the Sideband newsletter (sideband.pub) and want to see an idea made tangible â€” not explained from scratch.
 

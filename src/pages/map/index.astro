@@ -24,6 +24,15 @@ const meta = project ? projectMeta(project) : '';
       font-style: normal;
       font-display: swap;
     }
+    /* Honor reduced-motion: neutralize the island's inline-style transitions. */
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        transition-duration: 0.01ms !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        scroll-behavior: auto !important;
+      }
+    }
   </style>
 </head>
 <body style="margin:0; background:#eeebe4;">

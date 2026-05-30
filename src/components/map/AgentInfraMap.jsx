@@ -463,7 +463,7 @@ export default function AgentInfraMap() {
             <div style={{ fontFamily: F.ui, fontSize: mobile ? T.detail.m : T.detail.d, color: C.text, opacity: 0.4, marginBottom: mobile ? 10 : 14, letterSpacing: "0.05em" }}>WHAT THE MAP REVEALS</div>
             <div style={{ display: "grid", gridTemplateColumns: mobile ? "1fr" : "1fr 1fr", gap: 12 }}>
               {insights.map((card, i) => (
-                <div key={i} style={{ background: C.surface, padding: mobile ? "12px 14px" : "16px 20px", borderRadius: 6, borderLeft: `3px solid ${card.color}40` }}>
+                <div key={i} style={{ background: C.surface, padding: mobile ? "12px 14px" : "16px 20px", borderRadius: 4, border: `1px solid ${card.color}33` }}>
                   <div style={{ fontFamily: F.ui, fontSize: mobile ? T.label.m : T.label.d, fontWeight: 700, color: card.color, marginBottom: 6 }}>{card.title}</div>
                   <div style={{ fontFamily: F.body, fontSize: mobile ? T.body.m : T.body.d, opacity: 0.6, lineHeight: 1.5 }}>{card.text}</div>
                 </div>
