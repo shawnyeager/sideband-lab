@@ -413,7 +413,9 @@ export default function AgentInfraMap() {
         }}>
           Select a layer to reveal labels
         </div>
-        <div ref={setChartRef}>
+        {/* className is a capture hook for scripts/capture-og.sh; no stylesheet
+            defines .chart-island on this page, so layout is unaffected. */}
+        <div ref={setChartRef} className="chart-island">
           <ScatterPlot data={data} layers={layers} width={chartWidth} height={chartHeight} selectedLayer={view} hoveredPoint={hoveredPoint} setHoveredPoint={setHoveredPoint} pinnedPoint={pinnedPoint} setPinnedPoint={setPinnedPoint} showDiagonal={showDiagonal} />
         </div>
         <div style={{ marginTop: mobile ? 20 : 28, padding: "16px 0", borderTop: `1px solid ${C.text}15` }}>

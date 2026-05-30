@@ -16,6 +16,13 @@
 # (when the natural cut falls mid-row) snapped UP to the nearest clean gap
 # between rows. Width must equal 940 CSS px (the canonical chart-island width).
 #
+# Works for both the standalone HTML projects (which set .chart-island to 940px
+# via their own CSS) and the React-island projects like /map/, whose chart width
+# tracks the viewport. The script measures the chart-island once, then adjusts
+# the viewport so the island renders at exactly 940 CSS px before capturing — a
+# no-op for projects already at 940. Row-gap snapping is skipped when the project
+# has no .agent-row/.bar-row elements (e.g. the scatter map).
+#
 # Usage:  scripts/capture-og.sh <slug> [wait_ms] [extra_hide_selector]
 #
 # Requires: dev server at localhost:4321, agent-browser, imagemagick (magick), jq
@@ -31,62 +38,90 @@ CHART_W_CSS=940
 THUMB_H_CSS=588   # 1880×1176/2 — 16:10 ratio. (Allowing 1px of rounding slack.)
 OG_H_CSS=494      # 1880×988/2 — 1.903 ratio.
 
+VIEWPORT_W=1200   # starting width; adjusted below so the island lands at 940
+VIEWPORT_H=1600
+
 URL="http://localhost:4321/${SLUG}/"
 THUMB_OUT="src/assets/projects/${SLUG}.png"
 OG_OUT="public/img/og/${SLUG}.png"
 TMP_FULL="/tmp/ab-full-${SLUG}-$$.png"
 
+# Open the page at a given viewport width, hide chrome, and settle.
+prepare_page() {
+  local vp_w="$1"
+  agent-browser set viewport "$vp_w" "$VIEWPORT_H" "$SCALE"
+  agent-browser open "$URL"
+  agent-browser wait "$WAIT_MS"
+
+  agent-browser eval "(() => {
+    const hide = sel => { const el = document.querySelector(sel); if (el) el.style.display = 'none'; };
+    hide('.site-header-fixed');
+    hide('.project-breadcrumb');
+    hide('.title-block');
+    hide('.project-byline');
+    ${EXTRA_HIDE:+hide('$EXTRA_HIDE');}
+    document.body.style.paddingTop = '0';
+    document.body.style.background = '#1d2733';
+  })()"
+
+  agent-browser wait 300
+}
+
+# Measure chart-island geometry + row-gap centerlines (gaps empty when no rows).
+measure() {
+  agent-browser --json eval "(() => {
+    const island = document.querySelector('.chart-island');
+    if (!island) return JSON.stringify({ error: 'no chart-island' });
+    const ir = island.getBoundingClientRect();
+
+    // Collect candidate gap centerlines. Works for either .agent-row or .bar-row.
+    const rowSel = document.querySelectorAll('.agent-row').length
+      ? '.agent-row'
+      : '.bar-row';
+    const rows = [...document.querySelectorAll(rowSel)];
+    const gaps = [];
+    for (let i = 0; i < rows.length - 1; i++) {
+      const a = rows[i].getBoundingClientRect();
+      const b = rows[i + 1].getBoundingClientRect();
+      gaps.push({ y: (a.bottom + b.top) / 2, afterRow: i });
+    }
+    if (rows.length) {
+      const last = rows[rows.length - 1].getBoundingClientRect();
+      gaps.push({ y: last.bottom + 6, afterRow: rows.length - 1 });
+    }
+    return JSON.stringify({
+      islandX: Math.round(ir.x),
+      islandY: Math.round(ir.y),
+      islandW: Math.round(ir.width),
+      islandH: Math.round(ir.height),
+      gaps: gaps.map(g => ({ y: Math.round(g.y - ir.y), afterRow: g.afterRow })),
+    });
+  })()" | jq -r '.data.result // .data // .'
+}
+
+require_island() {
+  if jq -e '.error' <<<"$1" >/dev/null; then
+    echo "❌ $(jq -r '.error' <<<"$1")"
+    exit 1
+  fi
+}
+
 echo "→ ${SLUG}: opening ${URL}"
-agent-browser set viewport 1200 1600 "$SCALE"
-agent-browser open "$URL"
-agent-browser wait "$WAIT_MS"
+prepare_page "$VIEWPORT_W"
+MEASURE=$(measure)
+require_island "$MEASURE"
 
-agent-browser eval "(() => {
-  const hide = sel => { const el = document.querySelector(sel); if (el) el.style.display = 'none'; };
-  hide('.site-header-fixed');
-  hide('.project-breadcrumb');
-  hide('.title-block');
-  hide('.project-byline');
-  ${EXTRA_HIDE:+hide('$EXTRA_HIDE');}
-  document.body.style.paddingTop = '0';
-  document.body.style.background = '#1d2733';
-})()"
-
-agent-browser wait 300
-
-# Measure chart-island + row positions so we can snap crops to clean gaps.
-MEASURE=$(agent-browser --json eval "(() => {
-  const island = document.querySelector('.chart-island');
-  if (!island) return JSON.stringify({ error: 'no chart-island' });
-  const ir = island.getBoundingClientRect();
-
-  // Collect candidate gap centerlines. Works for either .agent-row or .bar-row.
-  const rowSel = document.querySelectorAll('.agent-row').length
-    ? '.agent-row'
-    : '.bar-row';
-  const rows = [...document.querySelectorAll(rowSel)];
-  const gaps = [];
-  for (let i = 0; i < rows.length - 1; i++) {
-    const a = rows[i].getBoundingClientRect();
-    const b = rows[i + 1].getBoundingClientRect();
-    gaps.push({ y: (a.bottom + b.top) / 2, afterRow: i });
-  }
-  if (rows.length) {
-    const last = rows[rows.length - 1].getBoundingClientRect();
-    gaps.push({ y: last.bottom + 6, afterRow: rows.length - 1 });
-  }
-  return JSON.stringify({
-    islandX: Math.round(ir.x),
-    islandY: Math.round(ir.y),
-    islandW: Math.round(ir.width),
-    islandH: Math.round(ir.height),
-    gaps: gaps.map(g => ({ y: Math.round(g.y - ir.y), afterRow: g.afterRow })),
-  });
-})()" | jq -r '.data.result // .data // .')
-
-if jq -e '.error' <<<"$MEASURE" >/dev/null; then
-  echo "❌ $(jq -r '.error' <<<"$MEASURE")"
-  exit 1
+# Island width tracks viewport width minus fixed page chrome. One linear
+# adjustment lands it on the canonical 940 CSS px: solve new_vp such that
+# island == CHART_W_CSS, given island == vp - (VIEWPORT_W - islandW).
+ISLAND_W=$(jq -r '.islandW' <<<"$MEASURE")
+if [ "$ISLAND_W" -ne "$CHART_W_CSS" ]; then
+  NEW_VP=$(( CHART_W_CSS + VIEWPORT_W - ISLAND_W ))
+  echo "→ ${SLUG}: chart-island measured ${ISLAND_W}px; adjusting viewport ${VIEWPORT_W}→${NEW_VP}px to hit ${CHART_W_CSS}px"
+  VIEWPORT_W="$NEW_VP"
+  prepare_page "$VIEWPORT_W"
+  MEASURE=$(measure)
+  require_island "$MEASURE"
 fi
 
 ISLAND_X=$(jq -r '.islandX' <<<"$MEASURE")
@@ -95,7 +130,7 @@ ISLAND_W=$(jq -r '.islandW' <<<"$MEASURE")
 ISLAND_H=$(jq -r '.islandH' <<<"$MEASURE")
 
 if [ "$ISLAND_W" -ne "$CHART_W_CSS" ]; then
-  echo "⚠ chart-island is ${ISLAND_W}px wide, expected ${CHART_W_CSS}px. Aspect ratios will be off."
+  echo "⚠ chart-island is ${ISLAND_W}px wide after adjustment, expected ${CHART_W_CSS}px. Cropping to ${CHART_W_CSS}px from the island's left edge."
 fi
 
 echo "→ ${SLUG}: chart-island ${ISLAND_W}×${ISLAND_H} CSS px, $(jq '.gaps | length' <<<"$MEASURE") row gaps measured"
@@ -132,7 +167,9 @@ crop_to() {
   local target_w_dev=$(( CHART_W_CSS * SCALE ))
   local target_h_dev=$(( target_h_css * SCALE ))
   local crop_h_dev=$(( h_css * SCALE ))
-  local crop_w_dev=$(( ISLAND_W * SCALE ))
+  # Width is locked to the canonical 940 CSS px (not the measured island width),
+  # so a sub-pixel island measurement can't push the output off 1880 device px.
+  local crop_w_dev=$(( CHART_W_CSS * SCALE ))
   local x_dev=$(( ISLAND_X * SCALE ))
   local y_dev=$(( ISLAND_Y * SCALE ))
 
