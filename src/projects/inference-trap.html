@@ -11,7 +11,7 @@
     --viz-bg:      #1d2733;
     --viz-heading: #e3dfd3;
     --viz-sub:     #a09d94;
-    --viz-muted:   #7a7770;
+    --viz-muted:   #949088;
     --clr-amber:   #C9A050;
     --clr-red:     #D4716B;
     --clr-green:   #5B9B84;
@@ -127,7 +127,7 @@
     position: absolute;
     top: 0; left: 0; bottom: 0;
     background: linear-gradient(90deg, rgba(91,155,132,0.5) 0%, var(--clr-green) 100%);
-    transition: width 0.55s cubic-bezier(0.34, 1.06, 0.64, 1);
+    transition: width 0.55s var(--ease-out-quart);
     width: 100%;
   }
 
@@ -135,7 +135,7 @@
     position: absolute;
     top: 0; right: 0; bottom: 0;
     background: linear-gradient(270deg, var(--clr-red) 0%, rgba(212,113,107,0.3) 100%);
-    transition: width 0.55s cubic-bezier(0.34, 1.06, 0.64, 1), background 0.4s ease;
+    transition: width 0.55s var(--ease-out-quart), background 0.4s var(--ease-out-quart);
     width: 0%;
   }
 
@@ -192,16 +192,6 @@
     transition: color 0.4s ease;
     color: var(--clr-green);
     text-align: center;
-  }
-
-  .net-sub {
-    font-size: 11px;
-    color: var(--viz-muted);
-    margin-top: 6px;
-    text-align: center;
-    line-height: 1.4;
-    white-space: nowrap;
-    transition: opacity 0.3s ease;
   }
 
   /* ── EQUATION ROW ──────────────────────────────────────── */
@@ -297,8 +287,30 @@
     font-weight: 700;
   }
 
+  /* Visually hidden, screen-reader only (matches http-402.html). */
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0,0,0,0);
+    border: 0;
+  }
+
   .title-block h1 { text-wrap: balance; }
   .title-block .subtitle { text-wrap: balance; }
+
+  /* Reduced motion: bars and readouts settle instantly, no sliding fills. */
+  @media (prefers-reduced-motion: reduce) {
+    .savings-fill,
+    .erased-fill,
+    .net-value,
+    .eq-val {
+      transition: none;
+    }
+  }
 
   @media (max-width: 768px) {
     .chart-island {
@@ -330,16 +342,17 @@
 
     <div class="selector-label">Select your workload</div>
     <div class="workload-buttons" role="group" aria-label="Workload type">
-      <button class="wl-btn active" data-idx="0" style="--btn-clr: #5B9B84" aria-pressed="true">
+      <button class="wl-btn active" data-idx="0" style="--btn-clr: var(--clr-green)" aria-pressed="true">
         Chatbot <span class="wl-tokens">1K tokens</span>
       </button>
-      <button class="wl-btn" data-idx="1" style="--btn-clr: #C9A050" aria-pressed="false">
+      <button class="wl-btn" data-idx="1" style="--btn-clr: var(--clr-amber)" aria-pressed="false">
         AI Copilot <span class="wl-tokens">5K tokens</span>
       </button>
-      <button class="wl-btn" data-idx="2" style="--btn-clr: #D4716B" aria-pressed="false">
+      <button class="wl-btn" data-idx="2" style="--btn-clr: var(--clr-red)" aria-pressed="false">
         Resident Agent <span class="wl-tokens">100K tokens</span>
       </button>
     </div>
+    <div id="wl-live" class="sr-only" aria-live="polite"></div>
 
     <div class="mechanism">
 
@@ -452,6 +465,7 @@
   var eqTokenRatio= document.getElementById('eq-token-ratio');
   var eqResult    = document.getElementById('eq-result');
   var buttons     = document.querySelectorAll('.wl-btn');
+  var liveEl      = document.getElementById('wl-live');
 
   var active = 0;
 
@@ -507,6 +521,11 @@
       if (idx === active) return;
       active = idx;
       render(idx);
+      var w = WORKLOADS[idx];
+      if (liveEl) {
+        liveEl.textContent = w.name + ': net savings ' + fmtSavings(w.savings) +
+          ', token growth ' + w.tokenRatio + '×';
+      }
     });
   });
 
