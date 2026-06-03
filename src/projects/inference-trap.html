@@ -238,12 +238,6 @@
     padding: 0 4px;
   }
 
-  .eq-eq {
-    font-size: 22px;
-    font-weight: 300;
-    color: var(--viz-muted);
-  }
-
   /* Proper CSS-drawn right arrow — replaces &rarr; glyphs */
   .arr {
     display: inline-flex;
@@ -402,17 +396,12 @@
         <div class="eq-val" style="color: var(--clr-red)" id="eq-token-ratio">1×</div>
         <div class="eq-lbl">token growth</div>
       </div>
-      <div class="eq-eq">=</div>
-      <div class="eq-item">
-        <div class="eq-val" id="eq-result" style="color: var(--clr-green)">430×</div>
-        <div class="eq-lbl">actual savings</div>
-      </div>
     </div>
 
   </div>
 
   <div class="finding">
-    <p class="finding-quote">Inference fell 430&times; in five years. Open-weight models have set a floor no company can raise. But how those systems are used has changed. A single chatbot session consumed roughly 1,000 tokens in 2021&mdash;it still does. An AI Copilot running in the background consumes around 5,000 tokens daily. A resident agent operating continuously consumes over 100,000. Price fell 430&times;; a resident agent uses 100&times; more tokens than the chatbot baseline. Net savings: 4.3&times;. A task that cost six cents in 2021 costs roughly a penny today as a resident agent run. <strong>But 4.3&times; is not 430&times;, and the difference matters when you&rsquo;re building a business around one number or the other.</strong></p>
+    <p class="finding-quote">Inference fell 430&times; in five years. Open-weight models have set a floor no company can raise. But how those systems are used has changed. A single chatbot session consumed roughly 1,000 tokens in 2021&mdash;it still does. An AI Copilot running in the background consumes around 5,000 tokens daily. A resident agent, Goldman&rsquo;s term for software that works continuously on your behalf instead of waiting to be prompted, consumes over 100,000. Price fell 430&times;; a resident agent uses 100&times; more tokens than the chatbot baseline. Net savings: 4.3&times;. A task that cost six cents in 2021 costs roughly a penny today as a resident agent run. <strong>But 4.3&times; is not 430&times;, and the difference matters when you&rsquo;re building a business around one number or the other.</strong></p>
   </div>
 
   <div class="hr-subtle"></div>
@@ -463,7 +452,6 @@
   var netValue    = document.getElementById('net-value');
   var tokenRange  = document.getElementById('token-range');
   var eqTokenRatio= document.getElementById('eq-token-ratio');
-  var eqResult    = document.getElementById('eq-result');
   var buttons     = document.querySelectorAll('.wl-btn');
   var liveEl      = document.getElementById('wl-live');
 
@@ -503,8 +491,6 @@
     tokenRange.textContent = w.tokenRange;
 
     eqTokenRatio.textContent = w.tokenRatio + '×';
-    eqResult.textContent     = fmtSavings(w.savings);
-    eqResult.style.color     = w.color;
 
     // Update button states
     buttons.forEach(function (btn, i) {
@@ -534,8 +520,6 @@
   netValue.style.color = WORKLOADS[0].color;
   tokenRange.textContent = WORKLOADS[0].tokenRange;
   eqTokenRatio.textContent = '1×';
-  eqResult.textContent = '430×';
-  eqResult.style.color = WORKLOADS[0].color;
 
   requestAnimationFrame(function () {
     requestAnimationFrame(function () {
