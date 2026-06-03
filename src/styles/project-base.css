@@ -60,6 +60,13 @@ body {
   overflow-x: hidden;
 }
 
+/* The <main> landmark (Project.astro) is a semantic wrapper only: display:contents
+   removes its box so .page stays the body's flex child and centering is unchanged,
+   while the main landmark remains in the accessibility tree. */
+#main-content {
+  display: contents;
+}
+
 /* ── Title block ──
    Title → description → byline rhythm: 12px / 12px / 40px (sp-2 / sp-2 / sp-5).
    Equal gaps inside the title group, clear break before the chart-island below.
