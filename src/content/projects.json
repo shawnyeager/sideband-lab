@@ -96,5 +96,16 @@
     "substackUrl": "",
     "substackTitle": "",
     "status": "draft"
+  },
+  {
+    "slug": "inference-trap",
+    "title": "Where the 430× actually goes",
+    "description": "AI token prices fell 430× in five years. But the same five years turned one-off chatbot queries into resident agents that burn 100× the tokens. For an always-on agent, most of that 430× never reaches the bill.",
+    "date": "2026-06-03",
+    "thumbnail": "inference-trap",
+    "ogImage": "/img/og/inference-trap.png",
+    "substackUrl": "",
+    "substackTitle": "",
+    "status": "live"
   }
 ]

@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Where the 430× actually goes</title>
+<style>
+  /* Project-specific palette only — site/type/spacing tokens, reset, body,
+     .page, and .title-block live in src/styles/project-base.css */
+  :root {
+    --viz-bg:      #1d2733;
+    --viz-heading: #e3dfd3;
+    --viz-sub:     #a09d94;
+    --viz-muted:   #7a7770;
+    --clr-amber:   #C9A050;
+    --clr-red:     #D4716B;
+    --clr-green:   #5B9B84;
+    --clr-cyan:    #0EA5C9;
+  }
+
+  .chart-island {
+    max-width: 940px;
+    background: var(--viz-bg);
+    border-radius: 4px;
+    margin-bottom: var(--sp-4);
+    padding: 48px 56px 52px;
+    position: relative;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+  }
+
+  /* ── WORKLOAD SELECTOR ─────────────────────────────────── */
+
+  .selector-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--viz-muted);
+    margin-bottom: 12px;
+  }
+
+  .workload-buttons {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 52px;
+  }
+
+  .wl-btn {
+    padding: 10px 22px;
+    border-radius: 3px;
+    border: 1px solid rgba(255,255,255,0.12);
+    background: rgba(255,255,255,0.04);
+    color: var(--viz-sub);
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: border-color 0.18s ease, background 0.18s ease, color 0.18s ease;
+    outline: none;
+  }
+  .wl-btn:hover {
+    border-color: rgba(255,255,255,0.25);
+    color: var(--viz-heading);
+    background: rgba(255,255,255,0.07);
+  }
+  .wl-btn:focus-visible {
+    outline: 2px solid var(--clr-cyan);
+    outline-offset: 2px;
+  }
+  .wl-btn.active {
+    border-color: var(--btn-clr, var(--clr-cyan));
+    color: var(--btn-clr, var(--clr-cyan));
+    background: rgba(255,255,255,0.07);
+  }
+  .wl-btn .wl-tokens {
+    font-size: 10px;
+    opacity: 0.6;
+    margin-left: 6px;
+  }
+
+  /* ── MECHANISM ─────────────────────────────────────────── */
+
+  .mechanism {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-bottom: 44px;
+  }
+
+  /* Bar header — labels above the combined bar */
+  .bar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  .bar-header-left, .bar-header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .force-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .force-name {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--viz-muted);
+  }
+
+  /* Single combined bar: green (kept) shrinks, erased section grows */
+  .savings-track {
+    height: 56px;
+    position: relative;
+    overflow: hidden;
+    border-radius: 3px;
+    background: rgba(255,255,255,0.03);
+  }
+
+  .savings-fill {
+    position: absolute;
+    top: 0; left: 0; bottom: 0;
+    background: linear-gradient(90deg, rgba(91,155,132,0.5) 0%, var(--clr-green) 100%);
+    transition: width 0.55s cubic-bezier(0.34, 1.06, 0.64, 1);
+    width: 100%;
+  }
+
+  .erased-fill {
+    position: absolute;
+    top: 0; right: 0; bottom: 0;
+    background: linear-gradient(270deg, var(--clr-red) 0%, rgba(212,113,107,0.3) 100%);
+    transition: width 0.55s cubic-bezier(0.34, 1.06, 0.64, 1), background 0.4s ease;
+    width: 0%;
+  }
+
+  /* Scale tick marks */
+  .tick {
+    position: absolute;
+    top: 8px;
+    bottom: 8px;
+    width: 1px;
+    background: rgba(255,255,255,0.12);
+    pointer-events: none;
+  }
+
+  /* Tick labels row */
+  .tick-row {
+    position: relative;
+    height: 14px;
+    margin-top: 4px;
+  }
+  .tick-lbl {
+    position: absolute;
+    transform: translateX(-50%);
+    font-size: 9px;
+    color: var(--viz-muted);
+    white-space: nowrap;
+    line-height: 1;
+  }
+
+  /* Net result — sits below both bars */
+  .net-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px 0 0;
+    margin-top: 16px;
+    border-top: 1px solid rgba(255,255,255,0.06);
+  }
+
+  .net-label {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--viz-muted);
+    margin-bottom: 8px;
+    text-align: center;
+  }
+
+  .net-value {
+    font-size: 52px;
+    font-weight: 700;
+    line-height: 1;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    transition: color 0.4s ease;
+    color: var(--clr-green);
+    text-align: center;
+  }
+
+  .net-sub {
+    font-size: 11px;
+    color: var(--viz-muted);
+    margin-top: 6px;
+    text-align: center;
+    line-height: 1.4;
+    white-space: nowrap;
+    transition: opacity 0.3s ease;
+  }
+
+  /* ── EQUATION ROW ──────────────────────────────────────── */
+
+  .equation-row {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    padding: 20px 0;
+    border-top: 1px solid rgba(255,255,255,0.06);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+    flex-wrap: wrap;
+  }
+
+  .eq-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    min-width: 80px;
+  }
+
+  .eq-val {
+    font-size: 22px;
+    font-weight: 700;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    line-height: 1;
+    transition: color 0.3s ease;
+  }
+
+  .eq-lbl {
+    font-size: 9px;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--viz-muted);
+    text-align: center;
+  }
+
+  .eq-op {
+    font-size: 22px;
+    font-weight: 300;
+    color: var(--viz-muted);
+    padding: 0 4px;
+  }
+
+  .eq-eq {
+    font-size: 22px;
+    font-weight: 300;
+    color: var(--viz-muted);
+  }
+
+  /* Proper CSS-drawn right arrow — replaces &rarr; glyphs */
+  .arr {
+    display: inline-flex;
+    align-items: center;
+    vertical-align: middle;
+    margin: 0 4px;
+  }
+  .arr::before {
+    content: '';
+    display: inline-block;
+    width: 18px;
+    height: 1.5px;
+    background: currentColor;
+    margin-right: -1px;
+  }
+  .arr::after {
+    content: '';
+    width: 0;
+    height: 0;
+    border-top: 3.5px solid transparent;
+    border-bottom: 3.5px solid transparent;
+    border-left: 6px solid currentColor;
+  }
+
+  /* ── FINDING ─────────────────────────────────────────── */
+
+  .finding {
+    max-width: 728px;
+    margin: var(--sp-5, 40px) auto 0;
+  }
+
+  .finding-quote {
+    font-size: var(--fs-body);
+    line-height: var(--lh-body, 1.65);
+    color: var(--site-text, #393a3a);
+    margin: 0;
+  }
+
+  .finding-quote strong {
+    color: var(--site-text, #393a3a);
+    font-weight: 700;
+  }
+
+  .title-block h1 { text-wrap: balance; }
+  .title-block .subtitle { text-wrap: balance; }
+
+  @media (max-width: 768px) {
+    .chart-island {
+      width: calc(100% + 32px);
+      margin-left: -16px;
+      border-radius: 0;
+      padding: 28px 20px 32px;
+    }
+    .net-value { font-size: 40px; }
+    .eq-val { font-size: 16px; }
+  }
+
+  @media (max-width: 480px) {
+    .net-value { font-size: 34px; }
+    .workload-buttons { gap: 6px; }
+    .wl-btn { padding: 9px 14px; font-size: 12px; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="title-block">
+    <h1>Where the 430&times; actually goes</h1>
+    <p class="subtitle">Token prices fell 430&times; since 2021. Token consumption climbed as AI moved from chatbots to agents. How much of the drop survives depends on the workload.</p>
+  </div>
+
+  <div class="chart-island">
+
+    <div class="selector-label">Select your workload</div>
+    <div class="workload-buttons" role="group" aria-label="Workload type">
+      <button class="wl-btn active" data-idx="0" style="--btn-clr: #5B9B84" aria-pressed="true">
+        Chatbot <span class="wl-tokens">1K tokens</span>
+      </button>
+      <button class="wl-btn" data-idx="1" style="--btn-clr: #C9A050" aria-pressed="false">
+        AI Copilot <span class="wl-tokens">5K tokens</span>
+      </button>
+      <button class="wl-btn" data-idx="2" style="--btn-clr: #D4716B" aria-pressed="false">
+        Resident Agent <span class="wl-tokens">100K tokens</span>
+      </button>
+    </div>
+
+    <div class="mechanism">
+
+      <!-- Bar header: what the green and red sections represent -->
+      <div class="bar-header">
+        <div class="bar-header-left">
+          <div class="force-dot" style="background: var(--clr-green)"></div>
+          <div class="force-name">Price drop</div>
+          <div style="font-size:10px; color:var(--viz-muted);">$60/M<span class="arr"></span>$0.14/M</div>
+        </div>
+        <div class="bar-header-right">
+          <div style="font-size:10px; color:var(--viz-muted);" id="token-range">1K tokens / task</div>
+          <div class="force-name">Token growth</div>
+          <div class="force-dot" style="background: var(--clr-red)"></div>
+        </div>
+      </div>
+
+      <!-- Single bar: green = what you keep, red = what tokens erased -->
+      <div class="savings-track">
+        <div class="savings-fill" id="savings-fill"></div>
+        <div class="erased-fill" id="erased-fill"></div>
+        <div class="tick" style="left:38%"></div>
+        <div class="tick" style="left:76%"></div>
+      </div>
+
+      <div class="tick-row">
+        <div class="tick-lbl" style="left:38%">10×</div>
+        <div class="tick-lbl" style="left:76%">100×</div>
+        <div class="tick-lbl" style="left:99%">430×</div>
+      </div>
+
+      <!-- Net result -->
+      <div class="net-center">
+        <div class="net-label">Net savings</div>
+        <div class="net-value" id="net-value">430×</div>
+      </div>
+
+    </div>
+
+    <div class="equation-row">
+      <div class="eq-item">
+        <div class="eq-val" style="color: var(--clr-green)">430×</div>
+        <div class="eq-lbl">price drop</div>
+      </div>
+      <div class="eq-op">&divide;</div>
+      <div class="eq-item">
+        <div class="eq-val" style="color: var(--clr-red)" id="eq-token-ratio">1×</div>
+        <div class="eq-lbl">token growth</div>
+      </div>
+      <div class="eq-eq">=</div>
+      <div class="eq-item">
+        <div class="eq-val" id="eq-result" style="color: var(--clr-green)">430×</div>
+        <div class="eq-lbl">actual savings</div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="finding">
+    <p class="finding-quote">Inference fell 430&times; in five years. Open-weight models have set a floor no company can raise. But how those systems are used has changed. A single chatbot session consumed roughly 1,000 tokens in 2021&mdash;it still does. An AI Copilot running in the background consumes around 5,000 tokens daily. A resident agent operating continuously consumes over 100,000. Price fell 430&times;; a resident agent uses 100&times; more tokens than the chatbot baseline. Net savings: 4.3&times;. A task that cost six cents in 2021 costs roughly a penny today as a resident agent run. <strong>But 4.3&times; is not 430&times;, and the difference matters when you&rsquo;re building a business around one number or the other.</strong></p>
+  </div>
+
+  <div class="hr-subtle"></div>
+
+  <details class="disclosure">
+    <summary>Methodology &amp; sources <span class="chev" aria-hidden="true"></span></summary>
+    <div class="disclosure-body">
+      <p>GPT-3 Davinci price (Nov 2021): $60/M tokens (OpenAI pricing). DeepSeek V3 (Apr 2026): $0.14/M tokens. Baseline: 1,000-token chatbot session in 2021 = $0.06. Net savings = price drop ratio &divide; token growth ratio. All three token consumption figures are from Goldman Sachs &ldquo;Decoding the Agentic Economy&rdquo; (May 2026): chatbot ~1,000 tokens per session; AI Copilot ~5,000 tokens per day; resident agent ~100,000 tokens per day. Source: <a href="https://www.goldmansachs.com/insights/articles/ai-agents-forecast-to-boost-tech-cash-flow-as-usage-soars" target="_blank" rel="noopener">Goldman Sachs</a>.</p>
+    </div>
+  </details>
+
+  <div class="project-credit">
+    <a href="https://www.sideband.pub">Sideband</a> &middot; Data: 2026 &middot; <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>
+  </div>
+
+</div>
+
+<script>
+(function () {
+
+  var WORKLOADS = [
+    {
+      name:        'Chatbot',
+      tokenRatio:  1,
+      savings:     430,
+      color:       '#5B9B84',
+      tokenRange:  '~1K tokens / session'
+    },
+    {
+      name:        'AI Copilot',
+      tokenRatio:  5,
+      savings:     86,
+      color:       '#C9A050',
+      tokenRange:  '~5K tokens / day'
+    },
+    {
+      name:        'Resident Agent',
+      tokenRatio:  100,
+      savings:     4.3,
+      color:       '#D4716B',
+      tokenRange:  '~100K tokens / day'
+    }
+  ];
+
+  // DOM refs
+  var savingsFill = document.getElementById('savings-fill');
+  var erasedFill  = document.getElementById('erased-fill');
+  var netValue    = document.getElementById('net-value');
+  var tokenRange  = document.getElementById('token-range');
+  var eqTokenRatio= document.getElementById('eq-token-ratio');
+  var eqResult    = document.getElementById('eq-result');
+  var buttons     = document.querySelectorAll('.wl-btn');
+
+  var active = 0;
+
+  function fmtSavings(n) {
+    if (n >= 100) return Math.round(n) + '×';
+    if (n >= 10)  return Math.round(n) + '×';
+    return n.toFixed(1) + '×';
+  }
+
+  function render(idx, animate) {
+    var w = WORKLOADS[idx];
+
+    // Green section = what you keep (log scale: log(savings)/log(430))
+    // Red section   = what tokens erased (fills from right: 1 - savings_pct)
+    var logMax      = Math.log(430);
+    var savingsPct  = (Math.log(w.savings) / logMax) * 100;
+    var erasedPct   = 100 - savingsPct;
+
+    if (animate === false) {
+      savingsFill.style.transition = 'none';
+      erasedFill.style.transition  = 'none';
+      netValue.style.transition    = 'none';
+    } else {
+      savingsFill.style.transition = '';
+      erasedFill.style.transition  = '';
+      netValue.style.transition    = '';
+    }
+
+    savingsFill.style.width = savingsPct + '%';
+    erasedFill.style.width  = erasedPct + '%';
+
+    netValue.textContent = fmtSavings(w.savings);
+    netValue.style.color = w.color;
+
+    tokenRange.textContent = w.tokenRange;
+
+    eqTokenRatio.textContent = w.tokenRatio + '×';
+    eqResult.textContent     = fmtSavings(w.savings);
+    eqResult.style.color     = w.color;
+
+    // Update button states
+    buttons.forEach(function (btn, i) {
+      var isActive = i === idx;
+      btn.classList.toggle('active', isActive);
+      btn.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+    });
+  }
+
+  // Wire buttons
+  buttons.forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var idx = parseInt(btn.getAttribute('data-idx'), 10);
+      if (idx === active) return;
+      active = idx;
+      render(idx);
+    });
+  });
+
+  // On load: set text immediately, then animate fills in
+  netValue.textContent = '430×';
+  netValue.style.color = WORKLOADS[0].color;
+  tokenRange.textContent = WORKLOADS[0].tokenRange;
+  eqTokenRatio.textContent = '1×';
+  eqResult.textContent = '430×';
+  eqResult.style.color = WORKLOADS[0].color;
+
+  requestAnimationFrame(function () {
+    requestAnimationFrame(function () {
+      render(0, true);
+    });
+  });
+
+}());
+</script>
+</body>
+</html>
