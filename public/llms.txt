@@ -11,7 +11,7 @@ Each project is a small data-driven argument: a chart, a simulation, or an inter
 - License: CC BY 4.0 unless noted otherwise per project
 
 ## Projects
-- [Where the 430× actually goes](https://lab.sideband.pub/inference-trap/) — Token prices fell 430× since 2021, but resident agents burn 100× the tokens of a chatbot query, so net savings fall to 4.3× (Goldman Sachs data, 2026-06-03)
+- [Where the 430× goes](https://lab.sideband.pub/inference-trap/) — Token prices fell 430× since 2021, but resident agents burn 100× the tokens of a chatbot query, so net savings fall to 4.3× (Goldman Sachs data, 2026-06-03)
 - [The AI market hyperscalers can't reach](https://lab.sideband.pub/cloud-cant-follow/) — Armada raised $230M for modular AI data centers at sites the cloud can't serve: military bases, oil platforms, air-gapped facilities (2026-05-29)
 - [Task complete. Safety violated.](https://lab.sideband.pub/safety-trap/) — BeSafe-Bench results across 13 production-grade agents; none cleared 40% safe task completion (2026-05-27)
 - [The return of the computer](https://lab.sideband.pub/return-of-the-computer/) — How agents reversed three decades of shrinking infrastructure primitives (2026-03-17)
