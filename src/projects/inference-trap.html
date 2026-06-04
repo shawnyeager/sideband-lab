@@ -320,6 +320,10 @@
     .net-value { font-size: 34px; }
     .workload-buttons { gap: 6px; }
     .wl-btn { padding: 9px 14px; font-size: 12px; }
+    /* On phones the bar-header's two groups crowd and wrap (and wrap
+       differently per workload, shifting the chart). Drop the supplementary
+       figures; the legend stays, and the numbers live in the equation below. */
+    .bar-detail { display: none; }
   }
 </style>
 </head>
@@ -354,10 +358,10 @@
         <div class="bar-header-left">
           <div class="force-dot" style="background: var(--clr-green)"></div>
           <div class="force-name">Price drop</div>
-          <div style="font-size:10px; color:var(--viz-muted);">$60/M<span class="arr"></span>$0.14/M</div>
+          <div class="bar-detail" style="font-size:10px; color:var(--viz-muted);">$60/M<span class="arr"></span>$0.14/M</div>
         </div>
         <div class="bar-header-right">
-          <div style="font-size:10px; color:var(--viz-muted);" id="token-range">~100K tokens / day</div>
+          <div class="bar-detail" style="font-size:10px; color:var(--viz-muted);" id="token-range">~100K tokens / day</div>
           <div class="force-name">Token growth</div>
           <div class="force-dot" style="background: var(--clr-red)"></div>
         </div>
