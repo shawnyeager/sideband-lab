@@ -335,13 +335,13 @@
 
     <div class="selector-label">Select your workload</div>
     <div class="workload-buttons" role="group" aria-label="Workload type">
-      <button class="wl-btn active" data-idx="0" style="--btn-clr: var(--clr-green)" aria-pressed="true">
+      <button class="wl-btn" data-idx="0" style="--btn-clr: var(--clr-green)" aria-pressed="false">
         Chatbot <span class="wl-tokens">1K tokens</span>
       </button>
       <button class="wl-btn" data-idx="1" style="--btn-clr: var(--clr-amber)" aria-pressed="false">
         AI Copilot <span class="wl-tokens">5K tokens</span>
       </button>
-      <button class="wl-btn" data-idx="2" style="--btn-clr: var(--clr-red)" aria-pressed="false">
+      <button class="wl-btn active" data-idx="2" style="--btn-clr: var(--clr-red)" aria-pressed="true">
         Resident Agent <span class="wl-tokens">100K tokens</span>
       </button>
     </div>
@@ -357,7 +357,7 @@
           <div style="font-size:10px; color:var(--viz-muted);">$60/M<span class="arr"></span>$0.14/M</div>
         </div>
         <div class="bar-header-right">
-          <div style="font-size:10px; color:var(--viz-muted);" id="token-range">1K tokens / task</div>
+          <div style="font-size:10px; color:var(--viz-muted);" id="token-range">~100K tokens / day</div>
           <div class="force-name">Token growth</div>
           <div class="force-dot" style="background: var(--clr-red)"></div>
         </div>
@@ -380,7 +380,7 @@
       <!-- Net result -->
       <div class="net-center">
         <div class="net-label">Net savings</div>
-        <div class="net-value" id="net-value">430×</div>
+        <div class="net-value" id="net-value" style="color: var(--clr-red)">4.3×</div>
       </div>
 
     </div>
@@ -392,7 +392,7 @@
       </div>
       <div class="eq-op">&divide;</div>
       <div class="eq-item">
-        <div class="eq-val" style="color: var(--clr-red)" id="eq-token-ratio">1×</div>
+        <div class="eq-val" style="color: var(--clr-red)" id="eq-token-ratio">100×</div>
         <div class="eq-lbl">token growth</div>
       </div>
     </div>
@@ -454,7 +454,7 @@
   var buttons     = document.querySelectorAll('.wl-btn');
   var liveEl      = document.getElementById('wl-live');
 
-  var active = 0;
+  var active = 2;
 
   function fmtSavings(n) {
     if (n >= 100) return Math.round(n) + '×';
@@ -514,15 +514,16 @@
     });
   });
 
-  // On load: set text immediately, then animate fills in
-  netValue.textContent = '430×';
-  netValue.style.color = WORKLOADS[0].color;
-  tokenRange.textContent = WORKLOADS[0].tokenRange;
-  eqTokenRatio.textContent = '1×';
+  // On load: set readouts to the active workload immediately, then animate
+  // the bar eroding from full savings down into the active (resident) state.
+  netValue.textContent = fmtSavings(WORKLOADS[active].savings);
+  netValue.style.color = WORKLOADS[active].color;
+  tokenRange.textContent = WORKLOADS[active].tokenRange;
+  eqTokenRatio.textContent = WORKLOADS[active].tokenRatio + '×';
 
   requestAnimationFrame(function () {
     requestAnimationFrame(function () {
-      render(0, true);
+      render(active, true);
     });
   });
 
