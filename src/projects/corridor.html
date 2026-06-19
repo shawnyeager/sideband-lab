@@ -1,0 +1,622 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The corridor closes</title>
+<style>
+  /* Project-specific styles only. Site/type/spacing tokens, reset, body,
+     .page, .title-block, and shared disclosure/credit/hr live in
+     project-base.css and src/lib/header.ts */
+
+  :root {
+    --viz-bg:      #1d2733;
+    --viz-heading: #e3dfd3;
+    --viz-sub:     #a09d94;
+    --viz-muted:   #7a7770;
+    --clr-amber:   #C9A050;
+    --clr-red:     #D4716B;
+    --clr-green:   #5B9B84;
+  }
+
+  /* ── Chart island ── */
+  .chart-island {
+    max-width: 940px;
+    background: var(--viz-bg);
+    border-radius: 4px;
+    margin-bottom: var(--sp-4);
+    padding: 40px 48px 36px;
+    position: relative;
+    overflow: visible;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+  }
+
+  /* ── Legend ── */
+  .legend {
+    display: flex;
+    gap: 24px;
+    row-gap: 8px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--viz-muted);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .legend-swatch {
+    width: 24px;
+    height: 2.5px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .legend-swatch.frontier { background: var(--clr-amber); }
+  .legend-swatch.openweight { background: var(--clr-green); }
+  .legend-swatch.costfloor {
+    background: transparent;
+    border-top: 2px dashed var(--clr-red);
+    height: 0;
+    margin-top: 1px;
+  }
+
+  /* ── Chart SVG wrapper ── */
+  .chart-svg-wrap svg {
+    width: 100%;
+    height: auto;
+    display: block;
+    overflow: visible;
+  }
+  /* Keyboard focus ring for data points */
+  .chart-svg-wrap svg .pt-hit:focus { outline: none; }
+  .chart-svg-wrap svg .pt-hit:focus-visible {
+    outline: none;
+    stroke: var(--viz-heading);
+    stroke-width: 1.5;
+    stroke-dasharray: 3 3;
+  }
+  /* Data-point affordance: resting ring eases to its hover state, dot glow rides
+     a transition so hover in/out feels alive rather than instant. */
+  .pt-dot  { transition: r 0.15s var(--ease-out-quart), filter 0.15s var(--ease-out-quart); }
+  .pt-ring { transition: r 0.18s var(--ease-out-quart), stroke-opacity 0.18s var(--ease-out-quart); }
+  /* One-time invitation ripple — scale + fade from each point's centre. */
+  .pt-ripple { transform-box: fill-box; transform-origin: center; }
+  .pt-ripple--go { animation: pt-ripple-out 0.9s var(--ease-out-quart) forwards; }
+  @keyframes pt-ripple-out {
+    from { transform: scale(1);   stroke-opacity: 0.55; }
+    to   { transform: scale(3.4); stroke-opacity: 0; }
+  }
+
+  /* ── Finding block ── */
+  .finding {
+    max-width: 728px;
+    margin: var(--sp-5) auto 0;
+  }
+  .finding-quote {
+    font-size: var(--fs-body);
+    line-height: var(--lh-body);
+    color: var(--site-text);
+    margin: 0;
+  }
+  .finding-quote strong {
+    color: var(--site-text);
+    font-weight: 700;
+  }
+
+  /* ── Tooltip ── */
+  .tooltip {
+    position: fixed;
+    background: #243040;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: var(--card-radius, 4px);
+    padding: 11px 15px;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-size: 12px;
+    color: var(--viz-sub);
+    pointer-events: none;
+    z-index: 100;
+    opacity: 0;
+    transition: opacity 0.12s var(--ease-out-quart);
+    max-width: 240px;
+    line-height: 1.6;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  }
+  .tooltip.visible { opacity: 1; }
+  .tooltip-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--viz-heading);
+    margin-bottom: 8px;
+  }
+  .tooltip-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .tooltip-key { color: var(--viz-muted); }
+  .tooltip-val { font-weight: 600; color: var(--viz-heading); }
+
+  /* ── Mobile ── */
+  @media (max-width: 768px) {
+    .chart-island {
+      width: calc(100% + 32px);
+      margin-left: -16px;
+      border-radius: 0;
+      padding: 24px 20px 20px;
+    }
+  }
+
+  /* ── Reduced motion ── */
+  @media (prefers-reduced-motion: reduce) {
+    .tooltip { transition: none; }
+    .pt-dot, .pt-ring { transition: none; }
+    .pt-ripple--go { animation: none; } /* resting rings carry the affordance */
+  }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="title-block">
+    <h1>The corridor closes</h1>
+    <p class="subtitle">Frontier API prices have fallen 430&times;. Open-weight alternatives fell faster. The gap between what a frontier provider charges and what an open-weight equivalent costs has collapsed from $29 to under $2&mdash;and OpenAI now spends $1.35 for every $1.00 it earns.</p>
+  </div>
+
+  <div class="chart-island">
+
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-swatch frontier"></div>
+        Frontier API
+      </div>
+      <div class="legend-item">
+        <div class="legend-swatch openweight"></div>
+        Open-weight equivalent
+      </div>
+      <div class="legend-item">
+        <div class="legend-swatch costfloor"></div>
+        OpenAI cost floor (est.)
+      </div>
+    </div>
+
+    <div class="chart-svg-wrap">
+      <svg id="linechart" viewBox="0 0 680 440" xmlns="http://www.w3.org/2000/svg"
+           role="img"
+           aria-label="Frontier API prices versus open-weight equivalent prices, 2021&ndash;2026, log scale"
+           aria-describedby="chart-desc">
+        <desc id="chart-desc">A line chart on a logarithmic price axis. Two lines converge over time: the frontier API line (amber) starts at $60 per million tokens in 2021 and falls to $0.60 by 2026. The open-weight equivalent line (green) starts at $0.70 in 2023 and falls to $0.07 by 2026. A red dashed horizontal line at $0.81 marks the estimated OpenAI cost floor. The shaded corridor between the two lines collapses from $29.30 in 2023 to $0.53 in 2026.</desc>
+      </svg>
+    </div>
+
+  </div>
+
+  <div class="finding">
+    <p class="finding-quote">Open-weight models didn't just erode frontier pricing&mdash;they restructured what frontier pricing can be. In 2023, GPT-4 commanded $30 per million tokens while the best open-weight alternative cost $0.70. The corridor was $29.30 wide. By 2026, GPT-5 nano reaches $0.60, but DeepSeek V3.2 serves equivalent performance at $0.07. The corridor is now $0.53. <strong>And OpenAI&rsquo;s own financials show the cost floor sits above what the market will pay: the company spends $1.35 for every dollar it earns. The corridor hasn&rsquo;t just closed&mdash;at current prices, frontier providers are operating below their own cost floor.</strong></p>
+  </div>
+
+  <div class="hr-subtle"></div>
+
+  <details class="disclosure">
+    <summary>Sources &amp; methodology <span class="chev" aria-hidden="true"></span></summary>
+    <div class="disclosure-body">
+      <p>Frontier API prices: OpenAI published pricing at each model launch. GPT-3 Davinci (Nov 2021) $60/M combined; GPT-4 (May 2023) $30/M input; GPT-4o (May 2024) $2.50/M input; GPT-5.2 (2025) $1.75/M input; GPT-5 nano (2026) $0.60/M input. Open-weight hosted pricing: Llama 2 (2023) ~$0.70/M via major hosting providers; Llama 3.1 (2024) ~$0.50/M; DeepSeek V3 (2025) $0.14/M; DeepSeek V3.2 (2026) ~$0.07/M (10&ndash;30&times; below GPT-5-level frontier pricing, midpoint). OpenAI unit economics: company reported $1.35 cost per $1.00 revenue (2026); projected $14B loss on ~$10B revenue. Cost floor estimated as current price &times; 1.35. Sources: <a href="https://openai.com/api/pricing/" target="_blank" rel="noopener">OpenAI pricing</a>; <a href="https://tokenmix.ai/blog/ai-pricing-trends-history" target="_blank" rel="noopener">TokenMix pricing history</a>; <a href="https://aiautomationglobal.com/blog/ai-inference-cost-crisis-openai-economics-2026" target="_blank" rel="noopener">AI Automation Global (OpenAI unit economics)</a>.</p>
+    </div>
+  </details>
+
+  <div class="project-credit">
+    <a href="https://www.sideband.pub">Sideband</a> &middot; Data: 2026 &middot; <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>
+  </div>
+
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  var NS = 'http://www.w3.org/2000/svg';
+  var svg = document.getElementById('linechart');
+  var tt  = document.getElementById('tooltip');
+
+  if (!svg) return;
+
+  // ── Dimensions ──────────────────────────────────────────────────────────
+  var W = 680, H = 440;
+  var PAD = { top: 24, right: 80, bottom: 60, left: 84 };
+  var PW = W - PAD.left - PAD.right;  // 516
+  var PH = H - PAD.top  - PAD.bottom; // 356
+
+  // ── X scale — 5 time points, linear ────────────────────────────────────
+  var YEARS = [2021, 2023, 2024, 2025, 2026];
+  function xS(year) {
+    var idx = YEARS.indexOf(year);
+    return PAD.left + (idx / (YEARS.length - 1)) * PW;
+  }
+
+  // ── Y scale — log, domain $0.05 to $100 ────────────────────────────────
+  var Y_LOG_MIN = Math.log10(0.05);
+  var Y_LOG_MAX = Math.log10(100);
+  var Y_LOG_SPAN = Y_LOG_MAX - Y_LOG_MIN;
+  function yS(val) {
+    return PAD.top + (1 - (Math.log10(val) - Y_LOG_MIN) / Y_LOG_SPAN) * PH;
+  }
+
+  // ── SVG helpers ─────────────────────────────────────────────────────────
+  function mk(tag, attrs) {
+    var e = document.createElementNS(NS, tag);
+    for (var k in attrs) { e.setAttribute(k, attrs[k]); }
+    return e;
+  }
+  function tx(attrs, content) {
+    var e = mk('text', attrs);
+    e.textContent = content;
+    return e;
+  }
+
+  // ── Data ─────────────────────────────────────────────────────────────────
+  var FRONTIER = [
+    { year: 2021, price: 60.00,  model: 'GPT-3 Davinci',  priceLabel: '$60.00/M' },
+    { year: 2023, price: 30.00,  model: 'GPT-4',          priceLabel: '$30.00/M' },
+    { year: 2024, price:  2.50,  model: 'GPT-4o',         priceLabel: '$2.50/M'  },
+    { year: 2025, price:  1.75,  model: 'GPT-5.2',        priceLabel: '$1.75/M'  },
+    { year: 2026, price:  0.60,  model: 'GPT-5 nano',     priceLabel: '$0.60/M'  }
+  ];
+
+  var OPENWEIGHT = [
+    { year: 2023, price: 0.70,  model: 'Llama 2 (hosted)',    priceLabel: '$0.70/M'  },
+    { year: 2024, price: 0.50,  model: 'Llama 3.1 (hosted)',  priceLabel: '$0.50/M'  },
+    { year: 2025, price: 0.14,  model: 'DeepSeek V3',         priceLabel: '$0.14/M'  },
+    { year: 2026, price: 0.07,  model: 'DeepSeek V3.2',       priceLabel: '$0.07/M'  }
+  ];
+
+  // Cost floor: $0.60 × 1.35 = $0.81
+  var COST_FLOOR = 0.81;
+
+  // ── Y grid lines and axis labels ─────────────────────────────────────────
+  var Y_TICKS = [
+    { val: 0.07,  label: '$0.07' },
+    { val: 0.10,  label: '$0.10' },
+    { val: 0.50,  label: '$0.50' },
+    { val: 1.00,  label: '$1.00' },
+    { val: 5.00,  label: '$5.00' },
+    { val: 10.00, label: '$10'   },
+    { val: 30.00, label: '$30'   },
+    { val: 60.00, label: '$60'   }
+  ];
+
+  Y_TICKS.forEach(function (t) {
+    var y = yS(t.val);
+    // Grid line
+    svg.appendChild(mk('line', {
+      x1: PAD.left, y1: y, x2: PAD.left + PW, y2: y,
+      stroke: 'rgba(255,255,255,0.04)', 'stroke-width': 0.5
+    }));
+    // Tick label
+    svg.appendChild(tx({
+      x: PAD.left - 8, y: y + 3.5,
+      fill: 'rgba(255,255,255,0.25)', 'font-size': 9.5,
+      'font-family': 'Space Grotesk,system-ui,sans-serif',
+      'text-anchor': 'end'
+    }, t.label));
+  });
+
+  // ── X grid lines and axis labels ─────────────────────────────────────────
+  YEARS.forEach(function (yr) {
+    var x = xS(yr);
+    // Vertical grid
+    svg.appendChild(mk('line', {
+      x1: x, y1: PAD.top, x2: x, y2: PAD.top + PH,
+      stroke: 'rgba(255,255,255,0.04)', 'stroke-width': 0.5
+    }));
+    // Tick mark
+    svg.appendChild(mk('line', {
+      x1: x, y1: PAD.top + PH, x2: x, y2: PAD.top + PH + 5,
+      stroke: 'rgba(255,255,255,0.2)', 'stroke-width': 1
+    }));
+    // Year label
+    svg.appendChild(tx({
+      x: x, y: PAD.top + PH + 18,
+      fill: 'rgba(255,255,255,0.3)', 'font-size': 10.5,
+      'font-family': 'Space Grotesk,system-ui,sans-serif',
+      'text-anchor': 'middle'
+    }, String(yr)));
+  });
+
+  // ── Axes ──────────────────────────────────────────────────────────────────
+  // X axis
+  svg.appendChild(mk('line', {
+    x1: PAD.left, y1: PAD.top + PH, x2: PAD.left + PW, y2: PAD.top + PH,
+    stroke: 'rgba(255,255,255,0.15)', 'stroke-width': 1
+  }));
+  // Y axis
+  svg.appendChild(mk('line', {
+    x1: PAD.left, y1: PAD.top, x2: PAD.left, y2: PAD.top + PH,
+    stroke: 'rgba(255,255,255,0.15)', 'stroke-width': 1
+  }));
+
+  // Y axis label
+  var yLbl = mk('text', {
+    transform: 'rotate(-90)',
+    x: -(PAD.top + PH / 2),
+    y: 15,
+    fill: 'rgba(255,255,255,0.3)', 'font-size': 9.5,
+    'font-family': 'Space Grotesk,system-ui,sans-serif',
+    'text-anchor': 'middle', 'letter-spacing': '0.07em'
+  });
+  yLbl.textContent = 'PRICE PER MILLION TOKENS';
+  svg.appendChild(yLbl);
+
+  // X axis label
+  svg.appendChild(tx({
+    x: PAD.left + PW / 2, y: H - 8,
+    fill: 'rgba(255,255,255,0.3)', 'font-size': 9.5,
+    'font-family': 'Space Grotesk,system-ui,sans-serif',
+    'text-anchor': 'middle', 'letter-spacing': '0.07em'
+  }, 'YEAR'));
+
+  // ── Shaded corridor (filled area between the two lines) ───────────────────
+  // The corridor exists from 2023 onwards where both lines have data.
+  // Build polygon points: frontier pts 2023→2026 (left to right),
+  // then openweight pts 2026→2023 (right to left), closing shape.
+  var corridorFrontier = FRONTIER.filter(function (d) { return d.year >= 2023; });
+  var corridorOpen = OPENWEIGHT.slice(); // all 4 points (2023–2026)
+
+  var corridorPts = [];
+  corridorFrontier.forEach(function (d) {
+    corridorPts.push(xS(d.year) + ',' + yS(d.price));
+  });
+  // Walk open-weight in reverse
+  for (var i = corridorOpen.length - 1; i >= 0; i--) {
+    var d = corridorOpen[i];
+    corridorPts.push(xS(d.year) + ',' + yS(d.price));
+  }
+
+  svg.appendChild(mk('polygon', {
+    points: corridorPts.join(' '),
+    fill: 'rgba(201,160,80,0.10)',
+    stroke: 'none'
+  }));
+
+  // ── Cost floor geometry ───────────────────────────────────────────────────
+  // The dashed line and its labels are drawn LAST (after the data lines) so the
+  // amber frontier line can't paint over them where the two cross near 2026.
+  var cfY = yS(COST_FLOOR);
+  var cfXStart = xS(2024) + (xS(2025) - xS(2024)) * 0.5;
+  var cfXEnd   = PAD.left + PW;
+
+  // ── Line drawing helper ───────────────────────────────────────────────────
+  function buildPathD(pts) {
+    return pts.map(function (d, i) {
+      return (i === 0 ? 'M' : 'L') + xS(d.year) + ' ' + yS(d.price);
+    }).join(' ');
+  }
+
+  // ── Frontier line ─────────────────────────────────────────────────────────
+  svg.appendChild(mk('path', {
+    d: buildPathD(FRONTIER),
+    fill: 'none',
+    stroke: '#C9A050',
+    'stroke-width': 2,
+    'stroke-linejoin': 'round',
+    'stroke-linecap': 'round'
+  }));
+
+  // ── Open-weight line ──────────────────────────────────────────────────────
+  svg.appendChild(mk('path', {
+    d: buildPathD(OPENWEIGHT),
+    fill: 'none',
+    stroke: '#5B9B84',
+    'stroke-width': 2,
+    'stroke-linejoin': 'round',
+    'stroke-linecap': 'round'
+  }));
+
+  // ── Tooltip helpers ───────────────────────────────────────────────────────
+  function placeTt(px, py) {
+    if (!tt) return;
+    var m = 8;
+    var w = tt.offsetWidth, h = tt.offsetHeight;
+    var left = px + 16, top = py - 24;
+    if (left + w + m > window.innerWidth)  left = px - w - 16;
+    if (left < m) left = m;
+    if (top + h + m > window.innerHeight)  top = window.innerHeight - h - m;
+    if (top < m) top = m;
+    tt.style.left = left + 'px';
+    tt.style.top  = top  + 'px';
+  }
+  function moveTt(e) {
+    if (e && typeof e.clientX === 'number') placeTt(e.clientX, e.clientY);
+  }
+  function hideTt(dot, R, fillOpacity) {
+    return function () {
+      dot.setAttribute('fill-opacity', fillOpacity);
+      dot.setAttribute('r', R);
+      if (tt) tt.classList.remove('visible');
+    };
+  }
+
+  // ── Dot rendering ─────────────────────────────────────────────────────────
+  var pulseRipples = []; // one-time invitation pulse, triggered on scroll-in
+
+  function renderDots(dataset, color, seriesLabel) {
+    var DOT_R = 5;
+
+    dataset.forEach(function (d) {
+      var cx = xS(d.year);
+      var cy = yS(d.price);
+
+      var ariaLabel = seriesLabel + '. ' + d.year + ': ' + d.model
+        + ', ' + d.priceLabel + ' per million tokens.';
+
+      // Resting affordance ring — signals "interactive node" at rest, so the
+      // points read as hoverable without any instructional copy.
+      var ring = mk('circle', {
+        cx: cx, cy: cy, r: DOT_R + 4,
+        fill: 'none', stroke: color, 'stroke-width': 1,
+        'stroke-opacity': '0.3', class: 'pt-ring'
+      });
+
+      // One-time pulse ripple, centred on the point via a translated group so
+      // it scales from its own centre. Hidden until the chart enters view.
+      var pg = mk('g', { transform: 'translate(' + cx + ',' + cy + ')' });
+      var ripple = mk('circle', {
+        cx: 0, cy: 0, r: DOT_R, fill: 'none',
+        stroke: color, 'stroke-width': 1.5, 'stroke-opacity': '0', class: 'pt-ripple'
+      });
+      pg.appendChild(ripple);
+      pulseRipples.push(ripple);
+
+      // Hit target — larger, transparent, keyboard-focusable
+      var hit = mk('circle', {
+        cx: cx, cy: cy, r: DOT_R + 10,
+        fill: 'transparent', style: 'cursor:pointer',
+        class: 'pt-hit', tabindex: '0', role: 'button',
+        'aria-label': ariaLabel
+      });
+
+      // Visible dot
+      var dot = mk('circle', {
+        cx: cx, cy: cy, r: DOT_R,
+        fill: color,
+        'fill-opacity': '0.85',
+        stroke: 'rgba(255,255,255,0.2)',
+        'stroke-width': 1.5,
+        class: 'pt-dot'
+      });
+
+      svg.appendChild(ring);
+      svg.appendChild(pg);
+      svg.appendChild(dot);
+      svg.appendChild(hit);
+
+      function highlight() {
+        dot.setAttribute('fill-opacity', '1');
+        dot.setAttribute('r', DOT_R + 1.5);
+        dot.style.filter = 'drop-shadow(0 0 5px ' + color + ')';
+        ring.setAttribute('stroke-opacity', '0.75');
+        ring.setAttribute('r', DOT_R + 5.5);
+      }
+      function restore() {
+        dot.setAttribute('fill-opacity', '0.85');
+        dot.setAttribute('r', DOT_R);
+        dot.style.filter = 'none';
+        ring.setAttribute('stroke-opacity', '0.3');
+        ring.setAttribute('r', DOT_R + 4);
+      }
+
+      function showTt(e) {
+        highlight();
+        if (!tt) return;
+        tt.innerHTML =
+          '<div class="tooltip-name">' + d.year + ' &mdash; ' + d.model + '</div>' +
+          '<div class="tooltip-row"><span class="tooltip-key">Type</span><span class="tooltip-val">' + seriesLabel + '</span></div>' +
+          '<div class="tooltip-row"><span class="tooltip-key">Price / M tokens</span><span class="tooltip-val">' + d.priceLabel + '</span></div>';
+        tt.classList.add('visible');
+        moveTt(e);
+      }
+      function showTtAtDot() {
+        highlight();
+        if (!tt) return;
+        showTt(null);
+        var box = hit.getBoundingClientRect();
+        placeTt(box.left + box.width / 2, box.top);
+      }
+      function hide() {
+        restore();
+        if (tt) tt.classList.remove('visible');
+      }
+
+      [hit, dot].forEach(function (el) {
+        el.addEventListener('mouseenter', showTt);
+        el.addEventListener('mousemove',  moveTt);
+        el.addEventListener('mouseleave', hide);
+      });
+      hit.addEventListener('focus',   showTtAtDot);
+      hit.addEventListener('blur',    hide);
+      hit.addEventListener('keydown', function (ev) {
+        if (ev.key === 'Escape') hide();
+      });
+    });
+  }
+
+  renderDots(FRONTIER,   '#C9A050', 'Frontier API');
+  renderDots(OPENWEIGHT, '#5B9B84', 'Open-weight');
+
+  // ── Cost-floor dashed line + labels (drawn last, on top of the data lines) ─
+  svg.appendChild(mk('line', {
+    x1: cfXStart, y1: cfY, x2: cfXEnd, y2: cfY,
+    stroke: '#D4716B', 'stroke-width': 2,
+    'stroke-dasharray': '6 4', 'stroke-dashoffset': 5, opacity: 1
+  }));
+
+  // ── Cost-floor labels (drawn last, on top of everything) ──────────────────
+  // "COST FLOOR" rides just above the left of the dashed line, in the open
+  // corridor gap where the amber line is far overhead; the value sits at the
+  // right end, in the wedge above the line where the amber line has dipped
+  // below it. Both clear of the data lines.
+  svg.appendChild(tx({
+    x: cfXStart + 2, y: cfY - 7,
+    fill: '#D4716B', 'font-size': 9.5, opacity: 0.9,
+    'font-family': 'Space Grotesk,system-ui,sans-serif',
+    'text-anchor': 'start', 'letter-spacing': '0.04em'
+  }, 'COST FLOOR'));
+
+  svg.appendChild(tx({
+    x: cfXEnd - 4, y: cfY - 7,
+    fill: '#D4716B', 'font-size': 9.5, opacity: 0.7,
+    'font-family': 'Space Grotesk,system-ui,sans-serif',
+    'text-anchor': 'end'
+  }, '$0.81/M'));
+
+  // ── One-time invitation pulse ─────────────────────────────────────────────
+  // When the chart first scrolls into view, ripple each point once (staggered
+  // left→right) to signal the dots respond. prefers-reduced-motion: skipped via
+  // CSS; the resting rings remain as the always-on affordance.
+  if ('IntersectionObserver' in window) {
+    var fired = false;
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting && !fired) {
+          fired = true;
+          pulseRipples.forEach(function (r, i) {
+            r.style.animationDelay = (i * 0.07) + 's';
+            r.classList.add('pt-ripple--go');
+          });
+          io.disconnect();
+        }
+      });
+    }, { threshold: 0.4 });
+    io.observe(svg);
+  }
+
+  // ── Inline line labels (right edge) ──────────────────────────────────────
+  // Frontier label near 2026 endpoint
+  var fLast = FRONTIER[FRONTIER.length - 1];
+  var fCY = yS(fLast.price);
+  svg.appendChild(tx({
+    x: PAD.left + PW + 8, y: fCY + 4,
+    fill: '#C9A050', 'font-size': 10.5, 'font-weight': '600',
+    'font-family': 'Space Grotesk,system-ui,sans-serif',
+    'text-anchor': 'start'
+  }, 'Frontier'));
+
+  // Open-weight label near 2026 endpoint
+  var owLast = OPENWEIGHT[OPENWEIGHT.length - 1];
+  var owCY = yS(owLast.price);
+  svg.appendChild(tx({
+    x: PAD.left + PW + 8, y: owCY + 4,
+    fill: '#5B9B84', 'font-size': 10.5, 'font-weight': '600',
+    'font-family': 'Space Grotesk,system-ui,sans-serif',
+    'text-anchor': 'start'
+  }, 'Open'));
+
+}());
+</script>
+
+</body>
+</html>

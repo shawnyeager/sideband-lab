@@ -107,5 +107,16 @@
     "substackUrl": "",
     "substackTitle": "",
     "status": "live"
+  },
+  {
+    "slug": "corridor",
+    "title": "The corridor closes",
+    "description": "Frontier API prices have fallen 430×. Open-weight alternatives fell faster. The margin corridor between what frontier providers charge and what the market will pay has collapsed from $29 to under $1—and frontier providers are now operating below their own cost floor.",
+    "date": "2026-06-19",
+    "thumbnail": "corridor",
+    "ogImage": "/img/og/corridor.png",
+    "substackUrl": "",
+    "substackTitle": "",
+    "status": "live"
   }
 ]
