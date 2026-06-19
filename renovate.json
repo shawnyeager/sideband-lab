@@ -1,6 +1,10 @@
 {
   "$schema": "https://docs.renovatebot.com/renovate-schema.json",
   "extends": [
-    "config:recommended"
-  ]
+    "config:recommended",
+    "schedule:weekly",
+    "group:allNonMajor"
+  ],
+  "prConcurrentLimit": 2,
+  "prHourlyLimit": 1
 }
