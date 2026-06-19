@@ -4,8 +4,9 @@
  * Goes through Astro's normal rendering pipeline (unlike raw Response),
  * so HMR works and View Transitions apply.
  */
-import { projectHeader, fontPreload, projectMeta, projectEssayCTA } from '../lib/header';
+import { projectHeader, fontPreload, projectMeta, projectEssayCTA, projectFooter } from '../lib/header';
 import projects from '../content/projects.json';
+import { getActiveProjects } from '../lib/utils';
 import '../styles/project-base.css';
 
 interface Props {
@@ -18,6 +19,20 @@ const { slug, headContent, bodyContent } = Astro.props;
 const project = projects.find(p => p.slug === slug);
 const meta = project ? projectMeta(project) : '';
 const essayCTA = project ? projectEssayCTA(project) : '';
+
+// Related projects for the footer: lateral internal links to OTHER live
+// projects (never drafts — they're noindex). Honors an optional `related`
+// array of slugs in projects.json; otherwise falls back to the newest 3.
+const liveProjects = getActiveProjects(projects);
+const curatedSlugs = (project as { related?: string[] } | undefined)?.related ?? [];
+const relatedProjects = (
+  curatedSlugs.length
+    ? curatedSlugs.map(s => liveProjects.find(p => p.slug === s))
+    : liveProjects.filter(p => p.slug !== slug)
+)
+  .filter((p): p is NonNullable<typeof p> => Boolean(p) && p!.slug !== slug)
+  .slice(0, 3);
+const footer = projectFooter(relatedProjects.map(p => ({ slug: p.slug, title: p.title, date: p.date })));
 
 // Strip tags from the raw HTML head that projectMeta() already emits — keeps
 // us from rendering duplicate <title>, <meta charset>, or <meta name="viewport">
@@ -64,6 +79,18 @@ if (essayCTA) {
     );
   }
 }
+
+// Inject the footer (related + subscribe) BEFORE the credit so the
+// credit/license stays the page colophon. If a project has no credit block
+// (e.g. the parody status page), fall back to rendering it after <main>.
+let footerInjected = false;
+if (footer && finalBody.includes('<div class="project-credit">')) {
+  finalBody = finalBody.replace(
+    '<div class="project-credit">',
+    `${footer}\n  <div class="project-credit">`
+  );
+  footerInjected = true;
+}
 ---
 
 <html lang="en">
@@ -79,5 +106,6 @@ if (essayCTA) {
   <main id="main-content">
     <Fragment set:html={finalBody} />
   </main>
+  {!footerInjected && <Fragment set:html={footer} />}
 </body>
 </html>

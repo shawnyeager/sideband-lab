@@ -86,7 +86,7 @@ const projectHeaderMarkup = `
 <header class="site-header">
   ${brandLink}
   <nav class="site-header__nav">
-    <a href="/" class="site-header__back">All projects</a>
+    <a href="/" class="site-header__back">&larr; All projects</a>
     ${githubLink}
   </nav>
 </header>
@@ -281,6 +281,7 @@ export const projectHeader = `
     .project-cta:active {
       transform: none;
     }
+    .project-related__title { transition: none; }
   }
 
   /* ── Shared: byline ──
@@ -310,8 +311,83 @@ export const projectHeader = `
     font-variant-numeric: tabular-nums;
   }
 
+  /* ── Shared: project footer (related links + subscribe) ──
+     Injected before .project-credit, so it's a normal in-page block on the
+     728px reading column, like .project-prose. The credit stays the colophon. */
+  .project-footer {
+    max-width: 728px;
+    margin: var(--sp-5, 40px) auto 0;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+  }
+  .project-related {
+    /* No top rule — the hr-subtle above the methodology disclosure already
+       divides the appendix; a second rule here just stacks. Separation here
+       comes from .project-footer's top margin and the kicker label. */
+  }
+  .project-related__kicker {
+    margin: 0 0 var(--sp-2, 12px);
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--site-text-sub, #9a9793);
+  }
+  .project-related__list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--sp-3, 20px);
+  }
+  .project-related__list a {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 16px;
+    text-decoration: none;
+    color: var(--site-text, #393a3a);
+  }
+  .project-related__list a:hover .project-related__title { color: var(--cta-fg, #075570); }
+  .project-related__list a:focus-visible {
+    outline: 2px solid var(--cta-fg, #075570);
+    outline-offset: 4px;
+    border-radius: 2px;
+  }
+  .project-related__title {
+    font-family: 'Roboto Slab', Georgia, 'Times New Roman', serif;
+    font-weight: 600;
+    font-size: 16px;
+    line-height: 1.3;
+    color: var(--site-text-muted, #6b6966);
+    text-wrap: pretty;
+    transition: color 0.15s var(--ease-out-quart, ease);
+  }
+  .project-related__date {
+    flex-shrink: 0;
+    font-size: 12px;
+    color: var(--site-text-sub, #9a9793);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  /* Subscribe: a composed left-aligned block — quiet prompt over the button,
+     not a marketing banner. Sideband states the offer, it doesn't beg the click. */
+  .project-subscribe {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--sp-2, 12px);
+    margin-top: var(--sp-5, 40px);
+  }
+  .project-subscribe__prompt {
+    margin: 0;
+    font-size: 15px;
+    letter-spacing: 0.01em;
+    color: var(--site-text-muted, #6b6966);
+  }
+
   @media (max-width: 640px) {
-    .project-prose, .hr-subtle, .disclosure, .project-credit, .project-essay-cta, .project-byline { max-width: 100%; }
+    .project-prose, .hr-subtle, .disclosure, .project-credit, .project-essay-cta, .project-byline, .project-footer { max-width: 100%; }
   }
 </style>
 <div class="site-header-fixed">${projectHeaderMarkup}</div>
@@ -325,6 +401,42 @@ export function projectEssayCTA(project: { substackUrl?: string }) {
   <a href="${project.substackUrl}" class="project-cta plausible-event-name=Read+Analysis">Read the full analysis</a>
 </div>
 `;
+}
+
+/**
+ * Project-page footer: lateral links to related projects (internal-linking +
+ * topical clustering) plus the newsletter subscribe CTA. Injected BEFORE the
+ * in-page `.project-credit` so the credit/license stays the page's colophon.
+ * `related` holds 2-3 OTHER live projects only — never a draft (it's noindex).
+ * Styles live in the projectHeader <style> block. Returns '' when no related.
+ */
+export function projectFooter(related: { slug: string; title: string; date: string }[] = []) {
+  const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const fmt = (iso: string) =>
+    new Date(iso + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+
+  const relatedBlock = related.length
+    ? `
+  <nav class="project-related" aria-label="More projects from Sideband Lab">
+    <p class="project-related__kicker">More from the lab</p>
+    <ul class="project-related__list">
+      ${related
+        .map(
+          (r) =>
+            `<li><a href="/${r.slug}/"><span class="project-related__title">${esc(r.title)}</span><span class="project-related__date">${fmt(r.date)}</span></a></li>`
+        )
+        .join('\n      ')}
+    </ul>
+  </nav>`
+    : '';
+
+  return `
+<div class="project-footer">${relatedBlock}
+  <div class="project-subscribe">
+    <p class="project-subscribe__prompt">Get the next one in your inbox</p>
+    <a href="https://www.sideband.pub/subscribe" class="project-cta plausible-event-name=Subscribe+Click">Subscribe</a>
+  </div>
+</div>`;
 }
 
 // ── Canonical entity records — single source of truth, referenced from all schema ──
@@ -378,11 +490,15 @@ export function projectMeta(project: {
   author?: string;
   ogImage?: string;
   favicon?: string;
+  status?: string;
 }) {
   const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   const pageTitle = esc(`${project.title} | Sideband Lab`);
   const ogImage = `${SITE_URL}${project.ogImage || '/img/og-default.png'}`;
   const canonical = `${SITE_URL}/${project.slug}/`;
+  // Draft pages still build (so they're previewable) but must not be indexed —
+  // they're unlinked from the homepage and would otherwise be orphan thin pages.
+  const robots = project.status === 'live' ? 'index, follow' : 'noindex, follow';
   const faviconTag = project.favicon
     ? `<link rel="icon" href="${project.favicon}" />`
     : '<link rel="icon" type="image/png" href="/img/sideband-icon.png" />';
@@ -417,7 +533,7 @@ export function projectMeta(project: {
   return `
 <title>${pageTitle}</title>
 <meta name="description" content="${esc(project.description)}" />
-<meta name="robots" content="index, follow" />
+<meta name="robots" content="${robots}" />
 <link rel="canonical" href="${canonical}" />
 ${faviconTag}
 <meta property="og:type" content="article" />
@@ -425,8 +541,8 @@ ${faviconTag}
 <meta property="og:title" content="${pageTitle}" />
 <meta property="og:description" content="${esc(project.description)}" />
 <meta property="og:image" content="${ogImage}" />
-<meta property="og:image:width" content="1200" />
-<meta property="og:image:height" content="630" />
+<meta property="og:image:width" content="1880" />
+<meta property="og:image:height" content="988" />
 <meta property="og:site_name" content="Sideband Lab" />
 <meta property="article:published_time" content="${datePublished}" />
 <meta property="article:modified_time" content="${dateModified}" />
