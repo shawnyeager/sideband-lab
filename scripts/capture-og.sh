@@ -32,6 +32,10 @@ set -euo pipefail
 SLUG="${1:?Usage: $0 <slug> [wait_ms] [extra_hide_selector]}"
 WAIT_MS="${2:-1500}"
 EXTRA_HIDE="${3:-}"
+# Optional 4th arg: shift the crop window down by N CSS px. Lets a tall island
+# (one that would otherwise clip its x-axis) trade top whitespace for bottom
+# breathing room. Default 0 — every existing project is unaffected.
+CROP_Y_OFFSET="${4:-0}"
 SCALE=2
 
 CHART_W_CSS=940
@@ -171,7 +175,7 @@ crop_to() {
   # so a sub-pixel island measurement can't push the output off 1880 device px.
   local crop_w_dev=$(( CHART_W_CSS * SCALE ))
   local x_dev=$(( ISLAND_X * SCALE ))
-  local y_dev=$(( ISLAND_Y * SCALE ))
+  local y_dev=$(( (ISLAND_Y + CROP_Y_OFFSET) * SCALE ))
 
   if [ "$crop_h_dev" -lt "$target_h_dev" ] && [ "$snap_to_gap" = "yes" ]; then
     # Snap landed above target: pad the bottom with navy to reach exact target
