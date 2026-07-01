@@ -75,9 +75,9 @@
   .chart-svg-wrap svg .pt-hit:focus { outline: none; }
   .chart-svg-wrap svg .pt-hit:focus-visible {
     outline: none;
-    stroke: var(--viz-heading);
+    stroke: var(--cyan);
     stroke-width: 1.5;
-    stroke-dasharray: 3 3;
+    stroke-opacity: 0.9;
   }
   /* Data-point affordance: resting ring eases to its hover state, dot glow rides
      a transition so hover in/out feels alive rather than instant. */
@@ -474,7 +474,7 @@
       // Hit target — larger, transparent, keyboard-focusable
       var hit = mk('circle', {
         cx: cx, cy: cy, r: DOT_R + 10,
-        fill: 'transparent', style: 'cursor:pointer',
+        fill: 'transparent', style: 'cursor:help',
         class: 'pt-hit', tabindex: '0', role: 'button',
         'aria-label': ariaLabel
       });

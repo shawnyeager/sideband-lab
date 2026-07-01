@@ -19,6 +19,12 @@
   --site-text-sub:   #9a9793;
   --site-hr:         #d5d2cb;
 
+  /* ── Interactive accent (shared) ──
+     The lab's interactive color. Used for the standard focus ring on every
+     interrogable element (see the interactivity-affordance convention in
+     docs/new-project-checklist.md §3a). Available on every project page. */
+  --cyan:            #0ea5c9;
+
   /* ── Type scale (reading column) ── */
   --fs-h1:           34px;
   --fs-sub:          20px;

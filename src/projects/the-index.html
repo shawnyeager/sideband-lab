@@ -158,7 +158,18 @@
     background: rgba(255,255,255,0.05);
     border-color: rgba(255,255,255,0.1);
     font-weight: 500;
-    cursor: default;
+    cursor: help;
+    text-decoration: underline dotted;
+    text-decoration-color: rgba(227,223,211,0.35);
+    text-underline-offset: 3px;
+    text-decoration-thickness: 1px;
+  }
+  .m-cell.has-product:hover {
+    text-decoration-color: rgba(227,223,211,0.7);
+  }
+  .m-cell.has-product:focus-visible {
+    outline: 2px solid var(--cyan);
+    outline-offset: -2px;
   }
   .m-cell.has-product:hover {
     background: rgba(255,255,255,0.09);
@@ -396,6 +407,12 @@
         cell.dataset.note        = data.note;
         cell.dataset.companyName = co.name;
         cell.dataset.layerName   = layer.name;
+        // Keyboard + touch parity: focusable, and the full detail is exposed
+        // to assistive tech directly (the tooltip is a visual echo only).
+        cell.tabIndex = 0;
+        cell.setAttribute('role', 'button');
+        cell.setAttribute('aria-label',
+          data.product + '. ' + co.name + ', ' + layer.name + '. ' + data.note);
       }
       matrix.appendChild(cell);
     });
@@ -403,38 +420,57 @@
 
   var active = null;
 
-  function positionTooltip(e) {
-    var x = e.clientX + 14;
-    var y = e.clientY - 12;
-    if (x + 250 > window.innerWidth)  x = e.clientX - 250 - 14;
-    if (y + 130 > window.innerHeight) y = e.clientY - 130;
+  function placeTooltip(x, y) {
+    if (x + 250 > window.innerWidth)  x = x - 250 - 28;
+    if (y + 130 > window.innerHeight) y = y - 130;
     tt.style.left = x + 'px';
     tt.style.top  = y + 'px';
   }
 
+  function showTooltip(cell) {
+    active = cell;
+    tt.innerHTML =
+      '<div class="tt-product">' + cell.dataset.product + '</div>' +
+      '<div class="tt-meta">' + cell.dataset.companyName + ' · ' + cell.dataset.layerName + '</div>' +
+      '<div class="tt-note">'  + cell.dataset.note + '</div>';
+    tt.classList.add('show');
+  }
+
+  function hideTooltip() {
+    active = null;
+    tt.classList.remove('show');
+  }
+
+  // Pointer: tooltip tracks the cursor.
   matrix.addEventListener('mouseover', function (e) {
     var cell = e.target.closest('.m-cell.has-product');
     if (cell && cell !== active) {
-      active = cell;
-      tt.innerHTML =
-        '<div class="tt-product">' + cell.dataset.product + '</div>' +
-        '<div class="tt-meta">' + cell.dataset.companyName + ' · ' + cell.dataset.layerName + '</div>' +
-        '<div class="tt-note">'  + cell.dataset.note + '</div>';
-      tt.classList.add('show');
-      positionTooltip(e);
+      showTooltip(cell);
+      placeTooltip(e.clientX + 14, e.clientY - 12);
     } else if (!cell && active) {
-      active = null;
-      tt.classList.remove('show');
+      hideTooltip();
     }
   });
 
   matrix.addEventListener('mousemove', function (e) {
-    if (active) positionTooltip(e);
+    if (active) placeTooltip(e.clientX + 14, e.clientY - 12);
   });
 
-  matrix.addEventListener('mouseleave', function () {
-    active = null;
-    tt.classList.remove('show');
+  matrix.addEventListener('mouseleave', hideTooltip);
+
+  // Keyboard + touch: focus mirrors hover, anchoring the tooltip to the cell.
+  matrix.addEventListener('focusin', function (e) {
+    var cell = e.target.closest('.m-cell.has-product');
+    if (!cell) return;
+    showTooltip(cell);
+    var r = cell.getBoundingClientRect();
+    placeTooltip(r.left + r.width / 2, r.top - 8);
+  });
+
+  matrix.addEventListener('focusout', hideTooltip);
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && active) { active.blur(); hideTooltip(); }
   });
 
 }());

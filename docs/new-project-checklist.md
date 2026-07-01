@@ -84,6 +84,57 @@ done
 
 ---
 
+## 3a. Interactivity affordances
+
+Applies to any element whose **hover or focus reveals detail** — tooltips on matrix cells, plotted data points, actor labels, table rows. The signal that an element is interrogable must be visible **before** the user interacts. A cursor change is not an affordance: it only appears once the pointer is already on the target, and it never appears on touch or keyboard.
+
+| # | Rule | Why |
+|---|------|-----|
+| 3a.1 | **A rest-state signal is mandatory. Never rely on the cursor alone.** The signal adapts to the element: text-bearing (cells, labels) get a dotted underline (the `abbr` convention); plotted marks (dots) render as a visible dot or hairline ring, not an invisible hit-area; label chips are visibly a chip. | Discovery has to work before the first hover, and on touch, where there is no hover at all. |
+| 3a.2 | `cursor: help` on interrogable elements. `cursor: pointer` is reserved for genuinely clickable controls (buttons, links, tabs, replay). | `pointer` promises a click that never happens; `help` is the correct "reveals info" semantic. |
+| 3a.3 | **Keyboard + touch parity.** Every interrogable element is focusable (`tabindex="0"`, `role="button"`) and carries an `aria-label` with the full detail (product/label + context + note), so assistive tech gets the content directly — the tooltip is a visual echo only. Focus mirrors hover to show the tooltip; `Escape` dismisses it. | The tooltip content must not be mouse-only. `aria-label` also covers screen readers, for whom no tooltip fires. |
+| 3a.4 | Focus ring is the shared cyan: `outline: 2px solid var(--cyan)` (HTML) or `stroke: var(--cyan)` (SVG hit-areas). `--cyan` is defined in `project-base.css` and available on every project page. | One focus color across the whole lab. Don't reach for `--viz-text` or a project-local hue. |
+
+Canonical reference implementations: **the-index** (matrix cells — dotted underline + focusable cells + focus-anchored tooltip), **http-402** (`.actor-name` chips), **cloud-cant-follow** / **corridor** (focusable SVG hit-circles with cyan focus stroke).
+
+**Rest-state signal for text cells (the-index pattern):**
+
+```css
+.m-cell.has-product {
+  cursor: help;
+  text-decoration: underline dotted;
+  text-decoration-color: rgba(227,223,211,0.35);  /* the text color at ~35% */
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+.m-cell.has-product:hover { text-decoration-color: rgba(227,223,211,0.7); }
+.m-cell.has-product:focus-visible { outline: 2px solid var(--cyan); outline-offset: -2px; }
+```
+
+**Keyboard + touch parity (JS):**
+
+```js
+cell.tabIndex = 0;
+cell.setAttribute('role', 'button');
+cell.setAttribute('aria-label', product + '. ' + context + '. ' + note);
+// focusin → show tooltip anchored to cell.getBoundingClientRect(); focusout → hide; Escape → blur + hide.
+```
+
+**Verify:**
+
+```bash
+# Interrogable triggers must not use cursor:pointer (reserved for clickable controls)
+grep -nE "cursor: *pointer" src/projects/[slug].html && echo "review: is each pointer a real click target?"
+
+# Focusable + labeled: every hover-tooltip element should also be keyboard-reachable
+grep -q "tabindex" src/projects/[slug].html || echo "FAIL: interrogable elements not focusable"
+
+# Focus ring uses the shared cyan token
+! grep -qE ":focus-visible[^}]*outline:[^}]*var\(--viz-text\)" src/projects/[slug].html || echo "FAIL: focus ring should be var(--cyan)"
+```
+
+---
+
 ## 4. Voice rules (every public-facing string)
 
 Applies to titles, subtitles, descriptions (in `projects.json`), finding paragraphs, disclosure bodies, chart labels — everything a reader sees.
@@ -231,6 +282,12 @@ echo "── 7. Build" && \
 echo "── 8. Verify rendered output" && \
   grep -c "<title>" dist/$SLUG/index.html && \
   grep -c "<h1" dist/$SLUG/index.html && \
+echo "── 9. Interactivity affordances (§3a; only bites if interactive)" && \
+  { ! grep -qE "tooltip|mouseover|mouseenter" src/projects/$SLUG.html || \
+    grep -qi "tabindex" src/projects/$SLUG.html || \
+    { echo "FAIL: hover interaction but no keyboard focus (tabindex)"; false; }; } && \
+  { ! grep -qE "cursor: *pointer" src/projects/$SLUG.html || \
+    echo "⚠ review: every cursor:pointer must be a real click target — else use cursor:help"; } && \
 echo "── ✅ all checks passed"
 ```
 
