@@ -65,17 +65,6 @@
     "status": "live"
   },
   {
-    "slug": "payment-rails",
-    "title": "Payment rails for agents",
-    "description": "Circle launched nanopayments claiming the financial layer of the agentic economy. On cost, every major payment rail is converging. On who can freeze a payment, they're not.",
-    "date": "2026-05-28",
-    "thumbnail": "payment-rails",
-    "ogImage": "/img/og/payment-rails.png",
-    "substackUrl": "",
-    "substackTitle": "",
-    "status": "draft"
-  },
-  {
     "slug": "cloud-cant-follow",
     "title": "The AI market hyperscalers can't reach",
     "description": "Armada raised $230M to deploy modular AI data centers to military bases, oil platforms, and air-gapped facilities. The raise is a map of how far AI's addressable market extends beyond the cloud.",
@@ -85,17 +74,6 @@
     "substackUrl": "",
     "substackTitle": "",
     "status": "live"
-  },
-  {
-    "slug": "agentic-overshoot",
-    "title": "The forecast and the floor",
-    "description": "Enterprise AI budgets grew nearly 6x. Gartner forecasts 40% of apps embedding agents by year-end. Actual production: 11%.",
-    "date": "2026-05-27",
-    "thumbnail": "agentic-overshoot",
-    "ogImage": "/img/og/agentic-overshoot.png",
-    "substackUrl": "",
-    "substackTitle": "",
-    "status": "draft"
   },
   {
     "slug": "inference-trap",
@@ -117,6 +95,15 @@
     "ogImage": "/img/og/corridor.png",
     "substackUrl": "",
     "substackTitle": "",
+    "status": "live"
+  },
+  {
+    "slug": "the-index",
+    "title": "Who owns the index",
+    "description": "ARD makes agent discovery possible. The registry that ranks results controls what agents can reach—the same question search answered thirty years ago.",
+    "date": "2026-06-30",
+    "thumbnail": "the-index",
+    "ogImage": "/img/og/the-index.png",
     "status": "live"
   }
 ]

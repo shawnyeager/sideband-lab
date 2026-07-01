@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>The index always concentrates</title>
+<style>
+  :root {
+    --viz-bg:      #1d2733;
+    --viz-heading: #e3dfd3;
+    --viz-sub:     #a09d94;
+    --viz-muted:   #7a7770;
+    --clr-amber:   #C9A050;
+  }
+
+  .chart-island {
+    max-width: 940px;
+    background: var(--viz-bg);
+    border-radius: 4px;
+    margin-bottom: var(--sp-4);
+    padding: 36px 40px 32px;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+  }
+
+  .legend {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 28px;
+    flex-wrap: wrap;
+    align-items: center;
+  }
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 11px;
+    color: var(--viz-sub);
+    letter-spacing: 0.02em;
+  }
+  .legend-swatch {
+    width: 12px;
+    height: 12px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+  .legend-swatch.sw-primary {
+    background: rgba(201,160,80,0.25);
+    border: 1px solid rgba(201,160,80,0.5);
+  }
+  .legend-swatch.sw-secondary {
+    background: rgba(255,255,255,0.07);
+    border: 1px solid rgba(255,255,255,0.18);
+  }
+  .legend-swatch.sw-empty {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .matrix-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .matrix {
+    display: grid;
+    grid-template-columns: 148px repeat(11, 1fr);
+    min-width: 820px;
+  }
+
+  .m-corner { }
+
+  .m-col-hdr {
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    padding: 0 2px 10px;
+    min-height: 100px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .m-col-hdr-txt {
+    writing-mode: vertical-lr;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--viz-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    white-space: nowrap;
+    line-height: 1;
+  }
+  .m-col-hdr.is-primary .m-col-hdr-txt {
+    color: var(--clr-amber);
+  }
+
+  .m-row-lbl {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 10px 14px 10px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.05);
+    border-right: 1px solid rgba(255,255,255,0.08);
+    position: relative;
+    min-height: 64px;
+  }
+  .m-row-lbl.is-chokepoint {
+    padding-left: 18px;
+  }
+  .m-row-lbl.is-chokepoint::before {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 10px;
+    bottom: 10px;
+    width: 3px;
+    background: var(--clr-amber);
+    border-radius: 2px;
+    opacity: 0.7;
+  }
+  .m-lbl-name {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--viz-heading);
+    line-height: 1.3;
+  }
+  .m-row-lbl.is-chokepoint .m-lbl-name {
+    color: var(--clr-amber);
+  }
+  .m-lbl-sub {
+    font-size: 9px;
+    color: var(--viz-muted);
+    margin-top: 4px;
+    line-height: 1.35;
+  }
+
+  .m-cell {
+    border: 1px solid rgba(255,255,255,0.04);
+    min-height: 64px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 6px 4px;
+    font-size: 9.5px;
+    line-height: 1.35;
+    color: transparent;
+    transition: background 0.12s ease;
+    user-select: none;
+  }
+  .m-cell.has-product {
+    color: var(--viz-heading);
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.1);
+    font-weight: 500;
+    cursor: default;
+  }
+  .m-cell.has-product:hover {
+    background: rgba(255,255,255,0.09);
+  }
+  .m-cell.has-product.is-primary {
+    background: rgba(201,160,80,0.16);
+    border-color: rgba(201,160,80,0.28);
+    color: var(--clr-amber);
+    font-weight: 600;
+  }
+  .m-cell.has-product.is-primary:hover {
+    background: rgba(201,160,80,0.24);
+  }
+
+  .tooltip {
+    position: fixed;
+    background: #18222e;
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 4px;
+    padding: 10px 14px;
+    font-family: 'Space Grotesk', system-ui, sans-serif;
+    font-size: 12px;
+    color: var(--viz-sub);
+    pointer-events: none;
+    z-index: 200;
+    opacity: 0;
+    transition: opacity 0.1s ease;
+    max-width: 230px;
+    line-height: 1.5;
+    box-shadow: 0 4px 16px rgba(0,0,0,0.45);
+  }
+  .tooltip.show { opacity: 1; }
+  .tt-product {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--viz-heading);
+    margin-bottom: 3px;
+  }
+  .tt-meta {
+    font-size: 10px;
+    color: var(--viz-muted);
+    margin-bottom: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .tt-note { font-size: 11px; color: var(--viz-sub); }
+
+  @media (max-width: 768px) {
+    .chart-island {
+      width: calc(100% + 32px);
+      margin-left: -16px;
+      border-radius: 0;
+      padding: 24px 16px 20px;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .tooltip { transition: none; }
+    .m-cell  { transition: none; }
+  }
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="title-block">
+    <h1>The index always concentrates</h1>
+    <p class="subtitle">Twenty search engines competed to index the web in 1999. Twenty-five years later, 91% of all web searches flow through one. ARD defined the discovery layer for AI agents in June 2026. The same clock started.</p>
+  </div>
+
+  <div class="chart-island">
+    <div class="legend">
+      <div class="legend-item">
+        <div class="legend-swatch sw-primary"></div>
+        Google and Microsoft
+      </div>
+      <div class="legend-item">
+        <div class="legend-swatch sw-secondary"></div>
+        Other ARD members
+      </div>
+      <div class="legend-item">
+        <div class="legend-swatch sw-empty"></div>
+        No presence
+      </div>
+    </div>
+    <div class="matrix-scroll">
+      <div class="matrix" id="matrix"></div>
+    </div>
+  </div>
+
+  <div class="finding">
+    <p class="finding-quote">The amber bar marks the chokepoints: cloud runtime is where agents execute, and agent platforms are how users and systems reach them. When ARD launched June 17, 2026, only two founding members had products in both rows: Google and Microsoft.</p>
+    <p class="finding-quote" style="margin-top: 1.2em;">The other nine fill the rows below: model serving, developer tooling, enterprise data, hardware, network. Real infrastructure, but none of it is the runtime. An agent running on GCP does not query a neutral registry. The registry GCP already trusts is easier to reach and harder to displace. That advantage existed before the first catalog was published.</p>
+  </div>
+
+  <div class="hr-subtle"></div>
+
+  <details class="disclosure">
+    <summary>Sources and methodology <span class="chev" aria-hidden="true"></span></summary>
+    <div class="disclosure-body">
+      <p>Product assignments reflect publicly documented capabilities at ARD specification launch (June 17, 2026). ARD specification: Google Developers Blog, June 17, 2026. Founding coalition: Google, Microsoft, Hugging Face, Nvidia, Salesforce, Cisco, GitHub, Databricks, ServiceNow, Snowflake, GoDaddy. Layer categories are analytical groupings, not official ARD terminology. Search market share estimate in subtitle: StatCounter Global Stats, desktop global.</p>
+    </div>
+  </details>
+
+  <div class="project-credit">
+    <a href="https://www.sideband.pub">Sideband</a> &middot; Data: 2026 &middot; <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a>
+  </div>
+</div>
+
+<div class="tooltip" id="tooltip"></div>
+
+<script>
+(function () {
+  'use strict';
+
+  var LAYERS = [
+    { name: 'Cloud runtime',    sub: 'Where agents execute',            chokepoint: true  },
+    { name: 'Agent platforms',  sub: 'Orchestration and interfaces',    chokepoint: true  },
+    { name: 'Model serving',    sub: 'LLM inference endpoints',         chokepoint: false },
+    { name: 'Dev tooling',      sub: 'Build, host, and distribute',     chokepoint: false },
+    { name: 'Enterprise data',  sub: 'Data agents retrieve and act on', chokepoint: false },
+    { name: 'Hardware and net', sub: 'Silicon and connectivity',        chokepoint: false }
+  ];
+
+  var COMPANIES = [
+    { name: 'Google',       primary: true  },
+    { name: 'Microsoft',    primary: true  },
+    { name: 'Nvidia',       primary: false },
+    { name: 'Hugging Face', primary: false },
+    { name: 'Salesforce',   primary: false },
+    { name: 'Databricks',   primary: false },
+    { name: 'ServiceNow',   primary: false },
+    { name: 'Snowflake',    primary: false },
+    { name: 'GitHub',       primary: false },
+    { name: 'Cisco',        primary: false },
+    { name: 'GoDaddy',      primary: false }
+  ];
+
+  var CELLS = [
+    [
+      { product: 'GCP',   note: 'Google Cloud Platform, hyperscale runtime for most AI agent workloads' },
+      { product: 'Azure', note: 'Microsoft Azure, hyperscale cloud runtime for enterprise AI' },
+      null, null, null, null, null, null, null, null, null
+    ],
+    [
+      { product: 'Vertex AI Agents', note: 'Google managed agent builder and orchestration service' },
+      { product: 'Copilot Studio',   note: 'Microsoft low-code agent platform embedded in Microsoft 365' },
+      null, null,
+      { product: 'Agentforce', note: 'Salesforce autonomous agent platform for CRM workflows' },
+      null,
+      { product: 'Now Assist', note: 'ServiceNow AI agent layer for IT and HR automation' },
+      null, null, null, null
+    ],
+    [
+      { product: 'Gemini API',    note: 'Google hosted LLM inference, Gemini 1.5 Pro and Flash' },
+      { product: 'Azure OpenAI',  note: 'Microsoft hosted GPT-4o and o-series inference' },
+      { product: 'NIM',           note: 'Nvidia Inference Microservices, optimized model endpoints' },
+      { product: 'HF Inference',  note: 'Hugging Face serverless and dedicated inference endpoints' },
+      null,
+      { product: 'Mosaic AI',     note: 'Databricks model serving platform and DBRX model family' },
+      null,
+      { product: 'Cortex',        note: 'Snowflake Cortex, LLM inference inside the data warehouse' },
+      { product: 'GitHub Models', note: 'Hosted model access via GitHub marketplace, backed by Azure' },
+      null, null
+    ],
+    [
+      null, null, null,
+      { product: 'HF Hub', note: 'Hugging Face Hub, 800K model cards, datasets, and Spaces apps' },
+      null, null, null, null,
+      { product: 'GitHub', note: 'Repository hosting, Actions CI/CD, and Copilot code assist' },
+      null, null
+    ],
+    [
+      { product: 'BigQuery',      note: 'Google serverless data warehouse, feeds Vertex AI pipelines' },
+      { product: 'Microsoft 365', note: 'M365 productivity suite, primary enterprise agent data target' },
+      null, null,
+      { product: 'Data Cloud',    note: 'Salesforce unified customer data platform' },
+      { product: 'Lakehouse',     note: 'Databricks Lakehouse, unified analytics and ML data store' },
+      { product: 'Now Platform',  note: 'ServiceNow workflow automation and ticketing data layer' },
+      { product: 'Data Cloud',    note: 'Snowflake Data Cloud, cross-cloud data sharing platform' },
+      null, null, null
+    ],
+    [
+      { product: 'TPU',        note: 'Google Tensor Processing Units, custom AI silicon' },
+      null,
+      { product: 'GPU / CUDA', note: 'Nvidia GPU ecosystem, runs the majority of AI training and inference' },
+      null, null, null, null, null, null,
+      { product: 'Networking', note: 'Cisco enterprise and cloud networking infrastructure' },
+      { product: 'Domains',    note: 'GoDaddy domain registrar and web hosting for millions of sites' }
+    ]
+  ];
+
+  var matrix = document.getElementById('matrix');
+  var tt     = document.getElementById('tooltip');
+  if (!matrix) return;
+
+  function mk(tag, cls) {
+    var e = document.createElement(tag);
+    if (cls) e.className = cls;
+    return e;
+  }
+
+  matrix.appendChild(mk('div', 'm-corner'));
+  COMPANIES.forEach(function (co) {
+    var hdr = mk('div', 'm-col-hdr' + (co.primary ? ' is-primary' : ''));
+    var txt = mk('span', 'm-col-hdr-txt');
+    txt.textContent = co.name;
+    hdr.appendChild(txt);
+    matrix.appendChild(hdr);
+  });
+
+  LAYERS.forEach(function (layer, li) {
+    var lbl = mk('div', 'm-row-lbl' + (layer.chokepoint ? ' is-chokepoint' : ''));
+    var nm  = mk('span', 'm-lbl-name');
+    nm.textContent = layer.name;
+    var sb  = mk('span', 'm-lbl-sub');
+    sb.textContent = layer.sub;
+    lbl.appendChild(nm);
+    lbl.appendChild(sb);
+    matrix.appendChild(lbl);
+
+    COMPANIES.forEach(function (co, ci) {
+      var data = CELLS[li][ci];
+      var cls  = 'm-cell';
+      if (data) {
+        cls += ' has-product';
+        if (co.primary) cls += ' is-primary';
+      }
+      var cell = mk('div', cls);
+      if (data) {
+        cell.textContent         = data.product;
+        cell.dataset.product     = data.product;
+        cell.dataset.note        = data.note;
+        cell.dataset.companyName = co.name;
+        cell.dataset.layerName   = layer.name;
+      }
+      matrix.appendChild(cell);
+    });
+  });
+
+  var active = null;
+
+  function positionTooltip(e) {
+    var x = e.clientX + 14;
+    var y = e.clientY - 12;
+    if (x + 250 > window.innerWidth)  x = e.clientX - 250 - 14;
+    if (y + 130 > window.innerHeight) y = e.clientY - 130;
+    tt.style.left = x + 'px';
+    tt.style.top  = y + 'px';
+  }
+
+  matrix.addEventListener('mouseover', function (e) {
+    var cell = e.target.closest('.m-cell.has-product');
+    if (cell && cell !== active) {
+      active = cell;
+      tt.innerHTML =
+        '<div class="tt-product">' + cell.dataset.product + '</div>' +
+        '<div class="tt-meta">' + cell.dataset.companyName + ' · ' + cell.dataset.layerName + '</div>' +
+        '<div class="tt-note">'  + cell.dataset.note + '</div>';
+      tt.classList.add('show');
+      positionTooltip(e);
+    } else if (!cell && active) {
+      active = null;
+      tt.classList.remove('show');
+    }
+  });
+
+  matrix.addEventListener('mousemove', function (e) {
+    if (active) positionTooltip(e);
+  });
+
+  matrix.addEventListener('mouseleave', function () {
+    active = null;
+    tt.classList.remove('show');
+  });
+
+}());
+</script>
+</body>
+</html>
