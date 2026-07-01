@@ -11,6 +11,7 @@
     --viz-sub:     #a09d94;
     --viz-muted:   #7a7770;
     --clr-amber:   #C9A050;
+    --clr-cyan:    #38BDF8;
   }
 
   .chart-island {
@@ -44,16 +45,21 @@
     flex-shrink: 0;
   }
   .legend-swatch.sw-primary {
-    background: rgba(201,160,80,0.25);
-    border: 1px solid rgba(201,160,80,0.5);
+    background: rgba(14,165,201,0.28);
+    border: 1px solid rgba(56,189,248,0.55);
   }
   .legend-swatch.sw-secondary {
     background: rgba(255,255,255,0.07);
     border: 1px solid rgba(255,255,255,0.18);
   }
-  .legend-swatch.sw-empty {
-    background: transparent;
-    border: 1px solid rgba(255,255,255,0.1);
+  .legend-item--chokepoint { color: var(--clr-amber); }
+  .legend-bar {
+    width: 3px;
+    height: 14px;
+    border-radius: 2px;
+    background: var(--clr-amber);
+    opacity: 0.7;
+    flex-shrink: 0;
   }
 
   .matrix-scroll {
@@ -88,7 +94,7 @@
     line-height: 1;
   }
   .m-col-hdr.is-primary .m-col-hdr-txt {
-    color: var(--clr-amber);
+    color: var(--clr-cyan);
   }
 
   .m-row-lbl {
@@ -157,14 +163,17 @@
   .m-cell.has-product:hover {
     background: rgba(255,255,255,0.09);
   }
+  .m-cell.in-chokepoint:not(.has-product) {
+    background: rgba(201,160,80,0.055);
+  }
   .m-cell.has-product.is-primary {
-    background: rgba(201,160,80,0.16);
-    border-color: rgba(201,160,80,0.28);
-    color: var(--clr-amber);
+    background: rgba(14,165,201,0.16);
+    border-color: rgba(56,189,248,0.32);
+    color: var(--clr-cyan);
     font-weight: 600;
   }
   .m-cell.has-product.is-primary:hover {
-    background: rgba(201,160,80,0.24);
+    background: rgba(14,165,201,0.24);
   }
 
   .tooltip {
@@ -223,6 +232,10 @@
 
   <div class="chart-island">
     <div class="legend">
+      <div class="legend-item legend-item--chokepoint">
+        <div class="legend-bar"></div>
+        Chokepoint layer
+      </div>
       <div class="legend-item">
         <div class="legend-swatch sw-primary"></div>
         Google and Microsoft
@@ -230,10 +243,6 @@
       <div class="legend-item">
         <div class="legend-swatch sw-secondary"></div>
         Other ARD members
-      </div>
-      <div class="legend-item">
-        <div class="legend-swatch sw-empty"></div>
-        No presence
       </div>
     </div>
     <div class="matrix-scroll">
@@ -375,6 +384,7 @@
     COMPANIES.forEach(function (co, ci) {
       var data = CELLS[li][ci];
       var cls  = 'm-cell';
+      if (layer.chokepoint) cls += ' in-chokepoint';
       if (data) {
         cls += ' has-product';
         if (co.primary) cls += ' is-primary';
