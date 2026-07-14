@@ -115,6 +115,22 @@
     "ogImage": "/img/og/circles.png",
     "substackUrl": "",
     "substackTitle": "",
-    "status": "draft"
+    "status": "draft",
+    "dataset": {
+      "temporalCoverage": "2025/2026",
+      "license": "https://creativecommons.org/licenses/by/4.0/",
+      "measured": [
+        "Vendor capital out (equity, warrants, purchase backstops, lease-backs, stock granted to customers)",
+        "Purchase commitments back (contracted or announced GPU and compute obligations)"
+      ],
+      "keywords": [
+        "AI infrastructure",
+        "vendor financing",
+        "circular financing",
+        "Nvidia",
+        "GPU compute",
+        "AI capital expenditure"
+      ]
+    }
   }
 ]

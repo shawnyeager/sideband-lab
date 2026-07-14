@@ -34,6 +34,21 @@ Required fields:
 
 Optional fields: `substackUrl`, `substackTitle`, `featured` (boolean — but prefer dropping this entirely; the homepage falls back to the newest live project as featured automatically).
 
+`substackUrl` / `substackTitle` are **not required to go live** — with them empty, the "Read the full analysis" CTA is simply omitted and the homepage card still links to the project. Populate them only when there's a companion post to link.
+
+For a project that is an **original, sourced dataset** (not just an article), add an optional `dataset` block and `projectMeta` will emit `schema.org/Dataset` JSON-LD alongside the Article — the signal AI systems use to treat it as citable original data:
+
+```json
+"dataset": {
+  "temporalCoverage": "2025/2026",
+  "license": "https://creativecommons.org/licenses/by/4.0/",
+  "measured": ["What each row/edge quantifies", "..."],
+  "keywords": ["topic", "entity", "..."]
+}
+```
+
+Omit it for projects that aren't data-backed. `circles` is the reference implementation.
+
 **Verify:**
 
 ```bash

@@ -527,6 +527,12 @@ export function projectMeta(project: {
   ogImage?: string;
   favicon?: string;
   status?: string;
+  dataset?: {
+    temporalCoverage?: string;
+    license?: string;
+    measured?: string[];
+    keywords?: string[];
+  };
 }) {
   const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
   const pageTitle = esc(`${project.title} | Sideband Lab`);
@@ -566,6 +572,30 @@ export function projectMeta(project: {
     inLanguage: 'en',
   });
 
+  // Data-driven projects (an original, sourced dataset) also declare Dataset
+  // schema, so AI systems recognize them as citable original data, not just an
+  // article. Emitted only when projects.json carries a `dataset` block.
+  const datasetSchema = project.dataset
+    ? jsonLd({
+        '@context': 'https://schema.org',
+        '@type': 'Dataset',
+        name: project.title,
+        description: project.description,
+        url: canonical,
+        image: ogImage,
+        creator: AUTHOR_PERSON,
+        publisher: PUBLISHER_ORG,
+        datePublished,
+        dateModified,
+        isAccessibleForFree: true,
+        inLanguage: 'en',
+        ...(project.dataset.license ? { license: project.dataset.license } : {}),
+        ...(project.dataset.temporalCoverage ? { temporalCoverage: project.dataset.temporalCoverage } : {}),
+        ...(project.dataset.measured ? { variableMeasured: project.dataset.measured } : {}),
+        ...(project.dataset.keywords ? { keywords: project.dataset.keywords } : {}),
+      })
+    : '';
+
   return `
 <title>${pageTitle}</title>
 <meta name="description" content="${esc(project.description)}" />
@@ -591,6 +621,7 @@ ${faviconTag}
 <meta name="twitter:image" content="${ogImage}" />
 ${breadcrumbSchema}
 ${articleSchema}
+${datasetSchema}
 <script async src="https://plausible.io/js/pa-FEW5RDsDRliedckfbUUV2.js"></script>
 <script>window.plausible=window.plausible||function(){(plausible.q=plausible.q||[]).push(arguments)},plausible.init=plausible.init||function(i){plausible.o=i||{}};plausible.init()</script>
 `;
