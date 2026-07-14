@@ -105,5 +105,16 @@
     "thumbnail": "the-index",
     "ogImage": "/img/og/the-index.png",
     "status": "live"
+  },
+  {
+    "slug": "circles",
+    "title": "The money goes in circles",
+    "description": "Nvidia invests in, backstops, or leases from the customers who buy its chips. AMD, Microsoft, and Google run the same loop. Nearly half the quantified demand has seller money on the other side of it.",
+    "date": "2026-07-14",
+    "thumbnail": "circles",
+    "ogImage": "/img/og/circles.png",
+    "substackUrl": "",
+    "substackTitle": "",
+    "status": "draft"
   }
 ]
