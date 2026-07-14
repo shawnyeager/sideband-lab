@@ -47,14 +47,32 @@ jq -e --arg s "[slug]" '.[] | select(.slug == $s) | (.title and .description and
 **Shared CSS is loaded automatically by `Project.astro`. The project HTML's `<style>` block should ONLY contain selectors unique to that project (chart-island internals, viz tokens, project palette).** If a selector appears in any of the shared sources below, do NOT redeclare it in the project HTML — drift will follow.
 
 Shared sources:
-- **`src/styles/project-base.css`** — `:root` design tokens (site colors, type scale, spacing scale, motion); reset (`*`, `html`); `body` base; `.page` wrapper; **`.title-block` / `.title-block h1` / `.title-block .subtitle`**; mobile breakpoint at 768px (page padding + h1 down-size).
-- **`projectHeader` in `src/lib/header.ts`** — `@font-face` (Roboto Slab, Lora, Space Grotesk); font overrides on `body`/`h1-h4`; fixed site header; `.disclosure` + summary + `.chev` + `.disclosure-body`; `.hr-subtle`; `.project-credit`; `.project-prose`; `.project-cta`; `.project-essay-cta`; `.project-byline`.
+- **`src/styles/project-base.css`** — `:root` design tokens (site colors, type scale incl. `--fs-h2` / `--fs-h3`, spacing scale, motion); reset (`*`, `html`); `body` base; `.page` wrapper; **`.title-block` / `.title-block h1` / `.title-block .subtitle`**; mobile breakpoint at 768px (page padding + h1 down-size).
+- **`projectHeader` in `src/lib/header.ts`** — `@font-face` (Roboto Slab, Lora, Space Grotesk); font overrides on `body`/`h1-h4`; fixed site header; `.disclosure` + summary + `.chev` + `.disclosure-body`; `.hr-subtle`; `.project-credit`; `.project-prose` **incl. `.project-prose h2` / `.project-prose h3` (section subheadings) and `.project-prose a` (inline prose/source links)**; `.project-cta`; `.project-essay-cta`; `.project-byline`.
+
+### 3.0 Page structure (above the fold)
+
+**The visualization is the argument. It goes directly under the title-block, with all prose below it.** Every shipped project follows this order:
+
+```
+.title-block  (h1 + subtitle)      ← the byline is injected here by the layout
+.chart-island (the visualization)  ← immediately after; nothing prose-y in between
+.project-prose … (intro, sections, disclosures)
+```
+
+Do NOT place a `.project-prose` block between the title and the chart. Intro prose above the island pushes the visualization below the fold — the subtitle is the only framing the chart gets before it appears. This is the single most common structural regression; the reference (`http-402.html`) shows the correct order.
+
+**Section subheadings** use `<h2>` / `<h3>` **inside** a `.project-prose` block. The frame styles `.project-prose h2` / `h3`. Do NOT invent a wrapper class (e.g. `.project-section`) or restyle headings locally.
+
+**Inline prose and source links** are styled by the frame (`.project-prose a` = ink text + cyan underline; `.disclosure-body a` = quieter muted + hairline). Never restyle links locally, and never leave them to browser-default blue.
 
 | # | Rule | Why |
 |---|------|-----|
 | 3.1 | Do NOT declare `:root` tokens that already exist in `project-base.css`: `--site-bg`, `--site-text`, `--site-text-muted`, `--site-text-sub`, `--site-hr`, `--sp-1` through `--sp-5`, `--fs-h1`, `--fs-sub`, `--fs-body`, `--fs-detail-sum`, `--fs-detail-body`, `--fs-foot`, `--lh-heading`, `--lh-body`, `--ease-out-quart`. | Source of truth lives in one file. Each project's `:root` should ONLY hold its own palette (`--bg`, `--viz-*`, project-specific accent colors). |
 | 3.2 | Do NOT redeclare `*`, `html`, `body`, `.page`, `.title-block`, `.title-block h1`, or `.title-block .subtitle`. | Shared in `project-base.css`. |
-| 3.3 | Do NOT redeclare `.disclosure`, `summary`, `.chev`, `.disclosure-body`, `.hr-subtle`, `.project-credit`, `.project-byline`. | Shared in `projectHeader`. |
+| 3.3 | Do NOT redeclare `.disclosure`, `summary`, `.chev`, `.disclosure-body`, `.hr-subtle`, `.project-credit`, `.project-byline`, `.project-prose`, `.project-prose h2`/`h3`, `.project-prose a`. | Shared in `projectHeader`. Section headings and prose/source links are frame-owned (see 3.0). |
+| 3.7 | Chart-island sits directly under `.title-block`; all prose blocks come after it (see 3.0). | Keeps the visualization above the fold. |
+| 3.8 | No raw hex in rules. Every color in a declaration is a token; a project's `:root` may define its own palette (`--viz-*`, accents), and rules reference those. | "No hardcoded values in CSS" (CLAUDE.md). |
 | 3.4 | Do NOT declare `@font-face` for `Roboto Slab`, `Lora`, or `Space Grotesk`. | Shared in `projectHeader`. |
 | 3.5 | Do NOT preload `Inter-Variable.woff2` or set `font-family: 'Inter'` on body. | Body is forced to `Lora !important` by `projectHeader`. Chart UI uses Space Grotesk (`var(--font-sans)`). |
 | 3.6 | Chart island max-width: `940px` (project-specific). Background, padding, palette tokens defined per project. | Visualizations are sovereign within the shared shell. |
@@ -77,9 +95,18 @@ grep -A2 "\\.title-block {" src/projects/[slug].html | grep -q 'var(--sp-1)' || 
 ! grep -q "Inter-Variable.woff2" src/projects/[slug].html || echo "FAIL: remove Inter preload"
 
 # No duplicated shared classes
-for cls in '\\.disclosure {' '\\.hr-subtle {' '\\.project-credit {' '@font-face'; do
+for cls in '\\.disclosure {' '\\.hr-subtle {' '\\.project-credit {' '\\.project-prose {' '@font-face'; do
   grep -q "$cls" src/projects/[slug].html && echo "FAIL: redefines $cls (shared)"
 done
+
+# Section headings use the frame, not an invented wrapper
+grep -q 'class="project-section"' src/projects/[slug].html && echo "FAIL: .project-section is not a shared class — put <h2> inside .project-prose"
+
+# Chart-island above the fold: no .project-prose before the first .chart-island
+awk '/class="project-prose"/{p=NR} /class="chart-island"/{c=NR; exit} END{if(p&&p<c) print "FAIL: prose block appears before the chart-island (pushes viz below the fold)"}' src/projects/[slug].html
+
+# No raw hex inside declarations (palette tokens in :root are fine)
+grep -nE '(background|color|fill|stroke|border|outline)[^;{]*:[^;]*#[0-9A-Fa-f]{6}' src/projects/[slug].html | grep -v -- '--' && echo "FAIL: raw hex in a rule — promote to a :root token"
 ```
 
 ---

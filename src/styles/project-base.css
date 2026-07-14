@@ -27,6 +27,8 @@
 
   /* ── Type scale (reading column) ── */
   --fs-h1:           34px;
+  --fs-h2:           24px;
+  --fs-h3:           19px;
   --fs-sub:          20px;
   --fs-body:         20px;
   --fs-detail-sum:   16px;

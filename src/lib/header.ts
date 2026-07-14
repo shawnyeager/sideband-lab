@@ -218,6 +218,35 @@ export const projectHeader = `
   .project-prose p + p {
     margin-top: var(--sp-2, 14px);
   }
+  /* Section subheadings inside the reading column. Use these for in-prose
+     sections; do not invent a per-project wrapper class. */
+  .project-prose h2 {
+    font-size: var(--fs-h2, 24px);
+    line-height: var(--lh-heading, 1.15);
+    color: var(--site-text, #393a3a);
+    margin: var(--sp-5, 40px) 0 var(--sp-3, 20px);
+  }
+  .project-prose h3 {
+    font-size: var(--fs-h3, 19px);
+    line-height: var(--lh-heading, 1.15);
+    color: var(--site-text, #393a3a);
+    margin: var(--sp-4, 28px) 0 var(--sp-2, 12px);
+  }
+  /* Inline prose links (mostly source citations). Ink text keeps the sentence
+     readable; the cyan underline is the lab's interactive signal, quiet inline.
+     Source links inside .disclosure-body keep their own quieter treatment. */
+  .project-prose a {
+    color: var(--site-text, #393a3a);
+    text-decoration: none;
+    border-bottom: 1px solid var(--cyan, #0ea5c9);
+    transition: color 0.15s var(--ease-out-quart, ease);
+  }
+  .project-prose a:hover { color: var(--cyan, #0ea5c9); }
+  .project-prose a:focus-visible {
+    outline: 2px solid var(--cyan, #0ea5c9);
+    outline-offset: 2px;
+    border-radius: 1px;
+  }
 
   /* ── Shared: subtle divider ── */
   .hr-subtle {
