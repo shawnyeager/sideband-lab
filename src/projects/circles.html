@@ -197,6 +197,7 @@
 
   /* ── Deal card ── */
   .deal-card {
+    position: relative;
     margin-top: var(--sp-2);
     background: var(--viz-surface);
     border: 1px solid var(--viz-border);
@@ -205,13 +206,20 @@
     font-family: var(--font-sans);
   }
   .deal-card[hidden] { display: none; }
+  /* Title + kind sit inline when there's room and wrap to stacked, left-aligned
+     lines when narrow. Close is lifted out of the flow (top-right) so it never
+     squeezes the title into a mid-name wrap. Title, kind, and the row labels
+     below all share the same left gutter. */
   .deal-card-head {
     display: flex;
+    flex-wrap: wrap;
     align-items: baseline;
-    gap: 12px;
+    gap: 3px 12px;
     margin-bottom: 10px;
+    padding-right: 52px;
   }
   .deal-parties {
+    flex: 0 0 auto;
     font-size: 15px;
     font-weight: 600;
     color: var(--viz-heading);
@@ -233,7 +241,9 @@
     color: var(--viz-sub);
   }
   .deal-close {
-    margin-left: auto;
+    position: absolute;
+    top: 14px;
+    right: 14px;
     background: none;
     border: 1px solid var(--viz-control);
     border-radius: 3px;
