@@ -13,7 +13,9 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "share": "astro dev --host 127.0.0.1 & tailscale funnel --bg 4321 && wait",
+    "share:off": "tailscale funnel --https=443 off"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.111.0",
