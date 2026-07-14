@@ -9,6 +9,10 @@
      .disclosure, .hr-subtle, .project-* come from the layout. */
   :root {
     --viz-bg:      #1D2733;
+    --viz-surface: #24303E;  /* raised surface inside the island (deal card) */
+    --viz-node:    #2E3A48;  /* node dot fill */
+    --viz-border:  #34404F;  /* hairline border inside the island */
+    --viz-control: #3A4656;  /* interactive control track / border */
     --viz-heading: #E3DFD3;
     --viz-sub:     #A09D94;
     --viz-muted:   #7A7770;
@@ -107,7 +111,7 @@
     width: 34px;
     height: 18px;
     border-radius: 9px;
-    background: #3A4656;
+    background: var(--viz-control);
     position: relative;
     transition: background 0.2s var(--ease-out-quart);
     flex: none;
@@ -149,7 +153,7 @@
     stroke-opacity: 0.9;
   }
   .node-dot {
-    fill: #2E3A48;
+    fill: var(--viz-node);
     stroke: var(--viz-heading);
     stroke-width: 1.5;
   }
@@ -175,8 +179,8 @@
   /* ── Deal card ── */
   .deal-card {
     margin-top: var(--sp-2);
-    background: #24303E;
-    border: 1px solid #34404F;
+    background: var(--viz-surface);
+    border: 1px solid var(--viz-border);
     border-radius: 4px;
     padding: 16px 18px;
     font-family: var(--font-sans);
@@ -200,33 +204,19 @@
     color: var(--cap);
   }
   .deal-kind.dem { color: var(--dem); }
-  /* Proper CSS-drawn right arrow (replaces text glyphs) */
+  /* Inline SVG arrow (currentColor stroke), matching the codebase idiom. */
   .arr {
-    display: inline-flex;
-    align-items: center;
+    width: 15px;
+    height: 15px;
+    flex: none;
     vertical-align: middle;
-    margin: 0 4px;
-  }
-  .arr::before {
-    content: '';
-    display: inline-block;
-    width: 18px;
-    height: 1.5px;
-    background: currentColor;
-    margin-right: -1px;
-  }
-  .arr::after {
-    content: '';
-    width: 0;
-    height: 0;
-    border-top: 3.5px solid transparent;
-    border-bottom: 3.5px solid transparent;
-    border-left: 6px solid currentColor;
+    margin: 0 5px;
+    color: var(--viz-sub);
   }
   .deal-close {
     margin-left: auto;
     background: none;
-    border: 1px solid #3A4656;
+    border: 1px solid var(--viz-control);
     border-radius: 3px;
     color: var(--viz-sub);
     font-family: var(--font-sans);
@@ -252,19 +242,6 @@
   .deal-rows dd.deal-caveat { color: var(--viz-sub); }
   .deal-rows dd a { color: var(--dem); }
   .deal-rows dd a:focus-visible { outline: 2px solid var(--cyan); outline-offset: 2px; }
-
-  /* ── Prose sections ── */
-  .project-section {
-    max-width: 728px;
-    margin: 0 auto;
-  }
-  .project-section h2 {
-    font-size: 24px;
-    font-weight: 700;
-    line-height: var(--lh-heading);
-    color: var(--site-text);
-    margin: var(--sp-5) 0 var(--sp-3);
-  }
 
   /* ── Historical panel (light background) ── */
   .hist-panel {
@@ -328,11 +305,7 @@
     <p class="subtitle">Nearly half the quantified AI demand on this map has seller money on the other side of it. Thirty deals among fourteen companies.</p>
   </div>
 
-  <div class="project-prose">
-    <p>Nvidia invests in, backstops, or leases from its own customers. Those customers buy Nvidia. AMD, Microsoft, and Google run the same loop with their own instruments.</p>
-    <p>The map below holds the deals announced between spring 2025 and July 2026: equity stakes, warrants priced at a penny a share, purchase backstops, lease-backs, and one customer paid in its vendor's stock. Capital flows from sellers to buyers. Purchase commitments flow back. The question is how much of the announced demand stands on its own.</p>
-  </div>
-  <!-- chart -->
+  <!-- chart: sits directly under the title-block, like every project. Prose below. -->
   <div class="chart-island">
     <div class="readout">
       <div class="readout-main" id="readout-main"></div>
@@ -354,18 +327,19 @@
     <div class="deal-card" id="deal-card" aria-live="polite"></div>
   </div>
 
-  <div class="project-section">
-    <h2>The instruments migrated</h2>
-  </div>
   <div class="project-prose">
+    <p>Nvidia invests in, backstops, or leases from its own customers. Those customers buy Nvidia. AMD, Microsoft, and Google run the same loop with their own instruments.</p>
+    <p>The map holds the deals announced between spring 2025 and July 2026: equity stakes, warrants priced at a penny a share, purchase backstops, lease-backs, and one customer paid in its vendor's stock. Capital flows from sellers to buyers. Purchase commitments flow back. The question is how much of the announced demand stands on its own.</p>
+  </div>
+
+  <div class="project-prose">
+    <h2>The instruments migrated</h2>
     <p>At the Morgan Stanley technology conference on March 4, 2026, <a href="https://techcrunch.com/2026/03/04/jensen-huang-says-nvidia-is-pulling-back-from-openai-and-anthropic-but-his-explanation-raises-more-questions-than-it-answers/">Jensen Huang said</a> the OpenAI and Anthropic stakes would be Nvidia's last direct equity bets in either company. The next chapter was already in production. On July 1, 2026, Nvidia formalized a backstop program that guarantees revenue floors for GPU clouds: $4.88B for SharonAI, an undisclosed sum for Firmus, 210,000 GB300s across the first two partners. Equity on the balance sheet became contingent liabilities beside it. The loop stayed the same, but the instrument got quieter.</p>
     <p>The numbers did not get quieter with it. SemiAnalysis projects roughly $7.1T in AI debt outstanding by 2029, about $11.1T in cumulative AI capex from 2024 to 2029, and annual capex well north of $2T by 2028. The backstop program is how the loop continues at that scale without showing up as equity.</p>
   </div>
 
-  <div class="project-section">
-    <h2>The last time sellers financed the buyers</h2>
-  </div>
   <div class="project-prose">
+    <h2>The last time sellers financed the buyers</h2>
     <p>Lucent committed $8.1B in vendor financing in fiscal 2000, 24% of that year's $33.6B revenue. Revenue then fell 69%, from $37.92B in calendar 1999 to $11.80B in 2002. Lucent took $2.2B in bad debt provisions in 2001 and another $1.3B in 2002. Nortel extended $3.1B and still had $1.4B outstanding; Cisco had promised $2.4B. Forty-seven CLECs went bankrupt between 2000 and 2003, and about $2T in telecom market capitalization was gone by September 2002.</p>
     <p>Tomasz Tunguz ran the comparison in October 2025 and put Nvidia's direct investments at 67% of its $165B trailing revenue, against Lucent's 24%. That figure is stale, and stale in Nvidia's favor. The $110B numerator was the $100B OpenAI letter of intent plus the $10B Anthropic stake, and OpenAI's investment was ultimately signed at $30B. On the confirmed numbers, Tunguz's own method puts Nvidia at 24%: the same ratio as Lucent, not triple it.</p>
     <p>The broader measure climbs back. Nvidia's equity, backstops, and lease-backs come to $58.3B, and the GPU-backed debt they enable adds $24.1B: 50% of the same revenue base, roughly double Lucent. Which figure is right depends on whether a take-or-pay floor and a lease-back count as vendor financing. They do, because the seller is on the hook either way.</p>
@@ -383,10 +357,8 @@
   </div>
   <p class="hist-note">All three Nvidia bars use the $165B trailing revenue base from Tomasz Tunguz's October 2025 comparison, so they compare to Lucent, and to each other, on the same terms. As published, his 67% rested on a $110B numerator: the $100B OpenAI letter of intent plus the $10B Anthropic stake. OpenAI's investment was signed at $30B. Nvidia's revenue has also grown since late 2025, which pulls every Nvidia bar down from where it sits here. Sources: <a href="https://tomtunguz.com/nvidia_nortel_vendor_financing_comparison/">Tomasz Tunguz</a> for the Lucent, Nortel, and CLEC figures; Paul Starr, <a href="https://www.princeton.edu/~starr/articles/articles02/Starr-TelecomImplosion-9-02.htm">The Great Telecom Implosion</a>, for telecom market capitalization.</p>
 
-  <div class="project-section">
-    <h2>The case that this is fine</h2>
-  </div>
   <div class="project-prose">
+    <h2>The case that this is fine</h2>
     <p>The strongest counterargument comes from J.P. Morgan Asset Management: the AI buildout is largely funded from hyperscaler free cash flow, which makes a loop between cash-rich companies closer to an accounting curiosity than a warning. It's a serious argument, and for the biggest buyers it describes the present accurately.</p>
     <p>Some of the evidence here cuts the same way. Hide the vendor money and more than half the quantified commitments are still standing. The largest of them, OpenAI's reported $300B to Oracle and Oracle's reported $40B order to Nvidia, form a circle with no vendor equity anywhere in it. Circularity and vendor financing are not the same thing, and only the second one is drawn here.</p>
     <p>Two numbers press against the free cash flow case. Bain estimates AI needs $2T in annual revenue by 2030 to fund the compute being built for it, and that the current trajectory leaves the industry roughly $800B short. Morgan Stanley expects AI-related global debt issuance to more than double in 2026, to roughly $570B. Free cash flow covers the buildout at today's scale, not at those numbers. The debt markets and the vendors themselves fund the rest.</p>
@@ -398,16 +370,10 @@
   <details class="disclosure">
     <summary>Method and sources <span class="chev" aria-hidden="true"></span></summary>
     <div class="disclosure-body">
-      <p>Vendor capital here means money or equity value moving from a seller of AI hardware or compute to a company that buys from it: equity investments, warrants, purchase backstops, lease-backs, and stock granted to a customer. Purchase commitments are contracted or announced obligations flowing the other way. The mapped deals were announced between spring 2025 and July 2026. Every deal card links its primary source. Figures labeled reported come from press reporting without an SEC-grade filing; they are drawn and counted, and the readout states how many of its dollars they contribute. The readout totals only quantified deals: flows with no disclosed amount are drawn dashed and add nothing to the sums.</p>
-      <p>Two exclusions are deliberate. Nvidia's $5B equity stake in Intel is not on the map: Intel is a supplier building Nvidia-custom x86 CPUs, not a customer buying Nvidia silicon, so the money and the goods travel the same direction and no loop closes. And Microsoft's reported $14B capacity contract with Nscale is drawn but counted as unpaired, because Microsoft's money is third-party demand rather than a return flow to the vendor that financed Nscale. The commitment that does flow back to Nvidia, Nscale's roughly 200,000 GB300 order, is on the map and is paired.</p>
-      <p>Scale and program context: <a href="https://newsletter.semianalysis.com/p/nvidia-gpu-debt-backstop-unleashes">SemiAnalysis</a> on the backstop program and debt projections, <a href="https://www.techtimes.com/articles/319704/20260704/nvidia-revenue-sharing-ai-cloud-debuts-210000-gpus-flywheel-vendor-finance-risk.htm">TechTimes</a> on the 210,000 GPU program total, <a href="https://www.futuriom.com/articles/news/is-nvidias-latest-financial-model-a-circular-deal/2026/07">Futuriom</a> on undisclosed program terms, <a href="https://techcrunch.com/2026/03/04/jensen-huang-says-nvidia-is-pulling-back-from-openai-and-anthropic-but-his-explanation-raises-more-questions-than-it-answers/">TechCrunch</a> on Huang's March 2026 remarks, Bain Global Technology Report (September 2025), <a href="https://am.jpmorgan.com/us/en/asset-management/adv/insights/market-insights/market-updates/on-the-minds-of-investors/does-circularity-in-ai-deals-warn-of-a-bubble/">J.P. Morgan Asset Management</a>, and <a href="https://tomtunguz.com/nvidia_nortel_vendor_financing_comparison/">Tomasz Tunguz</a> on the Lucent comparison.</p>
-    </div>
-  </details>
-
-  <details class="disclosure">
-    <summary>Contradictions and what this piece will not claim <span class="chev" aria-hidden="true"></span></summary>
-    <div class="disclosure-body">
-      <p>Nvidia's CoreWeave stake: some outlets report $2B for 9%; the <a href="https://www.stocktitan.net/sec-filings/CRWV/schedule-13g-a-core-weave-inc-amended-passive-investment-disclosure-6a00724c61b4.html">Schedule 13G/A</a> discloses 47,213,353 Class A shares, about 11.5% and roughly $3.66B. The map uses the filing. CoreWeave's total debt: more than $21B, $24.9B, and $35B all circulate, under different definitions; the map draws only the two GPU-backed term loans ($8.5B and $3.1B) and cites $24.9B as the most recent specific claim. Estimates of 2026 hyperscaler capex run from more than $600B to $805B depending on which companies are counted; the scopes differ, so this piece never averages them and never uses a single number. The disclosure date of Nvidia's $6.3B CoreWeave backstop is given as September 15, 2025 by CNBC and October 2025 by Motley Fool; the agreement itself dates to 2023. The Firmus backstop value is undisclosed, and the $25B to $30B six-year figure sometimes attached to it is Firmus's own revenue projection. The Oracle numbers, roughly $300B from OpenAI and roughly $40B to Nvidia, are reported and have never been confirmed in an SEC filing. Morgan Stanley's 2026 AI debt issuance forecast circulates as both roughly $570B and more than $500B; this piece uses $570B and does not reconcile the two. Cisco's vendor financing writeoff is widely described as roughly $900M, but the figure does not appear in any source used here, so only its $2.4B commitment is stated. No reliable aggregate exists for total circular financing in AI: the readout above sums only the quantified deals on this map, and no claim here goes beyond them.</p>
+      <p>Vendor capital means money or equity value moving from a seller of AI hardware or compute to a company that buys from it: equity, warrants, purchase backstops, lease-backs, and stock granted to a customer. Purchase commitments are the obligations flowing back. Deals were announced between spring 2025 and July 2026, and every deal card links its primary source. The readout counts only quantified deals; dashed flows have no disclosed amount and add nothing. Figures marked reported rest on press coverage without an SEC-grade filing.</p>
+      <p>Two exclusions are deliberate. Nvidia's $5B stake in Intel is off the map because Intel is a supplier building Nvidia-custom CPUs, not a customer buying Nvidia silicon, so no loop closes. Microsoft's reported $14B Nscale contract is drawn but unpaired: it is third-party demand, not a return flow to Nvidia, which holds the Nscale equity.</p>
+      <p>Where sources disagree, the map takes the filing and says so. Nvidia's CoreWeave stake is reported by some outlets as $2B for 9%; the <a href="https://www.stocktitan.net/sec-filings/CRWV/schedule-13g-a-core-weave-inc-amended-passive-investment-disclosure-6a00724c61b4.html">Schedule 13G/A</a> discloses 47.2M Class A shares, about 11.5% and $3.66B, and the map uses the filing. CoreWeave's total debt runs $21B, $24.9B, or $35B under different definitions; the map draws only the two GPU-backed term loans ($8.5B and $3.1B). The Oracle figures, roughly $300B from OpenAI and $40B to Nvidia, are reported and never SEC-confirmed. Morgan Stanley's 2026 debt-issuance forecast circulates as both $570B and more than $500B; the piece uses $570B. Cisco's roughly $900M vendor-financing writeoff appears in no source used here, so only its $2.4B commitment is stated. No reliable aggregate exists for total circular financing in AI; the readout sums only the deals on this map and claims nothing beyond them.</p>
+      <p>Sources: <a href="https://newsletter.semianalysis.com/p/nvidia-gpu-debt-backstop-unleashes">SemiAnalysis</a> on the backstop program and debt projections, <a href="https://www.techtimes.com/articles/319704/20260704/nvidia-revenue-sharing-ai-cloud-debuts-210000-gpus-flywheel-vendor-finance-risk.htm">TechTimes</a> on the 210,000 GPU program total, <a href="https://www.futuriom.com/articles/news/is-nvidias-latest-financial-model-a-circular-deal/2026/07">Futuriom</a> on undisclosed program terms, <a href="https://techcrunch.com/2026/03/04/jensen-huang-says-nvidia-is-pulling-back-from-openai-and-anthropic-but-his-explanation-raises-more-questions-than-it-answers/">TechCrunch</a> on Huang's March 2026 remarks, Bain Global Technology Report (September 2025), <a href="https://am.jpmorgan.com/us/en/asset-management/adv/insights/market-insights/market-updates/on-the-minds-of-investors/does-circularity-in-ai-deals-warn-of-a-bubble/">J.P. Morgan Asset Management</a>, and <a href="https://tomtunguz.com/nvidia_nortel_vendor_financing_comparison/">Tomasz Tunguz</a> on the Lucent comparison.</p>
     </div>
   </details>
 
@@ -420,6 +386,9 @@
 (function () {
   'use strict';
   var NS = 'http://www.w3.org/2000/svg';
+  var ARROW_RIGHT = '<svg class="arr" viewBox="0 0 16 16" fill="none" stroke="currentColor" ' +
+    'stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M2.5 8h10M9 4.5 12.5 8 9 11.5"/></svg>';
 
   function mk(tag, attrs) {
     var e = document.createElementNS(NS, tag);
@@ -468,7 +437,7 @@
     { id: 'c3', kind: 'capital', from: 'nvda', to: 'crwv', off: 40,
       instrument: 'Order backstop', amountB: 6.3, amountLabel: 'Up to $6.3B',
       date: 'Disclosed September 2025',
-      back: 'Nvidia is obligated to buy CoreWeave's residual unsold capacity through April 2032.',
+      back: 'Nvidia is obligated to buy CoreWeave\'s residual unsold capacity through April 2032.',
       caveat: 'CNBC dates the disclosure September 15, 2025; Motley Fool says October 2025. The agreement itself dates to 2023.',
       sourceName: 'CNBC', sourceUrl: 'https://www.cnbc.com/2025/09/15/coreweave-stock-jumps-on-disclosure-of-6point3-billion-order-from-nvidia.html' },
     { id: 'c4', kind: 'capital', from: 'nvda', to: 'sharonai',
@@ -481,7 +450,7 @@
       instrument: 'Revenue backstop (take-or-pay)', amountB: null, amountLabel: 'Undisclosed',
       date: 'June 2026',
       back: 'Firmus buys GB300s from Nvidia for a 360MW cluster in Batam, Indonesia.',
-      caveat: 'Backstop value undisclosed. The $25B to $30B six-year figure sometimes attached is Firmus's own revenue projection, not the backstop.',
+      caveat: 'Backstop value undisclosed. The $25B to $30B six-year figure sometimes attached is Firmus\'s own revenue projection, not the backstop.',
       sourceName: 'SemiAnalysis', sourceUrl: 'https://newsletter.semianalysis.com/p/nvidia-gpu-debt-backstop-unleashes' },
     { id: 'c6', kind: 'capital', from: 'nvda', to: 'xai',
       instrument: 'Equity into a GPU-buying SPV round', amountB: 2, amountLabel: 'Up to $2B',
@@ -493,13 +462,13 @@
       instrument: 'Equity investment', amountB: 10, amountLabel: 'Up to $10B',
       date: 'November 2025',
       back: 'Anthropic commits $30B of Azure compute on Nvidia hardware.',
-      caveat: 'Announced jointly with Microsoft's investment, at a valuation around $350B.',
+      caveat: 'Announced jointly with Microsoft\'s investment, at a valuation around $350B.',
       sourceName: 'Microsoft', sourceUrl: 'https://blogs.microsoft.com/blog/2025/11/18/microsoft-nvidia-and-anthropic-announce-strategic-partnerships/' },
     { id: 'c8', kind: 'capital', from: 'msft', to: 'anthropic',
       instrument: 'Equity investment', amountB: 5, amountLabel: 'Up to $5B',
       date: 'November 2025',
       back: 'Anthropic commits $30B of Azure compute.',
-      caveat: 'Announced jointly with Nvidia's up to $10B.',
+      caveat: 'Announced jointly with Nvidia\'s up to $10B.',
       sourceName: 'Microsoft', sourceUrl: 'https://blogs.microsoft.com/blog/2025/11/18/microsoft-nvidia-and-anthropic-announce-strategic-partnerships/' },
     { id: 'c9', kind: 'capital', from: 'nvda', to: 'lambda',
       instrument: 'Lease-back', amountB: 1.5, amountLabel: '$1.5B',
@@ -577,7 +546,7 @@
     { id: 'd8', kind: 'demand', from: 'lambda', to: 'nvda', qw: 2,
       instrument: 'GPU server purchases', amountB: null, amountLabel: '10,000 + 8,000 servers',
       date: 'September 2025', paired: ['c9'],
-      caveat: 'Bought and leased back under the same deal that makes Nvidia Lambda's largest customer.',
+      caveat: 'Bought and leased back under the same deal that makes Nvidia Lambda\'s largest customer.',
       sourceName: 'Data Center Dynamics', sourceUrl: 'https://www.datacenterdynamics.com/en/news/nvidia-signs-15bn-deal-to-lease-its-gpus-back-from-lambda-report/' },
     { id: 'd9', kind: 'demand', from: 'msft', to: 'nscale', reported: true,
       instrument: 'GPU capacity contract', amountB: 14, amountLabel: '~200,000 GB300s, est. up to $14B (reported)',
@@ -607,8 +576,8 @@
     { id: 'd15', kind: 'demand', from: 'orcl', to: 'nvda', reported: true,
       instrument: 'GPU order', amountB: 40, amountLabel: '~$40B, ~400,000 GB200s (reported)',
       date: 'May 2025', paired: [],
-      caveat: 'Reported, not filed. Supplies the Abilene, Texas Stargate campus built for OpenAI: the third leg of the loop with OpenAI's reported ~$300B Oracle commitment.',
-      sourceName: 'Tom's Hardware', sourceUrl: 'https://www.tomshardware.com/pc-components/gpus/oracle-has-reportedly-placed-an-order-for-usd40-billion-in-nvidia-ai-gpus-for-a-new-openai-data-center' },
+      caveat: 'Reported, not filed. Supplies the Abilene, Texas Stargate campus built for OpenAI: the third leg of the loop with OpenAI\'s reported ~$300B Oracle commitment.',
+      sourceName: 'Tom\'s Hardware', sourceUrl: 'https://www.tomshardware.com/pc-components/gpus/oracle-has-reportedly-placed-an-order-for-usd40-billion-in-nvidia-ai-gpus-for-a-new-openai-data-center' },
     { id: 'd16', kind: 'demand', from: 'msft', to: 'nebius',
       instrument: 'GPU capacity contract', amountB: 17.4, amountLabel: '$17.4B through 2031',
       date: 'September 2025', paired: [],
@@ -617,7 +586,7 @@
     { id: 'd17', kind: 'demand', from: 'anthropic', to: 'goog', qw: 4, reported: true,
       instrument: 'TPU expansion', amountB: null, amountLabel: 'Up to 1M TPUs, tens of billions (reported)',
       date: 'October 2025', paired: ['c15'],
-      caveat: 'Google's announcement says tens of billions of dollars, with more than 1GW online in 2026, and gives no firm figure.',
+      caveat: 'Google\'s announcement says tens of billions of dollars, with more than 1GW online in 2026, and gives no firm figure.',
       sourceName: 'Google Cloud', sourceUrl: 'https://www.googlecloudpresscorner.com/2025-10-23-Anthropic-to-Expand-Use-of-Google-Cloud-TPUs-and-Services' }
   ];
 
@@ -867,7 +836,7 @@
     }
     rows += row('Caveat', e.caveat, 'deal-caveat');
     rows += row('Source', '<a href="' + esc(e.sourceUrl) + '" target="_blank" rel="noopener">' + esc(e.sourceName) + '</a>', null, true);
-    cardShell(esc(fromName) + '<span class="arr" aria-hidden="true"></span>' + esc(toName), e.kind === 'capital' ? 'Vendor capital' : 'Purchase commitment', e.kind === 'capital' ? '' : 'dem', rows);
+    cardShell(esc(fromName) + ARROW_RIGHT + esc(toName), e.kind === 'capital' ? 'Vendor capital' : 'Purchase commitment', e.kind === 'capital' ? '' : 'dem', rows);
   }
 
   function openNodeCard(n, deals, trigger) {
@@ -925,6 +894,30 @@
 
   renderReadout(false);
   openDealCard(edgeById.c1);
+
+  /* Reserve the taller of the two readout states so flipping the toggle
+     swaps text without shoving the map below it. Recomputed on resize
+     because the text reflows at different widths. */
+  var readoutBox = document.querySelector('.readout');
+  function reserveReadoutSpace() {
+    if (!readoutBox) return;
+    readoutBox.style.minHeight = '';
+    renderReadout(false);
+    var hOpen = readoutBox.offsetHeight;
+    renderReadout(true);
+    var hHidden = readoutBox.offsetHeight;
+    readoutBox.style.minHeight = Math.max(hOpen, hHidden) + 'px';
+    renderReadout(veiled);
+  }
+  reserveReadoutSpace();
+  var reserveRaf = 0;
+  window.addEventListener('resize', function () {
+    if (reserveRaf) return;
+    reserveRaf = requestAnimationFrame(function () {
+      reserveRaf = 0;
+      reserveReadoutSpace();
+    });
+  });
 
   /* ── Historical panel (light background) ── */
   function barChart(containerId, items, maxVal, barColor) {
