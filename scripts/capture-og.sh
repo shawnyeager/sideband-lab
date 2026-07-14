@@ -63,7 +63,7 @@ prepare_page() {
     hide('.project-breadcrumb');
     hide('.title-block');
     hide('.project-byline');
-    ${EXTRA_HIDE:+hide('$EXTRA_HIDE');}
+    ${EXTRA_HIDE:+'$EXTRA_HIDE'.split(',').forEach(s => document.querySelectorAll(s.trim()).forEach(el => el.style.display = 'none'));}
     document.body.style.paddingTop = '0';
     document.body.style.background = '#1d2733';
   })()"
