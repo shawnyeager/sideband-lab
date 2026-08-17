@@ -18,7 +18,7 @@
     "share:off": "tailscale funnel --https=443 off"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.116.0",
+    "@anthropic-ai/sdk": "^0.117.0",
     "@astrojs/react": "^6.0.0",
     "@astrojs/sitemap": "^3.7.0",
     "astro": "^7.0.0",
