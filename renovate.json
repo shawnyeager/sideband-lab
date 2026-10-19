@@ -6,5 +6,28 @@
     "group:allNonMajor"
   ],
   "prConcurrentLimit": 2,
-  "prHourlyLimit": 1
+  "prHourlyLimit": 1,
+  "packageRules": [
+    {
+      "description": "Squash-merge the grouped non-major PR when CI passes.",
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "pin",
+        "digest"
+      ],
+      "automerge": true,
+      "automergeType": "pr",
+      "automergeStrategy": "squash"
+    },
+    {
+      "description": "Majors request review.",
+      "matchUpdateTypes": [
+        "major"
+      ],
+      "reviewers": [
+        "shawnyeager"
+      ]
+    }
+  ]
 }
